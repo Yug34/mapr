@@ -7,6 +7,7 @@ import {
   MiniMap,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { Plus } from "lucide-react";
 
 const initialNodes = [
   { id: "n1", position: { x: 0, y: 0 }, data: { label: "Node 1" } },
@@ -71,9 +72,12 @@ function App() {
             />
           </ReactFlow>
         </div>
-        <div className="flex flex-row w-full h-12 bg-blue-500 flex-shrink-0">
+        <div className="flex flex-row w-full h-8 bg-blue-500 flex-shrink-0">
           <div className="">Tab 1</div>
           <div className="">Tab 1</div>
+          <div className="">
+            <Plus />
+          </div>
         </div>
       </div>
     </div>
