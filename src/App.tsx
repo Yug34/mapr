@@ -6,31 +6,37 @@ import {
   addEdge,
   MiniMap,
 } from "@xyflow/react";
+
+import type { Connection, EdgeChange, NodeChange, Node } from "@xyflow/react";
+
 import "@xyflow/react/dist/style.css";
 import { Plus } from "lucide-react";
 
-const initialNodes = [
+type CustomNode = Node<{ label: string }>;
+
+const initialNodes: CustomNode[] = [
   { id: "n1", position: { x: 0, y: 0 }, data: { label: "Node 1" } },
   { id: "n2", position: { x: 0, y: 100 }, data: { label: "Node 2" } },
 ];
 const initialEdges = [{ id: "n1-n2", source: "n1", target: "n2" }];
 
 function App() {
-  const [nodes, setNodes] = useState(initialNodes);
+  const [nodes, setNodes] = useState<CustomNode[]>(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
 
   const onNodesChange = useCallback(
-    (changes) =>
+    (changes: NodeChange<CustomNode>[]) =>
       setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
     []
   );
   const onEdgesChange = useCallback(
-    (changes) =>
+    (changes: EdgeChange[]) =>
       setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
     []
   );
   const onConnect = useCallback(
-    (params) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
+    (params: Connection) =>
+      setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
     []
   );
   return (
