@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -6,20 +6,12 @@ import {
   applyEdgeChanges,
   addEdge,
 } from "@xyflow/react";
-import type { NodeChange, EdgeChange, Connection, Node } from "@xyflow/react";
-
-type CustomNode = Node<{ label: string }>;
-
-const initialNodes: CustomNode[] = [
-  { id: "n1", position: { x: 0, y: 0 }, data: { label: "Node 1" } },
-  { id: "n2", position: { x: 0, y: 100 }, data: { label: "Node 2" } },
-];
-const initialEdges = [{ id: "n1-n2", source: "n1", target: "n2" }];
+import type { NodeChange, EdgeChange, Connection } from "@xyflow/react";
+import { useCanvasStore } from "../store/canvasStore";
+import type { CustomNode } from "../types/common";
 
 const Canvas = () => {
-  // move to zustand
-  const [nodes, setNodes] = useState<CustomNode[]>(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
+  const { nodes, edges, setNodes, setEdges } = useCanvasStore();
 
   const onNodesChange = useCallback(
     (changes: NodeChange<CustomNode>[]) =>
