@@ -8,6 +8,7 @@ import {
 } from "@xyflow/react";
 import type { NodeChange, EdgeChange, Connection } from "@xyflow/react";
 import { useCanvasStore } from "../store/canvasStore";
+import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
 
 const Canvas = () => {
@@ -44,6 +45,7 @@ const Canvas = () => {
             `,
           backgroundSize: "20px 20px",
         }}
+        nodeTypes={nodeTypes}
       >
         <MiniMap
           style={{
