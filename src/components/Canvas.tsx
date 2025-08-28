@@ -20,13 +20,29 @@ const Canvas = () => {
     if (canvas) {
       canvas.addEventListener("paste", (e) => {
         const text = e.clipboardData?.getData("text");
+
+        const re =
+          /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_.~#?&//=]*)$/;
+
+        debugger;
+
         if (text) {
-          const textNode: CustomNode = {
-            id: crypto.randomUUID(),
-            position: { x: 0, y: 0 },
-            data: { label: text },
-          };
-          addNode(textNode);
+          if (re.test(text)) {
+            const webPageNode: CustomNode = {
+              id: crypto.randomUUID(),
+              type: "WebPageNode",
+              position: { x: 0, y: 0 },
+              data: { url: text },
+            };
+            addNode(webPageNode);
+          } else {
+            const textNode: CustomNode = {
+              id: crypto.randomUUID(),
+              position: { x: 0, y: 0 },
+              data: { label: text },
+            };
+            addNode(textNode);
+          }
         }
       });
 
