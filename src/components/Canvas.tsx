@@ -16,45 +16,53 @@ const Canvas = () => {
   const { nodes, edges, setNodes, setEdges, addNode } = useCanvasStore();
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  const handlePaste = (e: ClipboardEvent) => {
+    e.preventDefault();
+
+    if (e.clipboardData?.types.includes("text/plain")) {
+      const text = e.clipboardData?.getData("text");
+      if (text) {
+        if (isLink(text)) {
+          const webPageNode: CustomNode = {
+            id: crypto.randomUUID(),
+            type: "WebPageNode",
+            position: { x: 0, y: 0 },
+            data: { url: text },
+          };
+          addNode(webPageNode);
+        } else {
+          const textNode: CustomNode = {
+            id: crypto.randomUUID(),
+            position: { x: 0, y: 0 },
+            data: { label: text },
+          };
+          addNode(textNode);
+        }
+      }
+    } else {
+      const items = e.clipboardData?.items ?? [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith("image/")) {
+          const file = items[i].getAsFile();
+          if (file) {
+            const url = URL.createObjectURL(file);
+            console.log("Pasted image:", url);
+          }
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.addEventListener("paste", (e: ClipboardEvent) => {
-        const text = e.clipboardData?.getData("text");
-
-        if (text) {
-          if (isLink(text)) {
-            const webPageNode: CustomNode = {
-              id: crypto.randomUUID(),
-              type: "WebPageNode",
-              position: { x: 0, y: 0 },
-              data: { url: text },
-            };
-            addNode(webPageNode);
-          } else {
-            const textNode: CustomNode = {
-              id: crypto.randomUUID(),
-              position: { x: 0, y: 0 },
-              data: { label: text },
-            };
-            addNode(textNode);
-          }
-        }
-      });
-
-      // Add click handler to ensure canvas gets focus
-      canvas.addEventListener("click", () => {
-        canvas.focus();
-      });
+      canvas.addEventListener("paste", handlePaste);
+      canvas.addEventListener("click", () => canvas.focus());
     }
 
     return () => {
-      canvas?.removeEventListener("paste", (e) => {
-        console.log(e.clipboardData?.getData("text"));
-      });
-      canvas?.removeEventListener("click", () => {
-        canvas.focus();
-      });
+      canvas?.removeEventListener("paste", handlePaste);
+      canvas?.removeEventListener("click", () => canvas.focus());
     };
   }, []);
 

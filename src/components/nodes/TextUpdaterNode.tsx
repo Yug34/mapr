@@ -7,7 +7,7 @@ export function TextUpdaterNode() {
   }, []);
 
   return (
-    <div className="text-updater-node">
+    <div>
       <div>
         <label htmlFor="text">Text:</label>
         <input id="text" name="text" onChange={onChange} className="nodrag" />
