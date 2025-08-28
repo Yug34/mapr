@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -12,7 +12,39 @@ import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
 
 const Canvas = () => {
-  const { nodes, edges, setNodes, setEdges } = useCanvasStore();
+  const { nodes, edges, setNodes, setEdges, addNode } = useCanvasStore();
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.addEventListener("paste", (e) => {
+        const text = e.clipboardData?.getData("text");
+        if (text) {
+          const textNode: CustomNode = {
+            id: crypto.randomUUID(),
+            position: { x: 0, y: 0 },
+            data: { label: text },
+          };
+          addNode(textNode);
+        }
+      });
+
+      // Add click handler to ensure canvas gets focus
+      canvas.addEventListener("click", () => {
+        canvas.focus();
+      });
+    }
+
+    return () => {
+      canvas?.removeEventListener("paste", (e) => {
+        console.log(e.clipboardData?.getData("text"));
+      });
+      canvas?.removeEventListener("click", () => {
+        canvas.focus();
+      });
+    };
+  }, []);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<CustomNode>[]) =>
@@ -31,7 +63,12 @@ const Canvas = () => {
   );
 
   return (
-    <div className="flex-1 min-h-0">
+    <div
+      ref={canvasRef}
+      className="flex-1 min-h-0"
+      tabIndex={0}
+      style={{ outline: "none" }}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}

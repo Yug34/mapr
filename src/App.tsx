@@ -2,6 +2,10 @@ import "@xyflow/react/dist/style.css";
 import { Plus } from "lucide-react";
 import Canvas from "./components/Canvas";
 
+// TODO:
+// 1. Add new components: TODO List
+// Canvas interactions: cut copy paste etc
+
 function App() {
   return (
     <div className="w-screen h-screen flex flex-row overflow-hidden">
