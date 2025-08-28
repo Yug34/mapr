@@ -1,10 +1,12 @@
 import { TextUpdaterNode } from "../components/nodes/TextUpdaterNode";
 import { WebPageNode } from "../components/nodes/WebPageNode";
+import { ImageNode } from "../components/nodes/ImageNode";
 import type { Node } from "@xyflow/react";
 
 export const nodeTypes = {
   textUpdater: TextUpdaterNode,
   WebPageNode: WebPageNode,
+  ImageNode: ImageNode,
 };
 
 export type WebPageNodeData = {
@@ -15,4 +17,12 @@ export type TextUpdaterNodeData = {
   label: string;
 };
 
-export type CustomNode = Node<TextUpdaterNodeData | WebPageNodeData>;
+export type ImageNodeData = {
+  imageBlobUrl: string;
+  image: File;
+  imageBase64: string;
+};
+
+export type CustomNode = Node<
+  TextUpdaterNodeData | WebPageNodeData | ImageNodeData
+>;

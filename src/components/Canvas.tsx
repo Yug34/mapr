@@ -16,7 +16,7 @@ const Canvas = () => {
   const { nodes, edges, setNodes, setEdges, addNode } = useCanvasStore();
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const handlePaste = (e: ClipboardEvent) => {
+  const handlePaste = async (e: ClipboardEvent) => {
     e.preventDefault();
 
     if (e.clipboardData?.types.includes("text/plain")) {
@@ -46,7 +46,31 @@ const Canvas = () => {
           const file = items[i].getAsFile();
           if (file) {
             const url = URL.createObjectURL(file);
-            console.log("Pasted image:", url);
+            const reader = new FileReader();
+
+            reader.onload = async (e) => {
+              const base64String = e.target?.result;
+              if (base64String) {
+                const imageNode: CustomNode = {
+                  id: crypto.randomUUID(),
+                  type: "ImageNode",
+                  position: { x: 0, y: 0 },
+                  data: {
+                    image: file,
+                    imageBlobUrl: url,
+                    imageBase64: base64String as string,
+                  },
+                };
+                console.log({
+                  image: file,
+                  imageBlobUrl: url,
+                  imageBase64: base64String as string,
+                });
+                addNode(imageNode);
+              }
+            };
+
+            reader.readAsDataURL(file);
           }
         }
       }
