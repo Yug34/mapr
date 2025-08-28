@@ -10,6 +10,7 @@ import type { NodeChange, EdgeChange, Connection } from "@xyflow/react";
 import { useCanvasStore } from "../store/canvasStore";
 import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
+import { isLink } from "../utils";
 
 const Canvas = () => {
   const { nodes, edges, setNodes, setEdges, addNode } = useCanvasStore();
@@ -18,14 +19,11 @@ const Canvas = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.addEventListener("paste", (e) => {
+      canvas.addEventListener("paste", (e: ClipboardEvent) => {
         const text = e.clipboardData?.getData("text");
 
-        const re =
-          /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_.~#?&//=]*)$/;
-
         if (text) {
-          if (re.test(text)) {
+          if (isLink(text)) {
             const webPageNode: CustomNode = {
               id: crypto.randomUUID(),
               type: "WebPageNode",
