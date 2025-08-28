@@ -114,12 +114,14 @@ const Canvas = () => {
       style={{ outline: "none" }}
     >
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        fitView
+        {...{
+          nodes,
+          edges,
+          onNodesChange,
+          onEdgesChange,
+          onConnect,
+          fitView: true,
+        }}
         style={{
           background: `
               radial-gradient(circle, #a0a0a0 1px, transparent 1px)
