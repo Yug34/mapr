@@ -1,8 +1,3 @@
-type Image = {
-  url: string;
-  image: string;
-};
-
 let db: IDBDatabase | null = null;
 
 const request: IDBOpenDBRequest = indexedDB.open("CanvasDB", 1);

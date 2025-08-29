@@ -72,6 +72,36 @@ const Canvas = () => {
 
             reader.readAsDataURL(file);
           }
+        } else if (items[i].type.startsWith("video/")) {
+          const file = items[i].getAsFile();
+          if (file) {
+            const url = URL.createObjectURL(file);
+            const reader = new FileReader();
+
+            reader.onload = async (e) => {
+              const base64String = e.target?.result;
+              if (base64String) {
+                const videoNode: CustomNode = {
+                  id: crypto.randomUUID(),
+                  type: "VideoNode",
+                  position: { x: 0, y: 0 },
+                  data: {
+                    video: file,
+                    videoBlobUrl: url,
+                    videoBase64: base64String as string,
+                  },
+                };
+                console.log({
+                  video: file,
+                  videoBlobUrl: url,
+                  videoBase64: base64String as string,
+                });
+                addNode(videoNode);
+              }
+            };
+
+            reader.readAsDataURL(file);
+          }
         }
       }
     }
