@@ -3,12 +3,14 @@ import { WebPageNode } from "../components/nodes/WebPageNode";
 import { ImageNode } from "../components/nodes/ImageNode";
 import type { Node } from "@xyflow/react";
 import { VideoNode } from "../components/nodes/VideoNode";
+import { AudioNode } from "../components/nodes/AudioNode";
 
 export const nodeTypes = {
   textUpdater: TextUpdaterNode,
   WebPageNode: WebPageNode,
   ImageNode: ImageNode,
   VideoNode: VideoNode,
+  AudioNode: AudioNode,
 };
 
 export type WebPageNodeData = {
@@ -31,6 +33,16 @@ export type VideoNodeData = {
   videoBase64: string;
 };
 
+export type AudioNodeData = {
+  audioBlobUrl: string;
+  audio: File;
+  audioBase64: string;
+};
+
 export type CustomNode = Node<
-  TextUpdaterNodeData | WebPageNodeData | ImageNodeData | VideoNodeData
+  | TextUpdaterNodeData
+  | WebPageNodeData
+  | ImageNodeData
+  | VideoNodeData
+  | AudioNodeData
 >;

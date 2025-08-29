@@ -102,6 +102,36 @@ const Canvas = () => {
 
             reader.readAsDataURL(file);
           }
+        } else if (items[i].type.startsWith("audio/")) {
+          const file = items[i].getAsFile();
+          if (file) {
+            const url = URL.createObjectURL(file);
+            const reader = new FileReader();
+
+            reader.onload = async (e) => {
+              const base64String = e.target?.result;
+              if (base64String) {
+                const audioNode: CustomNode = {
+                  id: crypto.randomUUID(),
+                  type: "AudioNode",
+                  position: { x: 0, y: 0 },
+                  data: {
+                    audio: file,
+                    audioBlobUrl: url,
+                    audioBase64: base64String as string,
+                  },
+                };
+                console.log({
+                  audio: file,
+                  audioBlobUrl: url,
+                  audioBase64: base64String as string,
+                });
+                addNode(audioNode);
+              }
+            };
+
+            reader.readAsDataURL(file);
+          }
         }
       }
     }
