@@ -10,7 +10,7 @@ export function TextUpdaterNode() {
     <div>
       <div>
         <label htmlFor="text">Text:</label>
-        <input id="text" name="text" onChange={onChange} className="nodrag" />
+        <input id="text" name="text" onChange={onChange} />
       </div>
       <Handle type="source" position={Position.Top} />
       <Handle type="target" position={Position.Bottom} />
