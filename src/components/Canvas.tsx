@@ -11,9 +11,11 @@ import { useCanvasStore } from "../store/canvasStore";
 import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
 import { isLink } from "../utils";
+import FileUpload from "./FileUpload";
 
 const Canvas = () => {
-  const { nodes, edges, setNodes, setEdges, addNode } = useCanvasStore();
+  const { nodes, edges, setNodes, setEdges, addNode, dragging, setDragging } =
+    useCanvasStore();
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const handlePaste = async (e: ClipboardEvent) => {
@@ -138,15 +140,33 @@ const Canvas = () => {
   };
 
   useEffect(() => {
+    console.log("Dragging", dragging);
+  }, [dragging]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
+
+    const handleDragEnter = (e: DragEvent) => {
+      e.preventDefault();
+      setDragging(true);
+    };
+    const handleDrop = (e: DragEvent) => {
+      e.preventDefault();
+      setDragging(false);
+    };
+
     if (canvas) {
       canvas.addEventListener("paste", handlePaste);
       canvas.addEventListener("click", () => canvas.focus());
+      canvas.addEventListener("dragenter", handleDragEnter);
+      canvas.addEventListener("drop", handleDrop);
     }
 
     return () => {
       canvas?.removeEventListener("paste", handlePaste);
       canvas?.removeEventListener("click", () => canvas.focus());
+      canvas?.removeEventListener("dragenter", handleDragEnter);
+      canvas?.removeEventListener("drop", handleDrop);
     };
   }, []);
 
@@ -173,6 +193,7 @@ const Canvas = () => {
       tabIndex={0}
       style={{ outline: "none" }}
     >
+      <FileUpload />
       <ReactFlow
         {...{
           nodes,

@@ -26,6 +26,8 @@ interface CanvasStore {
   ) => void;
   setEdges: (edges: Edge[] | ((prev: Edge[]) => Edge[])) => void;
   addNode: (node: CustomNode) => void;
+  dragging: boolean;
+  setDragging: (dragging: boolean) => void;
 }
 
 export const useCanvasStore = create<CanvasStore>()((set) => ({
@@ -42,5 +44,10 @@ export const useCanvasStore = create<CanvasStore>()((set) => ({
   addNode: (node: CustomNode) =>
     set((state) => ({
       nodes: [...state.nodes, node],
+    })),
+  dragging: false,
+  setDragging: (dragging) =>
+    set((state) => ({
+      dragging,
     })),
 }));

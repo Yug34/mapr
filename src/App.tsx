@@ -1,6 +1,7 @@
 import "@xyflow/react/dist/style.css";
 import { Plus } from "lucide-react";
 import Canvas from "./components/Canvas";
+import { Button } from "./components/ui/button";
 
 // TODO:
 // 1. Add new components: TODO List
@@ -15,9 +16,9 @@ function App() {
         <div className="flex flex-row w-full h-8 bg-blue-500 flex-shrink-0">
           <div className="">Tab 1</div>
           <div className="">Tab 1</div>
-          <div className="">
+          <Button>
             <Plus />
-          </div>
+          </Button>
         </div>
       </div>
     </div>
