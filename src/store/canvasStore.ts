@@ -37,17 +37,30 @@ export const useCanvasStore = create<CanvasStore>()((set) => ({
     set((state) => ({
       nodes: typeof nodes === "function" ? nodes(state.nodes) : nodes,
     })),
-  setEdges: (edges) =>
-    set((state) => ({
-      edges: typeof edges === "function" ? edges(state.edges) : edges,
-    })),
   addNode: (node: CustomNode) =>
     set((state) => ({
       nodes: [...state.nodes, node],
     })),
+  deleteNode: (nodeId: string) =>
+    set((state) => ({
+      nodes: state.nodes.filter((node) => node.id !== nodeId),
+    })),
+  setEdges: (edges) =>
+    set((state) => ({
+      edges: typeof edges === "function" ? edges(state.edges) : edges,
+    })),
+  deleteEdge: (edgeId: string) =>
+    set((state) => ({
+      edges: state.edges.filter((edge) => edge.id !== edgeId),
+    })),
+  addEdge: (edge: Edge) =>
+    set((state) => ({
+      edges: [...state.edges, edge],
+    })),
+
   dragging: false,
   setDragging: (dragging) =>
-    set((state) => ({
+    set(() => ({
       dragging,
     })),
 }));
