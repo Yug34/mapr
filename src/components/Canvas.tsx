@@ -5,6 +5,7 @@ import {
   applyNodeChanges,
   applyEdgeChanges,
   addEdge,
+  Controls,
 } from "@xyflow/react";
 import type { NodeChange, EdgeChange, Connection } from "@xyflow/react";
 import { useCanvasStore } from "../store/canvasStore";
@@ -173,17 +174,17 @@ const Canvas = () => {
   const onNodesChange = useCallback(
     (changes: NodeChange<CustomNode>[]) =>
       setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
-    []
+    [setNodes]
   );
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) =>
       setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-    []
+    [setEdges]
   );
   const onConnect = useCallback(
     (params: Connection) =>
       setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
-    []
+    [setEdges]
   );
 
   return (
@@ -211,6 +212,7 @@ const Canvas = () => {
         }}
         nodeTypes={nodeTypes}
       >
+        <Controls />
         <MiniMap
           style={{
             height: 120,
