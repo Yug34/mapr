@@ -13,142 +13,129 @@ import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
 import { isLink } from "../utils";
 import FileUpload from "./FileUpload";
+import type {
+  PDFNodeData,
+  ImageNodeData,
+  VideoNodeData,
+  AudioNodeData,
+} from "../types/common";
 
 const Canvas = () => {
   const { nodes, edges, setNodes, setEdges, addNode, dragging, setDragging } =
     useCanvasStore();
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const handlePaste = async (e: ClipboardEvent) => {
-    e.preventDefault();
+  // helpers in Canvas.tsx
+  const readAsDataURL = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
-    if (e.clipboardData?.types.includes("text/plain")) {
-      const text = e.clipboardData?.getData("text");
-      if (text) {
-        if (isLink(text)) {
-          const webPageNode: CustomNode = {
-            id: crypto.randomUUID(),
-            type: "WebPageNode",
-            position: { x: 0, y: 0 },
-            data: { url: text },
-          };
-          addNode(webPageNode);
-        } else {
-          const textNode: CustomNode = {
-            id: crypto.randomUUID(),
-            position: { x: 0, y: 0 },
-            data: { label: text },
-          };
-          addNode(textNode);
-        }
-      }
-    } else {
-      const items = e.clipboardData?.items ?? [];
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.startsWith("image/")) {
-          const file = items[i].getAsFile();
-          if (file) {
-            const url = URL.createObjectURL(file);
-            const reader = new FileReader();
-
-            reader.onload = async (e) => {
-              const base64String = e.target?.result;
-              if (base64String) {
-                const imageNode: CustomNode = {
-                  id: crypto.randomUUID(),
-                  type: "ImageNode",
-                  position: { x: 0, y: 0 },
-                  data: {
-                    image: file,
-                    imageBlobUrl: url,
-                    imageBase64: base64String as string,
-                  },
-                };
-                addNode(imageNode);
-              }
-            };
-
-            reader.readAsDataURL(file);
-          }
-        } else if (items[i].type.startsWith("video/")) {
-          const file = items[i].getAsFile();
-          if (file) {
-            const url = URL.createObjectURL(file);
-            const reader = new FileReader();
-
-            reader.onload = async (e) => {
-              const base64String = e.target?.result;
-              if (base64String) {
-                const videoNode: CustomNode = {
-                  id: crypto.randomUUID(),
-                  type: "VideoNode",
-                  position: { x: 0, y: 0 },
-                  data: {
-                    video: file,
-                    videoBlobUrl: url,
-                    videoBase64: base64String as string,
-                  },
-                };
-                addNode(videoNode);
-              }
-            };
-
-            reader.readAsDataURL(file);
-          }
-        } else if (items[i].type.startsWith("audio/")) {
-          const file = items[i].getAsFile();
-          if (file) {
-            const url = URL.createObjectURL(file);
-            const reader = new FileReader();
-
-            reader.onload = async (e) => {
-              const base64String = e.target?.result;
-              if (base64String) {
-                const audioNode: CustomNode = {
-                  id: crypto.randomUUID(),
-                  type: "AudioNode",
-                  position: { x: 0, y: 0 },
-                  data: {
-                    audio: file,
-                    audioBlobUrl: url,
-                    audioBase64: base64String as string,
-                  },
-                };
-                addNode(audioNode);
-              }
-            };
-
-            reader.readAsDataURL(file);
-          }
-        } else if (items[i].type.startsWith("application/pdf")) {
-          const file = items[i].getAsFile();
-          if (file) {
-            const url = URL.createObjectURL(file);
-            const reader = new FileReader();
-
-            reader.onload = async (e) => {
-              const base64String = e.target?.result;
-              if (base64String) {
-                const pdfNode: CustomNode = {
-                  id: crypto.randomUUID(),
-                  type: "PDFNode",
-                  position: { x: 0, y: 0 },
-                  data: {
-                    pdf: file,
-                    pdfBlobUrl: url,
-                    pdfBase64: base64String as string,
-                  },
-                };
-                addNode(pdfNode);
-              }
-            };
-
-            reader.readAsDataURL(file);
-          }
-        }
-      }
-    }
+  type MediaHandler<T> = {
+    test: (mime: string) => boolean;
+    type: CustomNode["type"];
+    buildData: (file: File, blobUrl: string, base64: string) => T;
   };
+
+  const MEDIA_HANDLERS: MediaHandler<
+    ImageNodeData | VideoNodeData | AudioNodeData | PDFNodeData
+  >[] = [
+    {
+      test: (t) => t.startsWith("image/"),
+      type: "ImageNode",
+      buildData: (file, url, b64) => ({
+        image: file,
+        imageBlobUrl: url,
+        imageBase64: b64,
+      }),
+    },
+    {
+      test: (t) => t.startsWith("video/"),
+      type: "VideoNode",
+      buildData: (file, url, b64) => ({
+        video: file,
+        videoBlobUrl: url,
+        videoBase64: b64,
+      }),
+    },
+    {
+      test: (t) => t.startsWith("audio/"),
+      type: "AudioNode",
+      buildData: (file, url, b64) => ({
+        audio: file,
+        audioBlobUrl: url,
+        audioBase64: b64,
+      }),
+    },
+    {
+      test: (t) => t === "application/pdf",
+      type: "PDFNode",
+      buildData: (file, url, b64) => ({
+        pdf: file,
+        pdfBlobUrl: url,
+        pdfBase64: b64,
+      }),
+    },
+  ];
+
+  // refactored handler
+  const handlePaste = useCallback(
+    async (e: ClipboardEvent) => {
+      e.preventDefault();
+
+      const items = Array.from(e.clipboardData?.items ?? []);
+      const files = items
+        .filter((i) => i.kind === "file")
+        .map((i) => i.getAsFile())
+        .filter((f): f is File => !!f);
+
+      // Prefer files if present
+      if (files.length) {
+        const nodes = await Promise.all(
+          files.map(async (file) => {
+            const handler = MEDIA_HANDLERS.find((h) => h.test(file.type));
+            if (!handler) return null;
+
+            const blobUrl = URL.createObjectURL(file);
+            const base64 = await readAsDataURL(file);
+
+            return {
+              id: crypto.randomUUID(),
+              type: handler.type,
+              position: { x: 0, y: 0 },
+              data: handler.buildData(file, blobUrl, base64),
+            } as CustomNode;
+          })
+        );
+
+        nodes.filter(Boolean).forEach((n) => addNode(n as CustomNode));
+        return;
+      }
+
+      // Fallback to text
+      const text = e.clipboardData?.getData("text")?.trim();
+      if (!text) return;
+
+      if (isLink(text)) {
+        addNode({
+          id: crypto.randomUUID(),
+          type: "WebPageNode",
+          position: { x: 0, y: 0 },
+          data: { url: text },
+        });
+      } else {
+        addNode({
+          id: crypto.randomUUID(),
+          position: { x: 0, y: 0 },
+          data: { label: text },
+        });
+      }
+    },
+    [addNode]
+  );
 
   useEffect(() => {
     console.log("Dragging", dragging);
@@ -166,20 +153,20 @@ const Canvas = () => {
       setDragging(false);
     };
 
-    if (canvas) {
-      canvas.addEventListener("paste", handlePaste);
-      canvas.addEventListener("click", () => canvas.focus());
-      canvas.addEventListener("dragenter", handleDragEnter);
-      canvas.addEventListener("drop", handleDrop);
-    }
+    if (!canvas) return;
+
+    canvas.addEventListener("paste", handlePaste);
+    canvas.addEventListener("click", () => canvas.focus());
+    canvas.addEventListener("dragenter", handleDragEnter);
+    canvas.addEventListener("drop", handleDrop);
 
     return () => {
-      canvas?.removeEventListener("paste", handlePaste);
-      canvas?.removeEventListener("click", () => canvas.focus());
-      canvas?.removeEventListener("dragenter", handleDragEnter);
-      canvas?.removeEventListener("drop", handleDrop);
+      canvas.removeEventListener("paste", handlePaste);
+      canvas.removeEventListener("click", () => canvas.focus());
+      canvas.removeEventListener("dragenter", handleDragEnter);
+      canvas.removeEventListener("drop", handleDrop);
     };
-  }, []);
+  }, [handlePaste, setDragging]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<CustomNode>[]) =>
