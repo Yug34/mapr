@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ReactFlow,
   MiniMap,
@@ -7,24 +7,25 @@ import {
   addEdge,
   Controls,
 } from "@xyflow/react";
-import type { NodeChange, EdgeChange, Connection } from "@xyflow/react";
+import type { NodeChange, EdgeChange, Connection, Menu } from "@xyflow/react";
 import { useCanvasStore } from "../store/canvasStore";
 import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
 import { isLink } from "../utils";
-import FileUpload from "./FileUpload";
+// import FileUpload from "./FileUpload";
 import type {
   PDFNodeData,
   ImageNodeData,
   VideoNodeData,
   AudioNodeData,
 } from "../types/common";
+import ContextMenu from "./canvas/ContextMenu";
 
 const Canvas = () => {
   const { nodes, edges, setNodes, setEdges, addNode, dragging, setDragging } =
     useCanvasStore();
   const canvasRef = useRef<HTMLDivElement>(null);
-
+  const [menu, setMenu] = useState<Menu | null>(null);
   // helpers in Canvas.tsx
   const readAsDataURL = (file: File) =>
     new Promise<string>((resolve, reject) => {
@@ -183,6 +184,24 @@ const Canvas = () => {
       setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
     [setEdges]
   );
+  const onNodeContextMenu = useCallback(
+    (event, node) => {
+      event.preventDefault();
+
+      const pane = canvasRef.current!.getBoundingClientRect();
+      setMenu({
+        id: node.id,
+        top: event.clientY < pane.height - 200 && event.clientY,
+        left: event.clientX < pane.width - 200 && event.clientX,
+        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
+        bottom:
+          event.clientY >= pane.height - 200 && pane.height - event.clientY,
+      });
+    },
+    [setMenu]
+  );
+
+  const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
   return (
     <div
@@ -191,7 +210,6 @@ const Canvas = () => {
       tabIndex={0}
       style={{ outline: "none" }}
     >
-      <FileUpload />
       <ReactFlow
         {...{
           nodes,
@@ -199,6 +217,8 @@ const Canvas = () => {
           onNodesChange,
           onEdgesChange,
           onConnect,
+          onNodeContextMenu,
+          onPaneClick,
           fitView: true,
         }}
         style={{
@@ -210,6 +230,7 @@ const Canvas = () => {
         nodeTypes={nodeTypes}
       >
         <Controls />
+        {menu && <ContextMenu {...menu} />}
         <MiniMap
           style={{
             height: 120,

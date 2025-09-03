@@ -47,11 +47,12 @@ export type PDFNodeData = {
   pdfBase64: string;
 };
 
-export type CustomNode = Node<
+export type CustomNodeData =
   | TextUpdaterNodeData
   | WebPageNodeData
   | ImageNodeData
   | VideoNodeData
   | AudioNodeData
-  | PDFNodeData
->;
+  | PDFNodeData;
+
+export type CustomNode = Node<CustomNodeData>;
