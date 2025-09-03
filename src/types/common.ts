@@ -4,6 +4,7 @@ import { ImageNode } from "../components/nodes/ImageNode";
 import type { Node } from "@xyflow/react";
 import { VideoNode } from "../components/nodes/VideoNode";
 import { AudioNode } from "../components/nodes/AudioNode";
+import { PDFNode } from "../components/nodes/PDFNode";
 
 export const nodeTypes = {
   textUpdater: TextUpdaterNode,
@@ -11,6 +12,7 @@ export const nodeTypes = {
   ImageNode: ImageNode,
   VideoNode: VideoNode,
   AudioNode: AudioNode,
+  PDFNode: PDFNode,
 };
 
 export type WebPageNodeData = {
@@ -39,10 +41,17 @@ export type AudioNodeData = {
   audioBase64: string;
 };
 
+export type PDFNodeData = {
+  pdfBlobUrl: string;
+  pdf: File;
+  pdfBase64: string;
+};
+
 export type CustomNode = Node<
   | TextUpdaterNodeData
   | WebPageNodeData
   | ImageNodeData
   | VideoNodeData
   | AudioNodeData
+  | PDFNodeData
 >;

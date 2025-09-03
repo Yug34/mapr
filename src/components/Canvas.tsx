@@ -64,11 +64,6 @@ const Canvas = () => {
                     imageBase64: base64String as string,
                   },
                 };
-                console.log({
-                  image: file,
-                  imageBlobUrl: url,
-                  imageBase64: base64String as string,
-                });
                 addNode(imageNode);
               }
             };
@@ -94,11 +89,6 @@ const Canvas = () => {
                     videoBase64: base64String as string,
                   },
                 };
-                console.log({
-                  video: file,
-                  videoBlobUrl: url,
-                  videoBase64: base64String as string,
-                });
                 addNode(videoNode);
               }
             };
@@ -124,12 +114,32 @@ const Canvas = () => {
                     audioBase64: base64String as string,
                   },
                 };
-                console.log({
-                  audio: file,
-                  audioBlobUrl: url,
-                  audioBase64: base64String as string,
-                });
                 addNode(audioNode);
+              }
+            };
+
+            reader.readAsDataURL(file);
+          }
+        } else if (items[i].type.startsWith("application/pdf")) {
+          const file = items[i].getAsFile();
+          if (file) {
+            const url = URL.createObjectURL(file);
+            const reader = new FileReader();
+
+            reader.onload = async (e) => {
+              const base64String = e.target?.result;
+              if (base64String) {
+                const pdfNode: CustomNode = {
+                  id: crypto.randomUUID(),
+                  type: "PDFNode",
+                  position: { x: 0, y: 0 },
+                  data: {
+                    pdf: file,
+                    pdfBlobUrl: url,
+                    pdfBase64: base64String as string,
+                  },
+                };
+                addNode(pdfNode);
               }
             };
 
