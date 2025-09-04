@@ -21,11 +21,10 @@ const CanvasContextMenu = ({ menu }: CanvasContextMenuProps) => {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(id);
-    // toast.success("Copied Node ID to clipboard!");
     setRecentlyCopied(true);
     setTimeout(() => setRecentlyCopied(false), 1500);
 
-    toast("Copied Node ID to clipboard!");
+    toast.success("Copied Node ID to clipboard!");
   };
 
   useEffect(() => {
@@ -63,14 +62,18 @@ const CanvasContextMenu = ({ menu }: CanvasContextMenuProps) => {
         <Button
           variant="outline"
           onClick={copyToClipboard}
-          className="cursor-pointer"
+          className="cursor-pointer font-normal"
         >
-          Node ID:{id}
-          {recentlyCopied ? (
-            <ClipboardCheck className="w-4 h-4" />
-          ) : (
-            <Copy className="w-4 h-4" />
-          )}
+          <div className="w-full flex items-start">
+            <strong>Node ID:</strong> <code className="ml-2">{id}</code>
+          </div>
+          <div>
+            {recentlyCopied ? (
+              <ClipboardCheck className="w-4 h-4" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
+          </div>
         </Button>
       </CardHeader>
       <CardContent>
