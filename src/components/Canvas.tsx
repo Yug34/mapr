@@ -7,10 +7,15 @@ import {
   addEdge,
   Controls,
 } from "@xyflow/react";
-import type { NodeChange, EdgeChange, Connection, Menu } from "@xyflow/react";
+import type {
+  NodeChange,
+  EdgeChange,
+  Connection,
+  NodeMouseHandler,
+} from "@xyflow/react";
 import { useCanvasStore } from "../store/canvasStore";
 import { nodeTypes } from "../types/common";
-import type { CustomNode } from "../types/common";
+import type { CustomNode, MenuData } from "../types/common";
 import { isLink } from "../utils";
 // import FileUpload from "./FileUpload";
 import type {
@@ -19,13 +24,13 @@ import type {
   VideoNodeData,
   AudioNodeData,
 } from "../types/common";
-import ContextMenu from "./canvas/ContextMenu";
+import CanvasContextMenu from "./canvas/CanvasContextMenu";
 
 const Canvas = () => {
   const { nodes, edges, setNodes, setEdges, addNode, dragging, setDragging } =
     useCanvasStore();
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [menu, setMenu] = useState<Menu | null>(null);
+  const [menu, setMenu] = useState<MenuData | null>(null);
   // helpers in Canvas.tsx
   const readAsDataURL = (file: File) =>
     new Promise<string>((resolve, reject) => {
@@ -184,7 +189,7 @@ const Canvas = () => {
       setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
     [setEdges]
   );
-  const onNodeContextMenu = useCallback(
+  const onNodeContextMenu = useCallback<NodeMouseHandler<CustomNode>>(
     (event, node) => {
       event.preventDefault();
 
@@ -196,7 +201,7 @@ const Canvas = () => {
         right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
         bottom:
           event.clientY >= pane.height - 200 && pane.height - event.clientY,
-      });
+      } as MenuData);
     },
     [setMenu]
   );
@@ -230,7 +235,7 @@ const Canvas = () => {
         nodeTypes={nodeTypes}
       >
         <Controls />
-        {menu && <ContextMenu {...menu} />}
+        {menu && <CanvasContextMenu menu={menu} />}
         <MiniMap
           style={{
             height: 120,

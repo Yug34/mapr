@@ -56,3 +56,11 @@ export type CustomNodeData =
   | PDFNodeData;
 
 export type CustomNode = Node<CustomNodeData>;
+
+export type MenuData = {
+  id: string;
+  top: number;
+  left: number;
+  right: number;
+  bottom: number;
+};
