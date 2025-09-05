@@ -27,24 +27,28 @@ export type ImageNodeData = {
   imageBlobUrl: string;
   image: File;
   imageBase64: string;
+  mediaId?: string;
 };
 
 export type VideoNodeData = {
   videoBlobUrl: string;
   video: File;
   videoBase64: string;
+  mediaId?: string;
 };
 
 export type AudioNodeData = {
   audioBlobUrl: string;
   audio: File;
   audioBase64: string;
+  mediaId?: string;
 };
 
 export type PDFNodeData = {
   pdfBlobUrl: string;
   pdf: File;
   pdfBase64: string;
+  mediaId?: string;
 };
 
 export type CustomNodeData =

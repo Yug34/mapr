@@ -1,0 +1,168 @@
+import type { Edge } from "@xyflow/react";
+import type {
+  AudioNodeData,
+  CustomNode,
+  ImageNodeData,
+  PDFNodeData,
+  VideoNodeData,
+  WebPageNodeData,
+  TextUpdaterNodeData,
+} from "../types/common";
+
+// On-disk representations: no File objects, no Blob URLs.
+export type PersistedNode = {
+  id: string;
+  type?: CustomNode["type"];
+  position: { x: number; y: number };
+  data: unknown;
+};
+
+export type PersistedEdge = Edge;
+
+export type MediaLike = {
+  id: string;
+  mime: string;
+  size: number;
+};
+
+// Extract media reference fields
+type MediaNodeDataRef =
+  | { mediaId: string; previewBase64?: string }
+  | WebPageNodeData
+  | TextUpdaterNodeData;
+
+export function serializeNode(node: CustomNode): PersistedNode {
+  const { id, type, position, data } = node as CustomNode;
+
+  switch (type) {
+    case "ImageNode": {
+      const d = data as ImageNodeData;
+      return {
+        id,
+        type,
+        position,
+        data: {
+          mediaId: (d as any).mediaId ?? "",
+          previewBase64: d.imageBase64,
+        },
+      };
+    }
+    case "VideoNode": {
+      const d = data as VideoNodeData;
+      return {
+        id,
+        type,
+        position,
+        data: {
+          mediaId: (d as any).mediaId ?? "",
+          previewBase64: d.videoBase64,
+        },
+      };
+    }
+    case "AudioNode": {
+      const d = data as AudioNodeData;
+      return {
+        id,
+        type,
+        position,
+        data: {
+          mediaId: (d as any).mediaId ?? "",
+          previewBase64: d.audioBase64,
+        },
+      };
+    }
+    case "PDFNode": {
+      const d = data as PDFNodeData;
+      return {
+        id,
+        type,
+        position,
+        data: { mediaId: (d as any).mediaId ?? "", previewBase64: d.pdfBase64 },
+      };
+    }
+    case "WebPageNode":
+    default:
+      return { id, type, position, data };
+  }
+}
+
+export function deserializeNode(
+  persisted: PersistedNode,
+  blobUrlResolver: (mediaId: string) => string | undefined
+): CustomNode {
+  const { id, type, position } = persisted;
+  const data = persisted.data as MediaNodeDataRef;
+
+  switch (type) {
+    case "ImageNode": {
+      const url =
+        data && "mediaId" in data ? blobUrlResolver(data.mediaId) : undefined;
+      return {
+        id,
+        type,
+        position,
+        data: {
+          image: undefined as unknown as File,
+          imageBlobUrl: url ?? "",
+          imageBase64: (data as any)?.previewBase64 ?? "",
+          ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
+        } as ImageNodeData,
+      } as CustomNode;
+    }
+    case "VideoNode": {
+      const url =
+        data && "mediaId" in data ? blobUrlResolver(data.mediaId) : undefined;
+      return {
+        id,
+        type,
+        position,
+        data: {
+          video: undefined as unknown as File,
+          videoBlobUrl: url ?? "",
+          videoBase64: (data as any)?.previewBase64 ?? "",
+          ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
+        } as VideoNodeData,
+      } as CustomNode;
+    }
+    case "AudioNode": {
+      const url =
+        data && "mediaId" in data ? blobUrlResolver(data.mediaId) : undefined;
+      return {
+        id,
+        type,
+        position,
+        data: {
+          audio: undefined as unknown as File,
+          audioBlobUrl: url ?? "",
+          audioBase64: (data as any)?.previewBase64 ?? "",
+          ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
+        } as AudioNodeData,
+      } as CustomNode;
+    }
+    case "PDFNode": {
+      const url =
+        data && "mediaId" in data ? blobUrlResolver(data.mediaId) : undefined;
+      return {
+        id,
+        type,
+        position,
+        data: {
+          pdf: undefined as unknown as File,
+          pdfBlobUrl: url ?? "",
+          pdfBase64: (data as any)?.previewBase64 ?? "",
+          ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
+        } as PDFNodeData,
+      } as CustomNode;
+    }
+    default:
+      return { id, type, position, data: persisted.data } as CustomNode;
+  }
+}
+
+export function serializeEdge(edge: Edge): PersistedEdge {
+  return edge as PersistedEdge;
+}
+
+export function deserializeEdge(edge: PersistedEdge): Edge {
+  return edge as Edge;
+}

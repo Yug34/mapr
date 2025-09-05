@@ -25,10 +25,20 @@ import type {
   AudioNodeData,
 } from "../types/common";
 import CanvasContextMenu from "./canvas/CanvasContextMenu";
+import { add as idbAdd, Stores } from "../utils/indexedDb";
 
 const Canvas = () => {
-  const { nodes, edges, setNodes, setEdges, addNode, dragging, setDragging } =
-    useCanvasStore();
+  const {
+    nodes,
+    edges,
+    setNodes,
+    setEdges,
+    addNode,
+    dragging,
+    setDragging,
+    initialized,
+    initFromDb,
+  } = useCanvasStore();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState<MenuData | null>(null);
   // helpers in Canvas.tsx
@@ -87,10 +97,10 @@ const Canvas = () => {
     },
   ];
 
-  // refactored handler
   const handlePaste = useCallback(
     async (e: ClipboardEvent) => {
       e.preventDefault();
+      debugger;
 
       const items = Array.from(e.clipboardData?.items ?? []);
       const files = items
@@ -108,12 +118,23 @@ const Canvas = () => {
             const blobUrl = URL.createObjectURL(file);
             const base64 = await readAsDataURL(file);
 
-            return {
+            // persist the Blob in IDB and attach mediaId
+            const mediaId = crypto.randomUUID();
+            await idbAdd(Stores.media, {
+              id: mediaId,
+              blob: file,
+              mime: file.type,
+              size: file.size,
+              createdAt: Date.now(),
+            });
+
+            const node = {
               id: crypto.randomUUID(),
               type: handler.type,
               position: { x: 0, y: 0 },
-              data: handler.buildData(file, blobUrl, base64),
+              data: { ...handler.buildData(file, blobUrl, base64), mediaId },
             } as CustomNode;
+            return node;
           })
         );
 
@@ -144,6 +165,10 @@ const Canvas = () => {
   );
 
   useEffect(() => {
+    initFromDb();
+  }, [initFromDb]);
+
+  useEffect(() => {
     console.log("Dragging", dragging);
   }, [dragging]);
 
@@ -161,10 +186,12 @@ const Canvas = () => {
 
     if (!canvas) return;
 
-    canvas.addEventListener("paste", handlePaste);
-    canvas.addEventListener("click", () => canvas.focus());
-    canvas.addEventListener("dragenter", handleDragEnter);
-    canvas.addEventListener("drop", handleDrop);
+    if (initialized) {
+      canvas.addEventListener("paste", handlePaste);
+      canvas.addEventListener("click", () => canvas.focus());
+      canvas.addEventListener("dragenter", handleDragEnter);
+      canvas.addEventListener("drop", handleDrop);
+    }
 
     return () => {
       canvas.removeEventListener("paste", handlePaste);
@@ -172,7 +199,7 @@ const Canvas = () => {
       canvas.removeEventListener("dragenter", handleDragEnter);
       canvas.removeEventListener("drop", handleDrop);
     };
-  }, [handlePaste, setDragging]);
+  }, [handlePaste, setDragging, initialized]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<CustomNode>[]) =>
@@ -207,6 +234,14 @@ const Canvas = () => {
   );
 
   const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
+
+  if (!initialized) {
+    return (
+      <div className="flex-1 min-h-0 flex items-center justify-center">
+        <span>Loading…</span>
+      </div>
+    );
+  }
 
   return (
     <div
