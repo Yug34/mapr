@@ -38,6 +38,7 @@ const ControlsLazy = lazy(() =>
   import("@xyflow/react").then((m) => ({ default: m.Controls }))
 );
 import { add as idbAdd, Stores } from "../utils/indexedDb";
+import { LoaderCircle } from "lucide-react";
 
 type MediaHandler<T> = {
   test: (mime: string) => boolean;
@@ -248,8 +249,8 @@ const Canvas = () => {
 
   if (!initialized) {
     return (
-      <div className="flex-1 min-h-0 flex items-center justify-center">
-        <span>Loading…</span>
+      <div className="flex-1 min-h-0 flex items-center justify-center text-lg">
+        Loading <LoaderCircle className="animate-spin ml-2" />
       </div>
     );
   }

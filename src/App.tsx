@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Plus } from "lucide-react";
+import { Plus, LoaderCircle } from "lucide-react";
 const Canvas = lazy(() => import("./components/Canvas"));
 import { Button } from "./components/ui/button";
 
@@ -14,8 +14,8 @@ function App() {
       <div className="flex flex-col flex-1 min-h-0">
         <Suspense
           fallback={
-            <div className="flex-1 min-h-0 flex items-center justify-center">
-              Loading…
+            <div className="flex-1 min-h-0 flex items-center justify-center text-lg">
+              Loading <LoaderCircle className="animate-spin ml-2" />
             </div>
           }
         >
