@@ -1,11 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import "@xyflow/react/dist/style.css";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  lazy,
+  Suspense,
+} from "react";
 import {
   ReactFlow,
-  MiniMap,
   applyNodeChanges,
   applyEdgeChanges,
   addEdge,
-  Controls,
 } from "@xyflow/react";
 import type {
   NodeChange,
@@ -24,8 +30,61 @@ import type {
   VideoNodeData,
   AudioNodeData,
 } from "../types/common";
-import CanvasContextMenu from "./canvas/CanvasContextMenu";
+const CanvasContextMenu = lazy(() => import("./canvas/CanvasContextMenu"));
+const MiniMapLazy = lazy(() =>
+  import("@xyflow/react").then((m) => ({ default: m.MiniMap }))
+);
+const ControlsLazy = lazy(() =>
+  import("@xyflow/react").then((m) => ({ default: m.Controls }))
+);
 import { add as idbAdd, Stores } from "../utils/indexedDb";
+
+type MediaHandler<T> = {
+  test: (mime: string) => boolean;
+  type: CustomNode["type"];
+  buildData: (file: File, blobUrl: string, base64: string) => T;
+};
+
+const MEDIA_HANDLERS: MediaHandler<
+  ImageNodeData | VideoNodeData | AudioNodeData | PDFNodeData
+>[] = [
+  {
+    test: (t) => t.startsWith("image/"),
+    type: "ImageNode",
+    buildData: (file, url, b64) => ({
+      image: file,
+      imageBlobUrl: url,
+      imageBase64: b64,
+    }),
+  },
+  {
+    test: (t) => t.startsWith("video/"),
+    type: "VideoNode",
+    buildData: (file, url, b64) => ({
+      video: file,
+      videoBlobUrl: url,
+      videoBase64: b64,
+    }),
+  },
+  {
+    test: (t) => t.startsWith("audio/"),
+    type: "AudioNode",
+    buildData: (file, url, b64) => ({
+      audio: file,
+      audioBlobUrl: url,
+      audioBase64: b64,
+    }),
+  },
+  {
+    test: (t) => t === "application/pdf",
+    type: "PDFNode",
+    buildData: (file, url, b64) => ({
+      pdf: file,
+      pdfBlobUrl: url,
+      pdfBase64: b64,
+    }),
+  },
+];
 
 const Canvas = () => {
   const {
@@ -50,57 +109,9 @@ const Canvas = () => {
       reader.readAsDataURL(file);
     });
 
-  type MediaHandler<T> = {
-    test: (mime: string) => boolean;
-    type: CustomNode["type"];
-    buildData: (file: File, blobUrl: string, base64: string) => T;
-  };
-
-  const MEDIA_HANDLERS: MediaHandler<
-    ImageNodeData | VideoNodeData | AudioNodeData | PDFNodeData
-  >[] = [
-    {
-      test: (t) => t.startsWith("image/"),
-      type: "ImageNode",
-      buildData: (file, url, b64) => ({
-        image: file,
-        imageBlobUrl: url,
-        imageBase64: b64,
-      }),
-    },
-    {
-      test: (t) => t.startsWith("video/"),
-      type: "VideoNode",
-      buildData: (file, url, b64) => ({
-        video: file,
-        videoBlobUrl: url,
-        videoBase64: b64,
-      }),
-    },
-    {
-      test: (t) => t.startsWith("audio/"),
-      type: "AudioNode",
-      buildData: (file, url, b64) => ({
-        audio: file,
-        audioBlobUrl: url,
-        audioBase64: b64,
-      }),
-    },
-    {
-      test: (t) => t === "application/pdf",
-      type: "PDFNode",
-      buildData: (file, url, b64) => ({
-        pdf: file,
-        pdfBlobUrl: url,
-        pdfBase64: b64,
-      }),
-    },
-  ];
-
   const handlePaste = useCallback(
     async (e: ClipboardEvent) => {
       e.preventDefault();
-      debugger;
 
       const items = Array.from(e.clipboardData?.items ?? []);
       const files = items
@@ -269,26 +280,34 @@ const Canvas = () => {
         }}
         nodeTypes={nodeTypes}
       >
-        <Controls />
-        {menu && <CanvasContextMenu menu={menu} />}
-        <MiniMap
-          style={{
-            height: 120,
-            width: 180,
-          }}
-          nodeColor={(node) => {
-            // TODO:
-            switch (node.type) {
-              case "input":
-                return "#0041d0";
-              case "output":
-                return "#ff0072";
-              default:
-                return "#1a192b";
-            }
-          }}
-          nodeStrokeWidth={3}
-        />
+        <Suspense fallback={null}>
+          <ControlsLazy />
+        </Suspense>
+        {menu && (
+          <Suspense fallback={null}>
+            <CanvasContextMenu menu={menu} />
+          </Suspense>
+        )}
+        <Suspense fallback={null}>
+          <MiniMapLazy
+            style={{
+              height: 120,
+              width: 180,
+            }}
+            nodeColor={(node) => {
+              // TODO:
+              switch (node.type) {
+                case "input":
+                  return "#0041d0";
+                case "output":
+                  return "#ff0072";
+                default:
+                  return "#1a192b";
+              }
+            }}
+            nodeStrokeWidth={3}
+          />
+        </Suspense>
       </ReactFlow>
     </div>
   );

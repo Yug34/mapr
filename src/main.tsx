@@ -1,15 +1,19 @@
-import { StrictMode } from "react";
+import { StrictMode, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
-import { ReactFlowProvider } from "reactflow";
-import { Toaster } from "@/components/ui/sonner";
+import { ReactFlowProvider } from "@xyflow/react";
+const Toaster = lazy(() =>
+  import("@/components/ui/sonner").then((m) => ({ default: m.Toaster }))
+);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ReactFlowProvider>
       <App />
-      <Toaster />
+      <Suspense fallback={null}>
+        <Toaster />
+      </Suspense>
     </ReactFlowProvider>
   </StrictMode>
 );
