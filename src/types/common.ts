@@ -62,7 +62,8 @@ export type CustomNodeData =
 export type CustomNode = Node<CustomNodeData>;
 
 export type MenuData = {
-  id: string;
+  menuType: "node" | "pane";
+  id?: string;
   top: number;
   left: number;
   right: number;

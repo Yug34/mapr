@@ -228,15 +228,36 @@ const Canvas = () => {
       setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
     [setEdges]
   );
+
   const onNodeContextMenu = useCallback<NodeMouseHandler<CustomNode>>(
     (event, node) => {
       event.preventDefault();
 
       const pane = canvasRef.current!.getBoundingClientRect();
       setMenu({
+        menuType: "node",
         id: node.id,
         top: event.clientY < pane.height - 200 && event.clientY,
         left: event.clientX < pane.width - 200 && event.clientX,
+        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
+        bottom:
+          event.clientY >= pane.height - 200 && pane.height - event.clientY,
+      } as MenuData);
+    },
+    [setMenu]
+  );
+
+  const onPaneContextMenu = useCallback(
+    (event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
+      event.preventDefault();
+
+      console.log("onPaneContextMenu", event);
+      const pane = canvasRef.current!.getBoundingClientRect();
+
+      setMenu({
+        menuType: "pane",
+        top: event.clientY < pane.height - 200 && event.clientY,
+        left: event.clientX,
         right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
         bottom:
           event.clientY >= pane.height - 200 && pane.height - event.clientY,
@@ -271,6 +292,7 @@ const Canvas = () => {
           onConnect,
           onNodeContextMenu,
           onPaneClick,
+          onPaneContextMenu,
           fitView: true,
         }}
         style={{

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Edge } from "@xyflow/react";
 import { useCanvasStore } from "@/store/canvasStore";
@@ -13,26 +13,22 @@ interface CanvasContextMenuProps {
 }
 
 const CanvasContextMenu = ({ menu }: CanvasContextMenuProps) => {
-  const { id, top, left, right, bottom } = menu;
+  const { id, top, left, right, bottom, menuType } = menu;
   const { getNode, setNodes, setEdges } = useReactFlow<CustomNode, Edge>();
   const { addNode } = useCanvasStore();
 
   const [recentlyCopied, setRecentlyCopied] = useState(false);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(id);
+    navigator.clipboard.writeText(id!);
     setRecentlyCopied(true);
     setTimeout(() => setRecentlyCopied(false), 1500);
 
     toast.success("Copied Node ID to clipboard!");
   };
 
-  useEffect(() => {
-    console.log("menu", menu);
-  }, [menu]);
-
   const duplicateNode = useCallback(() => {
-    const node = getNode(id);
+    const node = getNode(id!);
     const position = {
       x: node!.position.x + 50,
       y: node!.position.y + 50,
@@ -56,34 +52,52 @@ const CanvasContextMenu = ({ menu }: CanvasContextMenuProps) => {
   return (
     <Card
       className="absolute w-[400px] h-40 z-10"
-      style={{ top, left, right, bottom }}
+      style={{
+        top,
+        left,
+        right,
+        bottom,
+      }}
     >
-      <CardHeader>
-        <Button
-          variant="outline"
-          onClick={copyToClipboard}
-          className="cursor-pointer font-normal"
-        >
-          <div className="w-full flex items-start">
-            <strong>Node ID:</strong> <code className="ml-2">{id}</code>
-          </div>
-          <div>
-            {recentlyCopied ? (
-              <ClipboardCheck className="w-4 h-4" />
-            ) : (
-              <Copy className="w-4 h-4" />
-            )}
-          </div>
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <Button className="cursor-pointer" onClick={duplicateNode}>
-          Duplicate
-        </Button>
-        <Button className="cursor-pointer" onClick={deleteNode}>
-          Delete
-        </Button>
-      </CardContent>
+      {menuType === "node" && (
+        <>
+          <CardHeader>
+            <Button
+              variant="outline"
+              onClick={copyToClipboard}
+              className="cursor-pointer font-normal"
+            >
+              <div className="w-full flex items-start">
+                <strong>Node ID:</strong> <code className="ml-2">{id}</code>
+              </div>
+              <div>
+                {recentlyCopied ? (
+                  <ClipboardCheck className="w-4 h-4" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </div>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <Button className="cursor-pointer" onClick={duplicateNode}>
+              Duplicate
+            </Button>
+            <Button className="cursor-pointer" onClick={deleteNode}>
+              Delete
+            </Button>
+          </CardContent>
+        </>
+      )}
+      {menuType === "pane" && (
+        <>
+          <CardContent>
+            <Button className="cursor-pointer" onClick={duplicateNode}>
+              Add Node
+            </Button>
+          </CardContent>
+        </>
+      )}
     </Card>
   );
 };

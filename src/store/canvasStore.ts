@@ -6,9 +6,8 @@ import {
   deserializeEdge,
   deserializeNode,
   serializeNode,
-  type PersistedEdge,
-  type PersistedNode,
 } from "../utils/serialization";
+import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import type { MediaRecord } from "../utils/indexedDb";
 
 const initialNodes: CustomNode[] = [
@@ -41,7 +40,6 @@ interface CanvasStore {
   initFromDb: () => Promise<void>;
 }
 
-// simple debounce helper
 const debounce = <T extends (...args: unknown[]) => void>(
   fn: T,
   delay: number
