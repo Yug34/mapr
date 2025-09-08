@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import type { PDFNodeData } from "../../types/common";
 
-export function PDFNode(NodeData: { data: PDFNodeData }) {
+export function PDFNode(NodeData: PDFNodeData) {
   const { data } = NodeData;
   return (
     <div className="flex flex-col items-center justify-center">

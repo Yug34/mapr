@@ -3,7 +3,7 @@ import type { WebPageNodeData } from "../../types/common";
 
 // https://web.mit.edu/6.001/6.037/sicp.pdf
 
-export function WebPageNode(NodeData: { data: WebPageNodeData }) {
+export function WebPageNode(NodeData: WebPageNodeData) {
   const { data } = NodeData;
   return (
     <div>

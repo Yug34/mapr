@@ -1,38 +1,41 @@
 import { Handle, Position } from "@xyflow/react";
-import type { TODONodeData } from "../../types/common";
+import type { Todo, TODONodeData } from "../../types/common";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card } from "../ui/card";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-export function TODONode(NodeData: { data: TODONodeData }) {
-  const { data } = NodeData;
+export function TODONode(NodeData: TODONodeData) {
+  const { id, data } = NodeData;
 
-  const [todos, setTodos] = useState(data.todos);
+  const [todos, setTodos] = useState<Todo[]>(data.todos);
 
   const handleTodoClick = (
     e: React.MouseEvent<HTMLDivElement>,
-    todoNodeId: string
+    todoNode: Todo
   ) => {
+    console.log(NodeData);
     e.preventDefault();
     e.stopPropagation();
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) =>
-        todo.id === todoNodeId ? { ...todo, completed: !todo.completed } : todo
+    setTodos((prevTodos: Todo[]) =>
+      prevTodos.map((t: Todo) =>
+        t.id === todoNode.id ? { ...t, completed: !t.completed } : t
       )
     );
+
+    // update the db
   };
 
   return (
     <div className="flex flex-col items-center justify-center">
       <Card className="p-0 border-none rounded-md gap-0 max-w-md">
-        {todos.map((todo, index) => (
+        {todos.map((todo: Todo, index: number) => (
           <div
             key={todo.id}
             className="flex items-center gap-0 w-full"
             onClick={(e) => {
-              handleTodoClick(e, todo.id);
+              handleTodoClick(e, todo);
             }}
           >
             <Label

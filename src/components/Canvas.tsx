@@ -295,6 +295,8 @@ const Canvas = () => {
               onPaneClick,
               onPaneContextMenu,
               fitView: true,
+              maxZoom: 1.5,
+              minZoom: 0.5,
             }}
             style={{
               background: `

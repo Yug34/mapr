@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import type { AudioNodeData } from "../../types/common";
 
-export function AudioNode(NodeData: { data: AudioNodeData }) {
+export function AudioNode(NodeData: AudioNodeData) {
   const { data } = NodeData;
   return (
     <div className="flex flex-col items-center justify-center">

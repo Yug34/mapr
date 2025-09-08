@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import type { VideoNodeData } from "../../types/common";
 
-export function VideoNode(NodeData: { data: VideoNodeData }) {
+export function VideoNode(NodeData: VideoNodeData) {
   const { data } = NodeData;
   return (
     <div className="flex flex-col items-center justify-center">

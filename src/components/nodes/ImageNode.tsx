@@ -1,7 +1,7 @@
 import { Handle, Position } from "@xyflow/react";
 import type { ImageNodeData } from "../../types/common";
 
-export function ImageNode(NodeData: { data: ImageNodeData }) {
+export function ImageNode(NodeData: ImageNodeData) {
   const { data } = NodeData;
   return (
     <div className="flex flex-col items-center justify-center">

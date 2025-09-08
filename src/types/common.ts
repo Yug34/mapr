@@ -17,49 +17,70 @@ export const nodeTypes = {
   TODONode: TODONode,
 };
 
-export type WebPageNodeData = {
-  url: string;
+export type BaseNodeData = {
+  id: string;
+  type: keyof typeof nodeTypes;
 };
 
-export type TextUpdaterNodeData = {
-  label: string;
+export type WebPageNodeData = BaseNodeData & {
+  data: {
+    url: string;
+  };
 };
 
-export type ImageNodeData = {
-  imageBlobUrl: string;
-  image: File;
-  imageBase64: string;
-  mediaId?: string;
+export type TextUpdaterNodeData = BaseNodeData & {
+  data: {
+    label: string;
+  };
 };
 
-export type VideoNodeData = {
-  videoBlobUrl: string;
-  video: File;
-  videoBase64: string;
-  mediaId?: string;
+export type ImageNodeData = BaseNodeData & {
+  data: {
+    imageBlobUrl: string;
+    image: File;
+    imageBase64: string;
+    mediaId?: string;
+  };
 };
 
-export type AudioNodeData = {
-  audioBlobUrl: string;
-  audio: File;
-  audioBase64: string;
-  mediaId?: string;
+export type VideoNodeData = BaseNodeData & {
+  data: {
+    videoBlobUrl: string;
+    video: File;
+    videoBase64: string;
+    mediaId?: string;
+  };
 };
 
-export type PDFNodeData = {
-  pdfBlobUrl: string;
-  pdf: File;
-  pdfBase64: string;
-  mediaId?: string;
+export type AudioNodeData = BaseNodeData & {
+  data: {
+    audioBlobUrl: string;
+    audio: File;
+    audioBase64: string;
+    mediaId?: string;
+  };
 };
 
-export type TODONodeData = {
+export type PDFNodeData = BaseNodeData & {
+  data: {
+    pdfBlobUrl: string;
+    pdf: File;
+    pdfBase64: string;
+    mediaId?: string;
+  };
+};
+
+export type Todo = {
+  id: string;
   title: string;
-  todos: {
-    id: string;
+  completed: boolean;
+};
+
+export type TODONodeData = BaseNodeData & {
+  data: {
     title: string;
-    completed: boolean;
-  }[];
+    todos: Todo[];
+  };
 };
 
 export type CustomNodeData =
