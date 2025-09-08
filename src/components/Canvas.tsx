@@ -251,7 +251,6 @@ const Canvas = () => {
     (event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
       event.preventDefault();
 
-      console.log("onPaneContextMenu", event);
       const pane = canvasRef.current!.getBoundingClientRect();
 
       setMenu({

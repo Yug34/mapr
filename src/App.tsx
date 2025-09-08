@@ -1,13 +1,5 @@
 import { Suspense, lazy } from "react";
 import { Plus, LoaderCircle } from "lucide-react";
-import {
-  SheetTrigger,
-  SheetContent,
-  Sheet,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "./components/ui/sheet";
 const Canvas = lazy(() => import("./components/Canvas"));
 import { Button } from "./components/ui/button";
 
@@ -18,20 +10,6 @@ import { Button } from "./components/ui/button";
 function App() {
   return (
     <div className="w-screen h-screen flex flex-row overflow-hidden">
-      <div className="w-[200px] h-full bg-red-500 flex-shrink-0">
-        <Sheet>
-          <SheetTrigger>Open</SheetTrigger>
-          <SheetContent side="left">
-            <SheetHeader>
-              <SheetTitle>Add Node</SheetTitle>
-              <SheetDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
-              </SheetDescription>
-            </SheetHeader>
-          </SheetContent>
-        </Sheet>
-      </div>
       <div className="flex flex-col flex-1 min-h-0">
         <Suspense
           fallback={

@@ -83,7 +83,11 @@ const CanvasContextMenu = ({ menu }: CanvasContextMenuProps) => {
             <Button className="cursor-pointer" onClick={duplicateNode}>
               Duplicate
             </Button>
-            <Button className="cursor-pointer" onClick={deleteNode}>
+            <Button
+              className="cursor-pointer"
+              variant="destructive"
+              onClick={deleteNode}
+            >
               Delete
             </Button>
           </CardContent>

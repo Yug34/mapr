@@ -5,6 +5,7 @@ import type { Node } from "@xyflow/react";
 import { VideoNode } from "../components/nodes/VideoNode";
 import { AudioNode } from "../components/nodes/AudioNode";
 import { PDFNode } from "../components/nodes/PDFNode";
+import { TODONode } from "../components/nodes/TODONode";
 
 export const nodeTypes = {
   textUpdater: TextUpdaterNode,
@@ -13,6 +14,7 @@ export const nodeTypes = {
   VideoNode: VideoNode,
   AudioNode: AudioNode,
   PDFNode: PDFNode,
+  TODONode: TODONode,
 };
 
 export type WebPageNodeData = {
@@ -51,13 +53,23 @@ export type PDFNodeData = {
   mediaId?: string;
 };
 
+export type TODONodeData = {
+  title: string;
+  todos: {
+    id: string;
+    title: string;
+    completed: boolean;
+  }[];
+};
+
 export type CustomNodeData =
   | TextUpdaterNodeData
   | WebPageNodeData
   | ImageNodeData
   | VideoNodeData
   | AudioNodeData
-  | PDFNodeData;
+  | PDFNodeData
+  | TODONodeData;
 
 export type CustomNode = Node<CustomNodeData>;
 

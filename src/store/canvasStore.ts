@@ -19,6 +19,18 @@ const initialNodes: CustomNode[] = [
     position: { x: 0, y: 200 },
     data: { label: "Node 3" },
   },
+  {
+    id: "n4",
+    type: "TODONode",
+    position: { x: 0, y: 300 },
+    data: {
+      title: "Node 4",
+      todos: [
+        { id: "t1", title: "Todo 1", completed: false },
+        { id: "t2", title: "Todo 2", completed: true },
+      ],
+    },
+  },
 ];
 const initialEdges = [
   { id: "n1-n2", source: "n1", target: "n2" },
