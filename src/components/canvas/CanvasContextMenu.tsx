@@ -34,13 +34,6 @@ const CanvasContextMenu = ({
   >();
   const { addNode } = useCanvasStore();
 
-  useEffect(() => {
-    console.log("targetId", targetId);
-    console.log("clientPoint", clientPoint);
-    console.log("type", type);
-    console.log("onClose", onClose);
-  }, [targetId, clientPoint, type, onClose]);
-
   const [recentlyCopied, setRecentlyCopied] = useState(false);
 
   const handleCopyId = useCallback(() => {

@@ -107,7 +107,6 @@ const Canvas = () => {
     point: { x: number; y: number };
   } | null;
   const [menu, setMenu] = useState<MenuInfo>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   // helpers in Canvas.tsx
   const readAsDataURL = (file: File) =>
     new Promise<string>((resolve, reject) => {
@@ -238,20 +237,17 @@ const Canvas = () => {
 
   const onNodeContextMenu = useCallback<NodeMouseHandler<CustomNode>>(
     (e, node) => {
-      e.preventDefault();
       setMenu({
         type: "node",
         id: node.id,
         point: { x: e.clientX, y: e.clientY },
       });
-      setMenuOpen(true);
     },
     []
   );
 
   const onPaneContextMenu = useCallback(
     (e: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
-      e.preventDefault();
       setMenu({
         type: "pane",
         point: {
@@ -259,13 +255,11 @@ const Canvas = () => {
           y: (e as MouseEvent).clientY,
         },
       });
-      setMenuOpen(true);
     },
     []
   );
 
   const onPaneClick = useCallback(() => {
-    setMenuOpen(false);
     setMenu(null);
   }, []);
 
@@ -278,7 +272,11 @@ const Canvas = () => {
   }
 
   return (
-    <ContextMenu>
+    <ContextMenu
+      onOpenChange={(open) => {
+        if (!open) setMenu(null);
+      }}
+    >
       <ContextMenuTrigger asChild>
         <div
           ref={canvasRef}
@@ -332,16 +330,14 @@ const Canvas = () => {
           </ReactFlow>
         </div>
       </ContextMenuTrigger>
-      {menuOpen && menu && (
-        <Suspense fallback={null}>
-          <CanvasContextMenu
-            type={menu.type}
-            targetId={menu.id}
-            clientPoint={menu.point}
-            onClose={() => setMenuOpen(false)}
-          />
-        </Suspense>
-      )}
+      <Suspense fallback={null}>
+        <CanvasContextMenu
+          type={menu?.type ?? "pane"}
+          targetId={menu?.id}
+          clientPoint={menu?.point}
+          onClose={() => setMenu(null)}
+        />
+      </Suspense>
     </ContextMenu>
   );
 };
