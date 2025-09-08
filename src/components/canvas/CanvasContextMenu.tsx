@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Edge } from "@xyflow/react";
 import { useCanvasStore } from "@/store/canvasStore";
