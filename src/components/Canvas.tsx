@@ -21,7 +21,7 @@ import type {
 } from "@xyflow/react";
 import { useCanvasStore } from "../store/canvasStore";
 import { nodeTypes } from "../types/common";
-import type { CustomNode, MenuData } from "../types/common";
+import type { CustomNode } from "../types/common";
 import { isLink } from "../utils";
 // import FileUpload from "./FileUpload";
 import type {
@@ -39,6 +39,7 @@ const ControlsLazy = lazy(() =>
 );
 import { add as idbAdd, Stores } from "../utils/indexedDb";
 import { LoaderCircle } from "lucide-react";
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 
 type MediaHandler<T> = {
   test: (mime: string) => boolean;
@@ -100,7 +101,13 @@ const Canvas = () => {
     initFromDb,
   } = useCanvasStore();
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [menu, setMenu] = useState<MenuData | null>(null);
+  type MenuInfo = {
+    type: "node" | "pane";
+    id?: string;
+    point: { x: number; y: number };
+  } | null;
+  const [menu, setMenu] = useState<MenuInfo>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   // helpers in Canvas.tsx
   const readAsDataURL = (file: File) =>
     new Promise<string>((resolve, reject) => {
@@ -230,42 +237,37 @@ const Canvas = () => {
   );
 
   const onNodeContextMenu = useCallback<NodeMouseHandler<CustomNode>>(
-    (event, node) => {
-      event.preventDefault();
-
-      const pane = canvasRef.current!.getBoundingClientRect();
+    (e, node) => {
+      e.preventDefault();
       setMenu({
-        menuType: "node",
+        type: "node",
         id: node.id,
-        top: event.clientY < pane.height - 200 && event.clientY,
-        left: event.clientX < pane.width - 200 && event.clientX,
-        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
-        bottom:
-          event.clientY >= pane.height - 200 && pane.height - event.clientY,
-      } as MenuData);
+        point: { x: e.clientX, y: e.clientY },
+      });
+      setMenuOpen(true);
     },
-    [setMenu]
+    []
   );
 
   const onPaneContextMenu = useCallback(
-    (event: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
-      event.preventDefault();
-
-      const pane = canvasRef.current!.getBoundingClientRect();
-
+    (e: MouseEvent | React.MouseEvent<Element, MouseEvent>) => {
+      e.preventDefault();
       setMenu({
-        menuType: "pane",
-        top: event.clientY < pane.height - 200 && event.clientY,
-        left: event.clientX,
-        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
-        bottom:
-          event.clientY >= pane.height - 200 && pane.height - event.clientY,
-      } as MenuData);
+        type: "pane",
+        point: {
+          x: (e as MouseEvent).clientX,
+          y: (e as MouseEvent).clientY,
+        },
+      });
+      setMenuOpen(true);
     },
-    [setMenu]
+    []
   );
 
-  const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
+  const onPaneClick = useCallback(() => {
+    setMenuOpen(false);
+    setMenu(null);
+  }, []);
 
   if (!initialized) {
     return (
@@ -276,62 +278,71 @@ const Canvas = () => {
   }
 
   return (
-    <div
-      ref={canvasRef}
-      className="flex-1 min-h-0"
-      tabIndex={0}
-      style={{ outline: "none" }}
-    >
-      <ReactFlow
-        {...{
-          nodes,
-          edges,
-          onNodesChange,
-          onEdgesChange,
-          onConnect,
-          onNodeContextMenu,
-          onPaneClick,
-          onPaneContextMenu,
-          fitView: true,
-        }}
-        style={{
-          background: `
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div
+          ref={canvasRef}
+          className="flex-1 min-h-0"
+          tabIndex={0}
+          style={{ outline: "none" }}
+        >
+          <ReactFlow
+            {...{
+              nodes,
+              edges,
+              onNodesChange,
+              onEdgesChange,
+              onConnect,
+              onNodeContextMenu,
+              onPaneClick,
+              onPaneContextMenu,
+              fitView: true,
+            }}
+            style={{
+              background: `
               radial-gradient(circle, #a0a0a0 1px, transparent 1px)
             `,
-          backgroundSize: "20px 20px",
-        }}
-        nodeTypes={nodeTypes}
-      >
-        <Suspense fallback={null}>
-          <ControlsLazy />
-        </Suspense>
-        {menu && (
-          <Suspense fallback={null}>
-            <CanvasContextMenu menu={menu} />
-          </Suspense>
-        )}
-        <Suspense fallback={null}>
-          <MiniMapLazy
-            style={{
-              height: 120,
-              width: 180,
+              backgroundSize: "20px 20px",
             }}
-            nodeColor={(node) => {
-              // TODO:
-              switch (node.type) {
-                case "input":
-                  return "#0041d0";
-                case "output":
-                  return "#ff0072";
-                default:
-                  return "#1a192b";
-              }
-            }}
-            nodeStrokeWidth={3}
+            nodeTypes={nodeTypes}
+          >
+            <Suspense fallback={null}>
+              <ControlsLazy />
+            </Suspense>
+            <Suspense fallback={null}>
+              <MiniMapLazy
+                style={{
+                  height: 120,
+                  width: 180,
+                }}
+                nodeColor={(node) => {
+                  // TODO:
+                  switch (node.type) {
+                    case "input":
+                      return "#0041d0";
+                    case "output":
+                      return "#ff0072";
+                    default:
+                      return "#1a192b";
+                  }
+                }}
+                nodeStrokeWidth={3}
+              />
+            </Suspense>
+          </ReactFlow>
+        </div>
+      </ContextMenuTrigger>
+      {menuOpen && menu && (
+        <Suspense fallback={null}>
+          <CanvasContextMenu
+            type={menu.type}
+            targetId={menu.id}
+            clientPoint={menu.point}
+            onClose={() => setMenuOpen(false)}
           />
         </Suspense>
-      </ReactFlow>
-    </div>
+      )}
+    </ContextMenu>
   );
 };
 
