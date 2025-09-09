@@ -5,6 +5,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import { useRef, useState } from "react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { Button } from "../ui/button";
+import { Minus, Plus } from "lucide-react";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -60,12 +61,25 @@ export function PDFNode(NodeData: PDFNodeData) {
             }
           />
         </Document>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={decPage}>
-            Previous
+        <div className="flex items-center text-sm font-medium">
+          <Button
+            size="icon"
+            className="cursor-pointer rounded-r-none"
+            onClick={decPage}
+            disabled={currentPage === 1}
+          >
+            <Minus />
           </Button>
-          <Button variant="outline" onClick={incPage}>
-            Next
+          <Button variant="secondary" className="rounded-none font-normal">
+            Page {currentPage} of {numPages}
+          </Button>
+          <Button
+            size="icon"
+            className="cursor-pointer rounded-l-none"
+            onClick={incPage}
+            disabled={currentPage === numPages}
+          >
+            <Plus />
           </Button>
         </div>
         <Handle type="source" position={Position.Top} />
