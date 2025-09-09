@@ -163,7 +163,6 @@ const Canvas = () => {
               },
             } as CustomNode;
 
-            debugger;
             return node;
           })
         );
@@ -307,8 +306,8 @@ const Canvas = () => {
               onPaneClick,
               onPaneContextMenu,
               fitView: true,
-              maxZoom: 1,
-              minZoom: 1,
+              maxZoom: 2,
+              minZoom: 0.5,
             }}
             style={{
               background: `
@@ -316,6 +315,7 @@ const Canvas = () => {
             `,
               backgroundSize: "20px 20px",
             }}
+            defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
             nodeTypes={nodeTypes}
           >
             <Suspense fallback={null}>

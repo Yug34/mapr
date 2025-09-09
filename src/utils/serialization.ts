@@ -148,6 +148,10 @@ export function deserializeNode(
     case "PDFNode": {
       const url =
         data && "mediaId" in data ? blobUrlResolver(data.mediaId) : undefined;
+
+      const fileNameFromData = (
+        persisted.data as { fileName?: string } | undefined
+      )?.fileName;
       return {
         id,
         type,
@@ -156,6 +160,7 @@ export function deserializeNode(
           pdf: undefined as unknown as File,
           pdfBlobUrl: url ?? "",
           pdfBase64: (data as any)?.previewBase64 ?? "",
+          fileName: persisted.fileName ?? fileNameFromData ?? "",
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
         } as PDFNodeData,
       } as CustomNode;
