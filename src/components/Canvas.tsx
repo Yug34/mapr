@@ -54,6 +54,7 @@ const MEDIA_HANDLERS: MediaHandler<
     test: (t) => t.startsWith("image/"),
     type: "ImageNode",
     buildData: (file, url, b64) => ({
+      fileName: file.name,
       image: file,
       imageBlobUrl: url,
       imageBase64: b64,
@@ -63,6 +64,7 @@ const MEDIA_HANDLERS: MediaHandler<
     test: (t) => t.startsWith("video/"),
     type: "VideoNode",
     buildData: (file, url, b64) => ({
+      fileName: file.name,
       video: file,
       videoBlobUrl: url,
       videoBase64: b64,
@@ -72,6 +74,7 @@ const MEDIA_HANDLERS: MediaHandler<
     test: (t) => t.startsWith("audio/"),
     type: "AudioNode",
     buildData: (file, url, b64) => ({
+      fileName: file.name,
       audio: file,
       audioBlobUrl: url,
       audioBase64: b64,
@@ -81,6 +84,7 @@ const MEDIA_HANDLERS: MediaHandler<
     test: (t) => t === "application/pdf",
     type: "PDFNode",
     buildData: (file, url, b64) => ({
+      fileName: file.name,
       pdf: file,
       pdfBlobUrl: url,
       pdfBase64: b64,
@@ -140,6 +144,7 @@ const Canvas = () => {
             const mediaId = crypto.randomUUID();
             await idbAdd(Stores.media, {
               id: mediaId,
+              fileName: file.name,
               blob: file,
               mime: file.type,
               size: file.size,
@@ -149,9 +154,16 @@ const Canvas = () => {
             const node = {
               id: crypto.randomUUID(),
               type: handler.type,
+              fileName: file.name,
               position: { x: 0, y: 0 },
-              data: { ...handler.buildData(file, blobUrl, base64), mediaId },
+              data: {
+                ...handler.buildData(file, blobUrl, base64),
+                mediaId,
+                fileName: file.name,
+              },
             } as CustomNode;
+
+            debugger;
             return node;
           })
         );
@@ -295,8 +307,8 @@ const Canvas = () => {
               onPaneClick,
               onPaneContextMenu,
               fitView: true,
-              maxZoom: 1.5,
-              minZoom: 0.5,
+              maxZoom: 1,
+              minZoom: 1,
             }}
             style={{
               background: `

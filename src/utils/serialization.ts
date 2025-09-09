@@ -12,6 +12,7 @@ import type {
 // On-disk representations: no File objects, no Blob URLs.
 export type PersistedNode = {
   id: string;
+  fileName?: string;
   type?: CustomNode["type"];
   position: { x: number; y: number };
   data: unknown;
@@ -77,7 +78,12 @@ export function serializeNode(node: CustomNode): PersistedNode {
         id,
         type,
         position,
-        data: { mediaId: (d as any).mediaId ?? "", previewBase64: d.pdfBase64 },
+        fileName: d.fileName,
+        data: {
+          mediaId: (d as any).mediaId ?? "",
+          previewBase64: d.pdfBase64,
+          fileName: d.fileName,
+        },
       };
     }
     case "WebPageNode":

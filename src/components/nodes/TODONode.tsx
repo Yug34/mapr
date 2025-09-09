@@ -3,13 +3,22 @@ import type { Todo, TODONodeData } from "../../types/common";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { Card } from "../ui/card";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
+import { EditIcon, TrashIcon } from "lucide-react";
 
-export function TODONode(NodeData: TODONodeData) {
-  const { id, data } = NodeData;
+export function TODONode(NodeData: { id: string; data: TODONodeData }) {
+  const { data } = NodeData;
 
   const [todos, setTodos] = useState<Todo[]>(data.todos);
+
+  const addTodo = useCallback(() => {
+    setTodos([
+      ...todos,
+      { id: crypto.randomUUID(), title: "New Todo", completed: false },
+    ]);
+  }, [todos]);
 
   const handleTodoClick = (
     e: React.MouseEvent<HTMLDivElement>,
@@ -24,7 +33,7 @@ export function TODONode(NodeData: TODONodeData) {
       )
     );
 
-    // update the db
+    // TODO: update the db
   };
 
   return (
@@ -41,22 +50,36 @@ export function TODONode(NodeData: TODONodeData) {
             <Label
               htmlFor={todo.id}
               className={cn(
-                "w-full hover:bg-accent/50 flex rounded-none items-start gap-3 border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950",
-                index === 0 && "rounded-t-md",
-                index === todos.length - 1 && "rounded-b-md"
+                "cursor-pointer w-full hover:bg-accent/50 flex rounded-none items-start gap-3 border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950",
+                index === 0 && "rounded-t-md"
               )}
             >
               <Checkbox
                 id={todo.id}
-                className="flex items-center gap-2"
+                className="cursor-pointer flex items-center gap-2"
                 checked={todo.completed}
               />
               <div className="grid gap-1.5 font-normal">
                 <p className="text-sm leading-none font-medium">{todo.title}</p>
               </div>
+              <div>
+                <Button variant="ghost">
+                  <EditIcon className="w-[6px] h-[6px] text-sm" />
+                </Button>
+                <Button variant="destructive">
+                  <TrashIcon className="w-[6px] h-[6px] text-sm" />
+                </Button>
+              </div>
             </Label>
           </div>
         ))}
+        <Button
+          variant="outline"
+          className="w-full rounded-b-md cursor-pointer"
+          onClick={addTodo}
+        >
+          Add Todo
+        </Button>
       </Card>
       <Handle type="source" position={Position.Top} />
       <Handle type="target" position={Position.Bottom} />

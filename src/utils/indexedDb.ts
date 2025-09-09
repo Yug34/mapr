@@ -4,8 +4,6 @@
   - Stores: nodes, edges, media, meta (and legacy images)
 */
 
-import type { Todo } from "@/types/common";
-
 export type StoreName = "nodes" | "edges" | "media" | "meta" | "images";
 
 export type TxMode = IDBTransactionMode;

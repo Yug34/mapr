@@ -1,6 +1,6 @@
 import type { Edge } from "@xyflow/react";
 import { create } from "zustand";
-import type { CustomNode } from "../types/common";
+import type { CustomNode, TODONodeData } from "../types/common";
 import { Stores, bulkPut, clearStore, getAll } from "../utils/indexedDb";
 import {
   deserializeEdge,
@@ -29,7 +29,7 @@ const initialNodes: CustomNode[] = [
         { id: "t1", title: "Todo 1", completed: false },
         { id: "t2", title: "Todo 2", completed: true },
       ],
-    },
+    } as TODONodeData,
   },
   {
     id: "n5",
@@ -41,7 +41,7 @@ const initialNodes: CustomNode[] = [
         { id: "t1", title: "Todo Random", completed: false },
         { id: "t2", title: "Todo Random 2", completed: true },
       ],
-    },
+    } as TODONodeData,
   },
 ];
 const initialEdges = [
