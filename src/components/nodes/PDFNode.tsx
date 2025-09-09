@@ -36,6 +36,7 @@ export function PDFNode(NodeData: PDFNodeData) {
 
   const onPDFClick = (e: MouseEvent) => {
     console.log("clicked");
+    window.open(data.pdfBlobUrl, "_blank");
   };
 
   return (
