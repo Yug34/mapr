@@ -5,14 +5,8 @@ import { Document, Page, pdfjs } from "react-pdf";
 import { useRef, useState } from "react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { Button } from "../ui/button";
-import { Minus, Plus } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
+import { Minus, Plus, SquareArrowOutUpRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -44,7 +38,10 @@ export function PDFNode(NodeData: PDFNodeData) {
 
   const onPDFClick = (e: MouseEvent) => {
     setIsModalOpen(true);
-    // window.open(data.pdfBlobUrl, "_blank");
+  };
+
+  const openPdfInNewTab = () => {
+    window.open(data.pdfBlobUrl, "_blank");
   };
 
   return (
@@ -67,7 +64,19 @@ export function PDFNode(NodeData: PDFNodeData) {
         </DialogContent>
       </Dialog>
       <Card className="p-4">
-        <div className="text-sm font-medium">{data.fileName}</div>
+        <div className="flex w-full text-sm font-medium justify-between items-center">
+          <span className="nowrap overflow-hidden text-ellipsis">
+            {data.fileName}
+          </span>
+          <Button
+            variant="outline"
+            className="shrink-0 ml-2 cursor-pointer"
+            size="icon"
+            onClick={openPdfInNewTab}
+          >
+            <SquareArrowOutUpRight />
+          </Button>
+        </div>
         <div
           className="flex flex-col items-center justify-center"
           ref={containerRef}
@@ -89,27 +98,29 @@ export function PDFNode(NodeData: PDFNodeData) {
               }
             />
           </Document>
-          <div className="flex items-center text-sm font-medium">
-            <Button
-              size="icon"
-              className="cursor-pointer rounded-r-none"
-              onClick={decPage}
-              disabled={currentPage === 1}
-            >
-              <Minus />
-            </Button>
-            <Button variant="secondary" className="rounded-none font-normal">
-              Page {currentPage} of {numPages}
-            </Button>
-            <Button
-              size="icon"
-              className="cursor-pointer rounded-l-none"
-              onClick={incPage}
-              disabled={currentPage === numPages}
-            >
-              <Plus />
-            </Button>
-          </div>
+          {numPages > 1 && (
+            <div className="flex items-center text-sm font-medium">
+              <Button
+                size="icon"
+                className="cursor-pointer rounded-r-none"
+                onClick={decPage}
+                disabled={currentPage === 1}
+              >
+                <Minus />
+              </Button>
+              <Button variant="secondary" className="rounded-none font-normal">
+                Page {currentPage} of {numPages}
+              </Button>
+              <Button
+                size="icon"
+                className="cursor-pointer rounded-l-none"
+                onClick={incPage}
+                disabled={currentPage === numPages}
+              >
+                <Plus />
+              </Button>
+            </div>
+          )}
           <Handle type="source" position={Position.Top} />
           <Handle type="target" position={Position.Bottom} />
         </div>
