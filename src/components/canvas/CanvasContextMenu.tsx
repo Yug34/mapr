@@ -9,8 +9,23 @@ import {
   ContextMenuLabel,
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
-import { ClipboardCheck, Copy, CopyPlus, Trash2 } from "lucide-react";
+import {
+  ClipboardCheck,
+  Copy,
+  CopyPlus,
+  Trash2,
+  ALargeSmall,
+  ListChecks,
+  File,
+} from "lucide-react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 
 type MenuKind = "node" | "pane";
 
@@ -32,6 +47,9 @@ const CanvasContextMenu = ({
     Edge
   >();
   const { addNode } = useCanvasStore();
+  const [addNodeType, setAddNodeType] = useState<CustomNode["type"] | null>(
+    null
+  );
 
   const [recentlyCopied, setRecentlyCopied] = useState(false);
 
@@ -87,8 +105,17 @@ const CanvasContextMenu = ({
     onClose?.();
   }, [addNode, flowPoint, onClose]);
 
+  const addImageNode = useCallback(() => {
+    addNode({
+      id: crypto.randomUUID(),
+      position: { x: flowPoint.x, y: flowPoint.y },
+      data: { label: "New node" },
+    });
+    onClose?.();
+  }, [addNode, flowPoint, onClose]);
+
   return (
-    <>
+    <Dialog>
       <ContextMenuContent>
         {type === "node" ? (
           <>
@@ -113,16 +140,40 @@ const CanvasContextMenu = ({
           </>
         ) : (
           <>
-            <ContextMenuLabel>Canvas</ContextMenuLabel>
+            <ContextMenuLabel>Add new node to Canvas</ContextMenuLabel>
             <ContextMenuSeparator />
-            <ContextMenuItem onClick={addTextNode}>
-              <CopyPlus className="size-4" />
-              Add Text Node Here
-            </ContextMenuItem>
+            <DialogTrigger className="w-full">
+              <ContextMenuItem
+                onClick={() => setAddNodeType("text")}
+                className="cursor-pointer w-full"
+              >
+                <ALargeSmall className="size-4" />
+                Text
+              </ContextMenuItem>
+              <ContextMenuItem
+                onClick={() => setAddNodeType("FileNode")}
+                className="cursor-pointer w-full"
+              >
+                <File className="size-4" />
+                Image / Audio / Video / PDF
+              </ContextMenuItem>
+              <ContextMenuItem
+                onClick={() => setAddNodeType("TODONode")}
+                className="cursor-pointer w-full"
+              >
+                <ListChecks className="size-4" />
+                TODO
+              </ContextMenuItem>
+            </DialogTrigger>
           </>
         )}
       </ContextMenuContent>
-    </>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add {addNodeType}</DialogTitle>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
   );
 };
 
