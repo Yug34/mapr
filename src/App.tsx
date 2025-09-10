@@ -3,10 +3,6 @@ import { Plus, LoaderCircle } from "lucide-react";
 const Canvas = lazy(() => import("./components/Canvas"));
 import { Button } from "./components/ui/button";
 
-// TODO:
-// 1. Add new components: TODO List
-// Canvas interactions: cut copy paste etc
-
 function App() {
   return (
     <div className="w-screen h-screen flex flex-row overflow-hidden">

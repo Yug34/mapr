@@ -17,7 +17,6 @@ export const nodeTypes = {
   TODONode: TODONode,
 };
 
-// Node data payloads (used as React Flow Node<T> data generic)
 export type WebPageNodeData = {
   url: string;
 };

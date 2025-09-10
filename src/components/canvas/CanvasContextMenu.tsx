@@ -8,7 +8,6 @@ import {
   ContextMenuItem,
   ContextMenuLabel,
   ContextMenuSeparator,
-  ContextMenuShortcut,
 } from "@/components/ui/context-menu";
 import { ClipboardCheck, Copy, CopyPlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -102,7 +101,6 @@ const CanvasContextMenu = ({
                 <Copy className="size-4" />
               )}
               Copy ID
-              <ContextMenuShortcut>Ctrl+C</ContextMenuShortcut>
             </ContextMenuItem>
             <ContextMenuItem onClick={duplicateNode}>
               <CopyPlus className="size-4" />
