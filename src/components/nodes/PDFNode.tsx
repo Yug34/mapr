@@ -1,4 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
+import type { NodeProps } from "@xyflow/react";
 import type { PDFNodeData } from "../../types/common";
 import { Card } from "../ui/card";
 import { Document, Page, pdfjs } from "react-pdf";
@@ -12,8 +13,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
-export function PDFNode(NodeData: PDFNodeData) {
-  const { data } = NodeData;
+export function PDFNode(props: NodeProps) {
+  const { data } = props;
+  const nodeData = data as PDFNodeData;
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -35,14 +37,14 @@ export function PDFNode(NodeData: PDFNodeData) {
   const MAX_WIDTH = 800;
 
   const openPdfInNewTab = () => {
-    window.open(data.pdfBlobUrl, "_blank");
+    window.open(nodeData.pdfBlobUrl, "_blank");
   };
 
   return (
     <Card className="p-4">
       <div className="flex w-full text-sm font-medium justify-between items-center">
         <span className="nowrap overflow-hidden text-ellipsis">
-          {data.fileName}
+          {nodeData.fileName}
         </span>
         <Button
           variant="outline"
@@ -59,7 +61,7 @@ export function PDFNode(NodeData: PDFNodeData) {
       >
         <Document
           className="cursor-pointer"
-          file={data.pdfBase64}
+          file={nodeData.pdfBase64}
           onLoadSuccess={onDocumentLoadSuccess}
           onClick={openPdfInNewTab}
         >

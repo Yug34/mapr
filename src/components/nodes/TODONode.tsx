@@ -1,4 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
+import type { NodeProps } from "@xyflow/react";
 import type { Todo, TODONodeData } from "../../types/common";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -8,10 +9,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { EditIcon, TrashIcon } from "lucide-react";
 
-export function TODONode(NodeData: { id: string; data: TODONodeData }) {
-  const { data } = NodeData;
+export function TODONode(props: NodeProps) {
+  const { data } = props;
+  const nodeData = data as TODONodeData;
 
-  const [todos, setTodos] = useState<Todo[]>(data.todos);
+  const [todos, setTodos] = useState<Todo[]>(nodeData.todos);
 
   const addTodo = useCallback(() => {
     setTodos([
@@ -24,7 +26,7 @@ export function TODONode(NodeData: { id: string; data: TODONodeData }) {
     e: React.MouseEvent<HTMLDivElement>,
     todoNode: Todo
   ) => {
-    console.log(NodeData);
+    console.log(props);
     e.preventDefault();
     e.stopPropagation();
     setTodos((prevTodos: Todo[]) =>
