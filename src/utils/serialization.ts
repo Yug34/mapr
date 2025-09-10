@@ -43,7 +43,7 @@ export function serializeNode(node: CustomNode): PersistedNode {
         type,
         position,
         data: {
-          mediaId: (d as any).mediaId ?? "",
+          mediaId: d.mediaId ?? "",
           previewBase64: d.imageBase64,
         },
       };
@@ -55,7 +55,7 @@ export function serializeNode(node: CustomNode): PersistedNode {
         type,
         position,
         data: {
-          mediaId: (d as any).mediaId ?? "",
+          mediaId: d.mediaId ?? "",
           previewBase64: d.videoBase64,
         },
       };
@@ -67,7 +67,7 @@ export function serializeNode(node: CustomNode): PersistedNode {
         type,
         position,
         data: {
-          mediaId: (d as any).mediaId ?? "",
+          mediaId: d.mediaId ?? "",
           previewBase64: d.audioBase64,
         },
       };
@@ -80,7 +80,7 @@ export function serializeNode(node: CustomNode): PersistedNode {
         position,
         fileName: d.fileName,
         data: {
-          mediaId: (d as any).mediaId ?? "",
+          mediaId: d.mediaId ?? "",
           previewBase64: d.pdfBase64,
           fileName: d.fileName,
         },
@@ -110,7 +110,8 @@ export function deserializeNode(
         data: {
           image: undefined as unknown as File,
           imageBlobUrl: url ?? "",
-          imageBase64: (data as any)?.previewBase64 ?? "",
+          imageBase64:
+            (data as { previewBase64?: string })?.previewBase64 ?? "",
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
         } as ImageNodeData,
       } as CustomNode;
@@ -125,7 +126,8 @@ export function deserializeNode(
         data: {
           video: undefined as unknown as File,
           videoBlobUrl: url ?? "",
-          videoBase64: (data as any)?.previewBase64 ?? "",
+          videoBase64:
+            (data as { previewBase64?: string })?.previewBase64 ?? "",
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
         } as VideoNodeData,
       } as CustomNode;
@@ -140,7 +142,8 @@ export function deserializeNode(
         data: {
           audio: undefined as unknown as File,
           audioBlobUrl: url ?? "",
-          audioBase64: (data as any)?.previewBase64 ?? "",
+          audioBase64:
+            (data as { previewBase64?: string })?.previewBase64 ?? "",
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
         } as AudioNodeData,
       } as CustomNode;
@@ -159,7 +162,7 @@ export function deserializeNode(
         data: {
           pdf: undefined as unknown as File,
           pdfBlobUrl: url ?? "",
-          pdfBase64: (data as any)?.previewBase64 ?? "",
+          pdfBase64: (data as { previewBase64?: string })?.previewBase64 ?? "",
           fileName: persisted.fileName ?? fileNameFromData ?? "",
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
         } as PDFNodeData,
