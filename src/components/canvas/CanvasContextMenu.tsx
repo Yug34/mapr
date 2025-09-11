@@ -26,6 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import FileUpload from "../FileUpload";
 
 type MenuKind = "node" | "pane";
 
@@ -172,6 +173,7 @@ const CanvasContextMenu = ({
         <DialogHeader>
           <DialogTitle>Add {addNodeType}</DialogTitle>
         </DialogHeader>
+        <FileUpload />
       </DialogContent>
     </Dialog>
   );
