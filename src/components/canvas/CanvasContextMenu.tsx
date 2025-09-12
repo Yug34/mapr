@@ -10,13 +10,13 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
 import {
-  ClipboardCheck,
   Copy,
   CopyPlus,
   Trash2,
   ALargeSmall,
   ListChecks,
   File,
+  Notebook,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -93,11 +93,12 @@ const CanvasContextMenu = ({
     return screenToFlowPosition({ x: clientPoint.x, y: clientPoint.y });
   }, [clientPoint, screenToFlowPosition]);
 
-  const addTextNode = useCallback(() => {
+  const addNoteNode = useCallback(() => {
     addNode({
       id: crypto.randomUUID(),
       position: { x: flowPoint.x, y: flowPoint.y },
-      data: { label: "New node" },
+      type: "NoteNode",
+      data: { title: "New note", content: "Aaa" },
     });
     onClose?.();
   }, [addNode, flowPoint, onClose]);
@@ -135,14 +136,14 @@ const CanvasContextMenu = ({
           <>
             <ContextMenuLabel>Add new node to Canvas</ContextMenuLabel>
             <ContextMenuSeparator />
+            <ContextMenuItem
+              onClick={addNoteNode}
+              className="cursor-pointer w-full"
+            >
+              <Notebook className="size-4" />
+              Note
+            </ContextMenuItem>
             <DialogTrigger className="w-full">
-              <ContextMenuItem
-                onClick={() => setAddNodeType("text")}
-                className="cursor-pointer w-full"
-              >
-                <ALargeSmall className="size-4" />
-                Text
-              </ContextMenuItem>
               <ContextMenuItem
                 onClick={() => setAddNodeType("FileNode")}
                 className="cursor-pointer w-full"

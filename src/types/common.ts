@@ -16,6 +16,7 @@ export const nodeTypes = {
   AudioNode: AudioNode,
   PDFNode: PDFNode,
   TODONode: TODONode,
+  NoteNode: NoteNode,
 };
 
 export type WebPageNodeData = {
