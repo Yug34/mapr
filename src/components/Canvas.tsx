@@ -176,8 +176,9 @@ const Canvas = () => {
       } else {
         addNode({
           id: crypto.randomUUID(),
+          type: "NoteNode",
           position: { x: 0, y: 0 },
-          data: { label: text },
+          data: { title: "Add title", content: text },
         });
       }
     },
