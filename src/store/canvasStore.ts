@@ -15,13 +15,26 @@ const initialNodes: CustomNode[] = [
     id: "n1",
     position: { x: 0, y: 0 },
     type: "NoteNode",
-    data: { title: "Node 1", content: "Node 1" },
+    data: {
+      title: "About mapr",
+      content: `I used to use a mind map app called [**Edvo**](https://www.linkedin.com/company/edvo).\n\n
+Unfortunately, they shut down :(\n\n
+So I made this for myself :D\n\n
+**Source code on GitHub**: [mapr](https://github.com/yug34/mapr).`,
+    },
   },
   {
     id: "n2",
-    position: { x: 0, y: 100 },
+    position: { x: 250, y: 250 },
     type: "NoteNode",
-    data: { title: "Node 2", content: "Node 2" },
+    data: {
+      title: "Instructions",
+      content: `- Click and drag to move the nodes.
+- Copy and paste PDFs, links, images, audio, videos, and text to create nodes.
+- Right click on the canvas to add new nodes.
+- Right click on a node/edge to duplicate/delete.
+- Connect edges from a handle to another handle.`,
+    },
   },
   {
     id: "n4",
@@ -49,7 +62,7 @@ const initialNodes: CustomNode[] = [
   },
 ];
 const initialEdges = [
-  { id: "n1-n2", source: "n1", target: "n2" },
+  { id: "n1-n2", source: "n2", target: "n1" },
   { id: "n1-n3", source: "n1", target: "n3" },
   { id: "n3-n2", source: "n3", target: "n2" },
 ];
