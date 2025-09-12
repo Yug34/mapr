@@ -13,7 +13,6 @@ import {
   Copy,
   CopyPlus,
   Trash2,
-  ALargeSmall,
   ListChecks,
   File,
   Notebook,
@@ -99,15 +98,6 @@ const CanvasContextMenu = ({
       position: { x: flowPoint.x, y: flowPoint.y },
       type: "NoteNode",
       data: { title: "New note", content: "Lorem ipsum dolor sit amet." },
-    });
-    onClose?.();
-  }, [addNode, flowPoint, onClose]);
-
-  const addImageNode = useCallback(() => {
-    addNode({
-      id: crypto.randomUUID(),
-      position: { x: flowPoint.x, y: flowPoint.y },
-      data: { label: "New node" },
     });
     onClose?.();
   }, [addNode, flowPoint, onClose]);

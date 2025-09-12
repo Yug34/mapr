@@ -11,13 +11,17 @@ import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import type { MediaRecord } from "../utils/indexedDb";
 
 const initialNodes: CustomNode[] = [
-  { id: "n1", position: { x: 0, y: 0 }, data: { label: "Node 1" } },
-  { id: "n2", position: { x: 0, y: 100 }, data: { label: "Node 2" } },
   {
-    id: "n3",
-    type: "textUpdater",
-    position: { x: 0, y: 200 },
-    data: { label: "Node 3" },
+    id: "n1",
+    position: { x: 0, y: 0 },
+    type: "NoteNode",
+    data: { title: "Node 1", content: "Node 1" },
+  },
+  {
+    id: "n2",
+    position: { x: 0, y: 100 },
+    type: "NoteNode",
+    data: { title: "Node 2", content: "Node 2" },
   },
   {
     id: "n4",
