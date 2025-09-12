@@ -5,10 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function FileUpload() {
   return (
-    <div className={"flex flex-col h-full justify-center items-start"}>
+    <div className="flex flex-col h-full justify-center items-start">
       <Card>
         <CardContent>
-          <Label htmlFor="dropzone-file" className={"cursor-pointer"}>
+          <Label htmlFor="dropzone-file" className="cursor-pointer">
             <Card className="flex p-4 items-center justify-center w-full brightness-[0.95] hover:brightness-[0.90] min-w-[300px] md:min-w-[600px] dark:brightness-125 dark:hover:brightness-150">
               <div className="text-center w-full">
                 <div className="border p-2 rounded-md max-w-min mx-auto">
