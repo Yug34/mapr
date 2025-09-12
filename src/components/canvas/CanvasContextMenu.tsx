@@ -52,13 +52,9 @@ const CanvasContextMenu = ({
     null
   );
 
-  const [recentlyCopied, setRecentlyCopied] = useState(false);
-
   const handleCopyId = useCallback(() => {
     if (!targetId) return;
     navigator.clipboard.writeText(targetId);
-    setRecentlyCopied(true);
-    setTimeout(() => setRecentlyCopied(false), 1500);
     toast.success("Copied Node ID to clipboard!");
     onClose?.();
   }, [targetId, onClose]);
@@ -123,11 +119,7 @@ const CanvasContextMenu = ({
             <ContextMenuLabel>Node: {targetId}</ContextMenuLabel>
             <ContextMenuSeparator />
             <ContextMenuItem onClick={handleCopyId}>
-              {recentlyCopied ? (
-                <ClipboardCheck className="size-4" />
-              ) : (
-                <Copy className="size-4" />
-              )}
+              <Copy className="size-4" />
               Copy ID
             </ContextMenuItem>
             <ContextMenuItem onClick={duplicateNode}>

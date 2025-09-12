@@ -6,6 +6,7 @@ import { VideoNode } from "../components/nodes/VideoNode";
 import { AudioNode } from "../components/nodes/AudioNode";
 import { PDFNode } from "../components/nodes/PDFNode";
 import { TODONode } from "../components/nodes/TODONode";
+import { NoteNode } from "../components/nodes/NoteNode";
 
 export const nodeTypes = {
   textUpdater: TextUpdaterNode,
@@ -68,6 +69,11 @@ export type TODONodeData = {
   todos: Todo[];
 };
 
+export type NoteNodeData = {
+  title: string;
+  content: string;
+};
+
 export type CustomNodeData =
   | TextUpdaterNodeData
   | WebPageNodeData
@@ -75,7 +81,8 @@ export type CustomNodeData =
   | VideoNodeData
   | AudioNodeData
   | PDFNodeData
-  | TODONodeData;
+  | TODONodeData
+  | NoteNodeData;
 
 export type CustomNode = Node<CustomNodeData>;
 

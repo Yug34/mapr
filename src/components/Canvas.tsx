@@ -22,8 +22,7 @@ import type {
 import { useCanvasStore } from "../store/canvasStore";
 import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
-import { isLink } from "../utils";
-// import FileUpload from "./FileUpload";
+import { isLink, readAsDataURL } from "../utils";
 import type {
   PDFNodeData,
   ImageNodeData,
@@ -111,14 +110,6 @@ const Canvas = () => {
     point: { x: number; y: number };
   } | null;
   const [menu, setMenu] = useState<MenuInfo>(null);
-  // helpers in Canvas.tsx
-  const readAsDataURL = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
 
   const handlePaste = useCallback(
     async (e: ClipboardEvent) => {
