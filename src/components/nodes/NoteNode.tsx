@@ -3,10 +3,12 @@ import type { NodeProps } from "@xyflow/react";
 import type { NoteNodeData } from "../../types/common";
 import { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+import { useCanvasStore } from "../../store/canvasStore";
 
 export function NoteNode(props: NodeProps) {
-  const { data } = props;
+  const { data, id } = props;
   const noteNodeData = data as NoteNodeData;
+  const { setNodes } = useCanvasStore();
 
   const [nodeTitle, setNodeTitle] = useState(noteNodeData.title);
   const [nodeContent, setNodeContent] = useState(noteNodeData.content);
@@ -14,16 +16,25 @@ export function NoteNode(props: NodeProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const nodeRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    console.log(nodeContent);
-  }, [nodeContent]);
+  const updateNodeData = (newTitle: string, newContent: string) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) =>
+        node.id === id
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                title: newTitle,
+                content: newContent,
+              } as NoteNodeData,
+            }
+          : node
+      )
+    );
+  };
 
   useEffect(() => {
-    console.log(nodeTitle);
-  }, [nodeTitle]);
-
-  // Handle clicks outside the node to stop editing
-  useEffect(() => {
+    // Handle clicks outside the node to stop editing
     const handleClickOutside = (event: MouseEvent) => {
       if (
         isEditing &&
@@ -35,7 +46,7 @@ export function NoteNode(props: NodeProps) {
     };
 
     if (isEditing) {
-      // Use a small delay to ensure the event is properly captured
+      // FIXME?: Use a small delay to ensure the event is properly captured
       setTimeout(() => {
         document.addEventListener("mousedown", handleClickOutside, true);
       }, 0);
@@ -57,11 +68,14 @@ export function NoteNode(props: NodeProps) {
           (e.target as HTMLInputElement).focus();
         }}
         onChange={(e) => {
-          console.log(e);
-          setNodeTitle(e.target.value);
+          const newTitle = e.target.value;
+          setNodeTitle(newTitle);
+          updateNodeData(newTitle, nodeContent);
         }}
         onBlur={(e) => {
-          setNodeTitle(e.target.value.trim());
+          const trimmedTitle = e.target.value.trim();
+          setNodeTitle(trimmedTitle);
+          updateNodeData(trimmedTitle, nodeContent);
         }}
       />
       {isEditing ? (
@@ -76,7 +90,9 @@ export function NoteNode(props: NodeProps) {
             setIsEditing(true);
           }}
           onChange={(e) => {
-            setNodeContent(e.target.value);
+            const newContent = e.target.value;
+            setNodeContent(newContent);
+            updateNodeData(nodeTitle, newContent);
           }}
           onBlur={() => {
             setTimeout(() => {

@@ -153,7 +153,6 @@
 }
 .sticky-note.sticky-note-one {
   background-color: #fae3e3;
-  grid-area: sticker1;
   box-shadow: 9px 0px 10px -5px rgba(0, 0, 0, 0.42);
 }
 .sticky-note.sticky-note-one::before {
@@ -172,13 +171,12 @@
   border-left-color: white;
 }
 .sticky-note.sticky-note-two {
-  background-color: transparent;
-  grid-area: sticker2;
+  background-color: #fae3e3;
   box-shadow: -9px 0px 10px -5px rgba(0, 0, 0, 0.42);
 }
 .sticky-note.sticky-note-two::before {
-  background-color: transparent;
-  height: 70px;
+  background-color: rgba(108, 212, 255, 0.6);
+  height: 45px;
   width: 50px;
   left: 50%;
   top: -30px;
