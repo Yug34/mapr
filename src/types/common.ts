@@ -1,4 +1,3 @@
-import { TextUpdaterNode } from "../components/nodes/TextUpdaterNode";
 import { WebPageNode } from "../components/nodes/WebPageNode";
 import { ImageNode } from "../components/nodes/ImageNode";
 import type { Node } from "@xyflow/react";
@@ -9,7 +8,6 @@ import { TODONode } from "../components/nodes/TODONode";
 import { NoteNode } from "../components/nodes/NoteNode";
 
 export const nodeTypes = {
-  textUpdater: TextUpdaterNode,
   WebPageNode: WebPageNode,
   ImageNode: ImageNode,
   VideoNode: VideoNode,
@@ -21,10 +19,6 @@ export const nodeTypes = {
 
 export type WebPageNodeData = {
   url: string;
-};
-
-export type TextUpdaterNodeData = {
-  label: string;
 };
 
 export type ImageNodeData = {
@@ -76,7 +70,6 @@ export type NoteNodeData = {
 };
 
 export type CustomNodeData =
-  | TextUpdaterNodeData
   | WebPageNodeData
   | ImageNodeData
   | VideoNodeData

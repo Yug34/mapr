@@ -6,7 +6,6 @@ import type {
   PDFNodeData,
   VideoNodeData,
   WebPageNodeData,
-  TextUpdaterNodeData,
 } from "../types/common";
 
 // On-disk representations: no File objects, no Blob URLs.
@@ -29,8 +28,7 @@ export type MediaLike = {
 // Extract media reference fields
 type MediaNodeDataRef =
   | { mediaId: string; previewBase64?: string }
-  | WebPageNodeData
-  | TextUpdaterNodeData;
+  | WebPageNodeData;
 
 export function serializeNode(node: CustomNode): PersistedNode {
   const { id, type, position, data } = node as CustomNode;
