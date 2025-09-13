@@ -67,7 +67,7 @@ export function TODONode(props: NodeProps) {
 
   return (
     <div className="max-w-[300px] w-[300px] min-w-[300px] flex flex-col items-center justify-center">
-      <Card className="p-0 border-none rounded-md gap-0 max-w-md">
+      <Card className="w-full p-0 border-none rounded-md gap-0">
         {todos.map((todo: Todo, index: number) => (
           <div
             key={todo.id}
@@ -123,7 +123,7 @@ export function TODONode(props: NodeProps) {
         ))}
         <Button
           variant="outline"
-          className="w-full rounded-b-md cursor-pointer"
+          className="w-full rounded-t-none rounded-b-md cursor-pointer"
           onClick={addTodo}
         >
           Add Todo

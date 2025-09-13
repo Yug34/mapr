@@ -47,7 +47,7 @@ So I made this for myself :D\n\n
         { id: "t2", title: "Look pretty", completed: true },
         {
           id: "t3",
-          title: "Crack a smile, it's a beautiful day!",
+          title: "Crack a smile, it's a good day! ^-^",
           completed: false,
         },
       ],
