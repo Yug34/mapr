@@ -6,17 +6,11 @@ import { MEDIA_HANDLERS } from "@/lib/utils";
 import type { MediaHandler, CustomNodeData, CustomNode } from "@/types/common";
 import { useCanvasStore } from "@/store/canvasStore";
 
-interface FileUploadProps {
-  newFilePoint?: { x: number; y: number };
-}
-
-export default function FileUpload({ newFilePoint }: FileUploadProps) {
+export default function FileUpload() {
   const [files, setFiles] = useState<File[] | undefined>();
   const { addNode } = useCanvasStore();
 
   useEffect(() => {
-    console.log("newFilePoint", newFilePoint);
-
     if (files) {
       let displacement = 0;
       files.forEach(async (file) => {
@@ -45,8 +39,8 @@ export default function FileUpload({ newFilePoint }: FileUploadProps) {
           type: handler.type,
           fileName: file.name,
           position: {
-            x: (newFilePoint?.x ?? 0) + displacement,
-            y: (newFilePoint?.y ?? 0) + displacement,
+            x: 0 + displacement,
+            y: 0 + displacement,
           },
           data: {
             ...handler.buildData(file, blobUrl, base64),
@@ -58,7 +52,7 @@ export default function FileUpload({ newFilePoint }: FileUploadProps) {
         addNode(node);
       });
     }
-  }, [files, addNode, newFilePoint]);
+  }, [files, addNode]);
 
   const handleDrop = (files: File[]) => {
     setFiles(files);
