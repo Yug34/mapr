@@ -56,8 +56,20 @@ So I made this for myself :D\n\n
 ];
 
 const initialEdges = [
-  { id: "n1-n2", target: "n2", source: "n1" },
-  { id: "n1-n4", target: "n4", source: "n1" },
+  {
+    id: "n1-n2",
+    target: "n2",
+    source: "n1",
+    sourceHandle: "bottom",
+    targetHandle: "top-target",
+  },
+  {
+    id: "n1-n4",
+    target: "n4",
+    source: "n1",
+    sourceHandle: "bottom",
+    targetHandle: "top-target",
+  },
 ];
 
 interface CanvasStore {

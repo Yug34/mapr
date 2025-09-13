@@ -18,7 +18,6 @@ const CustomHandle = ({ nodeId, id, type, ...props }: CustomHandleProps) => {
 
   const handleStyle = {
     opacity: actualHasConnections ? 1 : 0.2,
-    backgroundColor: actualHasConnections ? "#10b981" : undefined,
   };
 
   return (
