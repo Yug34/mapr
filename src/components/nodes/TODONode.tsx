@@ -1,4 +1,3 @@
-import { Position } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
 import type { Todo, TODONodeData } from "../../types/common";
 import { Checkbox } from "../ui/checkbox";
@@ -8,10 +7,10 @@ import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { EditIcon, TrashIcon } from "lucide-react";
-import { CustomHandle } from "../../utils/components";
+import { HandlesArray } from "../../utils/components";
 
 export function TODONode(props: NodeProps) {
-  const { data } = props;
+  const { data, id } = props;
   const nodeData = data as TODONodeData;
 
   const [todos, setTodos] = useState<Todo[]>(nodeData.todos);
@@ -130,18 +129,7 @@ export function TODONode(props: NodeProps) {
           Add Todo
         </Button>
       </Card>
-      <CustomHandle type="source" position={Position.Top} id="top" />
-      <CustomHandle type="target" position={Position.Top} id="top-target" />
-      <CustomHandle type="source" position={Position.Bottom} id="bottom" />
-      <CustomHandle
-        type="target"
-        position={Position.Bottom}
-        id="bottom-target"
-      />
-      <CustomHandle type="source" position={Position.Left} id="left" />
-      <CustomHandle type="target" position={Position.Left} id="left-target" />
-      <CustomHandle type="source" position={Position.Right} id="right" />
-      <CustomHandle type="target" position={Position.Right} id="right-target" />
+      <HandlesArray nodeId={id} />
     </div>
   );
 }
