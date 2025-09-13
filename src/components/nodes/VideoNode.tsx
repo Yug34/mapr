@@ -37,6 +37,8 @@ export function VideoNode(props: NodeProps) {
           <VideoPlayerVolumeRange />
         </VideoPlayerControlBar>
       </VideoPlayer>
+      <Handle type="source" position={Position.Top} />
+      <Handle type="target" position={Position.Bottom} />
     </div>
   );
 }
