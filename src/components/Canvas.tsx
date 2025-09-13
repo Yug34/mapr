@@ -24,12 +24,6 @@ import { useCanvasStore } from "../store/canvasStore";
 import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
 import { isLink, readAsDataURL } from "../utils";
-import type {
-  PDFNodeData,
-  ImageNodeData,
-  VideoNodeData,
-  AudioNodeData,
-} from "../types/common";
 const CanvasContextMenu = lazy(() => import("./canvas/CanvasContextMenu"));
 const MiniMapLazy = lazy(() =>
   import("@xyflow/react").then((m) => ({ default: m.MiniMap }))
@@ -40,57 +34,7 @@ const ControlsLazy = lazy(() =>
 import { add as idbAdd, Stores } from "../utils/indexedDb";
 import { LoaderCircle } from "lucide-react";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
-
-type MediaHandler<T> = {
-  test: (mime: string) => boolean;
-  type: CustomNode["type"];
-  buildData: (file: File, blobUrl: string, base64: string) => T;
-};
-
-const MEDIA_HANDLERS: MediaHandler<
-  ImageNodeData | VideoNodeData | AudioNodeData | PDFNodeData
->[] = [
-  {
-    test: (t) => t.startsWith("image/"),
-    type: "ImageNode",
-    buildData: (file, url, b64) => ({
-      fileName: file.name,
-      image: file,
-      imageBlobUrl: url,
-      imageBase64: b64,
-    }),
-  },
-  {
-    test: (t) => t.startsWith("video/"),
-    type: "VideoNode",
-    buildData: (file, url, b64) => ({
-      fileName: file.name,
-      video: file,
-      videoBlobUrl: url,
-      videoBase64: b64,
-    }),
-  },
-  {
-    test: (t) => t.startsWith("audio/"),
-    type: "AudioNode",
-    buildData: (file, url, b64) => ({
-      fileName: file.name,
-      audio: file,
-      audioBlobUrl: url,
-      audioBase64: b64,
-    }),
-  },
-  {
-    test: (t) => t === "application/pdf",
-    type: "PDFNode",
-    buildData: (file, url, b64) => ({
-      fileName: file.name,
-      pdf: file,
-      pdfBlobUrl: url,
-      pdfBase64: b64,
-    }),
-  },
-];
+import { MEDIA_HANDLERS } from "@/lib/utils";
 
 const Canvas = () => {
   const {

@@ -1,9 +1,3 @@
-/*
-  IndexedDB helper for CanvasDB
-  - Provides open/upgrade and typed CRUD helpers
-  - Stores: nodes, edges, media, meta (and legacy images)
-*/
-
 export type StoreName = "nodes" | "edges" | "media" | "meta" | "images";
 
 export type TxMode = IDBTransactionMode;

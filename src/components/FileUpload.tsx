@@ -1,43 +1,86 @@
-import { UploadIcon } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { Dropzone, DropzoneContent, DropzoneEmptyState } from "./ui/dropzone";
+import { readAsDataURL } from "@/utils";
+import { add as idbAdd, Stores } from "@/utils/indexedDb";
+import { MEDIA_HANDLERS } from "@/lib/utils";
+import type { MediaHandler, CustomNodeData, CustomNode } from "@/types/common";
+import { useCanvasStore } from "@/store/canvasStore";
 
-export default function FileUpload() {
+interface FileUploadProps {
+  newFilePoint?: { x: number; y: number };
+}
+
+export default function FileUpload({ newFilePoint }: FileUploadProps) {
+  const [files, setFiles] = useState<File[] | undefined>();
+  const { addNode } = useCanvasStore();
+
+  useEffect(() => {
+    console.log("newFilePoint", newFilePoint);
+
+    if (files) {
+      let displacement = 0;
+      files.forEach(async (file) => {
+        const handler = MEDIA_HANDLERS.find((h: MediaHandler<CustomNodeData>) =>
+          h.test(file.type)
+        );
+        if (!handler) return;
+
+        const blobUrl = URL.createObjectURL(file);
+        const base64 = await readAsDataURL(file);
+
+        const mediaId = crypto.randomUUID();
+        await idbAdd(Stores.media, {
+          id: mediaId,
+          fileName: file.name,
+          blob: file,
+          mime: file.type,
+          size: file.size,
+          createdAt: Date.now(),
+        });
+
+        displacement += 100;
+
+        const node = {
+          id: crypto.randomUUID(),
+          type: handler.type,
+          fileName: file.name,
+          position: {
+            x: (newFilePoint?.x ?? 0) + displacement,
+            y: (newFilePoint?.y ?? 0) + displacement,
+          },
+          data: {
+            ...handler.buildData(file, blobUrl, base64),
+            mediaId,
+            fileName: file.name,
+          },
+        } as CustomNode;
+
+        addNode(node);
+      });
+    }
+  }, [files, addNode, newFilePoint]);
+
+  const handleDrop = (files: File[]) => {
+    setFiles(files);
+  };
+
   return (
-    <div className="flex flex-col h-full justify-center items-start">
-      <Card>
-        <CardContent>
-          <Label htmlFor="dropzone-file" className="cursor-pointer">
-            <Card className="flex p-4 items-center justify-center w-full brightness-[0.95] hover:brightness-[0.90] min-w-[300px] md:min-w-[600px] dark:brightness-125 dark:hover:brightness-150">
-              <div className="text-center w-full">
-                <div className="border p-2 rounded-md max-w-min mx-auto">
-                  <UploadIcon />
-                </div>
-
-                <p className="my-2 text-sm text-gray-500 dark:text-gray-400">
-                  <span className="font-semibold">
-                    Click here to upload an image
-                  </span>
-                </p>
-                <p className="text-xs text-gray-400 dark:text-gray-400">
-                  Formats supported: PNG, JPG, WebP
-                </p>
-              </div>
-            </Card>
-          </Label>
-
-          <Input
-            id="dropzone-file"
-            accept="image/png, image/jpeg, image/webp"
-            type="file"
-            className="hidden"
-            onChange={(e) => {
-              console.log(e);
-            }}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <Dropzone
+      accept={{
+        "image/*": [],
+        "application/pdf": [],
+        "video/*": [],
+        "audio/*": [],
+      }}
+      maxFiles={10}
+      maxSize={1024 * 1024 * 10}
+      minSize={1024}
+      onDrop={handleDrop}
+      onError={console.error}
+      src={files}
+    >
+      <DropzoneEmptyState />
+      <DropzoneContent />
+    </Dropzone>
   );
 }

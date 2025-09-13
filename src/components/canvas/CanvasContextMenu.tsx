@@ -180,7 +180,7 @@ const CanvasContextMenu = ({
         <DialogHeader>
           <DialogTitle>Add {addNodeType}</DialogTitle>
         </DialogHeader>
-        <FileUpload />
+        <FileUpload newFilePoint={flowPoint} />
       </DialogContent>
     </Dialog>
   );

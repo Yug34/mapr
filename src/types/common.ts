@@ -88,3 +88,9 @@ export type MenuData = {
   right: number;
   bottom: number;
 };
+
+export type MediaHandler<T> = {
+  test: (mime: string) => boolean;
+  type: CustomNode["type"];
+  buildData: (file: File, blobUrl: string, base64: string) => T;
+};

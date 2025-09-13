@@ -156,7 +156,6 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       set((state) => {
         const nextNodes =
           typeof nodes === "function" ? nodes(state.nodes) : nodes;
-        // schedule persistence
         persistGraphDebounced();
         return { nodes: nextNodes };
       }),
