@@ -28,7 +28,7 @@ So I made this for myself :D\n\n
     position: { x: 250, y: 250 },
     type: "NoteNode",
     data: {
-      title: "Instructions",
+      title: "'lil Tutorial",
       content: `- Copy and paste PDFs, links, images, audio, videos, and text to create nodes.
 - Click and drag to move the nodes.
 - Right click on the canvas to add new nodes.
@@ -47,7 +47,7 @@ So I made this for myself :D\n\n
         { id: "t2", title: "Look pretty", completed: true },
         {
           id: "t3",
-          title: "Crack a smile, it's a good day! ^-^",
+          title: "Crack a smile, it's a good day! 🌻",
           completed: false,
         },
       ],
