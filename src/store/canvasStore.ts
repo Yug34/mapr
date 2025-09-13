@@ -54,9 +54,10 @@ So I made this for myself :D\n\n
     } as TODONodeData,
   },
 ];
+
 const initialEdges = [
-  { id: "n1-n2", source: "n2", target: "n1" },
-  { id: "n1-n4", source: "n4", target: "n1" },
+  { id: "n1-n2", target: "n2", source: "n1" },
+  { id: "n1-n4", target: "n4", source: "n1" },
 ];
 
 interface CanvasStore {

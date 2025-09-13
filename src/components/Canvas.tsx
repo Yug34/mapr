@@ -18,6 +18,7 @@ import type {
   EdgeChange,
   Connection,
   NodeMouseHandler,
+  Edge,
 } from "@xyflow/react";
 import { useCanvasStore } from "../store/canvasStore";
 import { nodeTypes } from "../types/common";
@@ -232,6 +233,13 @@ const Canvas = () => {
       setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
     [setEdges]
   );
+  const isValidConnection = useCallback((connection: Connection | Edge) => {
+    if (connection.source === connection.target) {
+      return false;
+    }
+    return true;
+  }, []);
+
   const onConnect = useCallback(
     (params: Connection) =>
       setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
@@ -294,6 +302,7 @@ const Canvas = () => {
               onNodesChange,
               onEdgesChange,
               onConnect,
+              isValidConnection,
               onNodeContextMenu,
               onPaneClick,
               onPaneContextMenu,

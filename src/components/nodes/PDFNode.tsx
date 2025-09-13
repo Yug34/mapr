@@ -1,4 +1,4 @@
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
 import type { PDFNodeData } from "../../types/common";
 import { Card } from "../ui/card";
@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { Button } from "../ui/button";
 import { Minus, Plus, SquareArrowOutUpRight } from "lucide-react";
+import { CustomHandle } from "../../utils/components";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -99,8 +100,22 @@ export function PDFNode(props: NodeProps) {
             </Button>
           </div>
         )}
-        <Handle type="source" position={Position.Top} />
-        <Handle type="target" position={Position.Bottom} />
+        <CustomHandle type="source" position={Position.Top} id="top" />
+        <CustomHandle type="target" position={Position.Top} id="top-target" />
+        <CustomHandle type="source" position={Position.Bottom} id="bottom" />
+        <CustomHandle
+          type="target"
+          position={Position.Bottom}
+          id="bottom-target"
+        />
+        <CustomHandle type="source" position={Position.Left} id="left" />
+        <CustomHandle type="target" position={Position.Left} id="left-target" />
+        <CustomHandle type="source" position={Position.Right} id="right" />
+        <CustomHandle
+          type="target"
+          position={Position.Right}
+          id="right-target"
+        />
       </div>
     </Card>
   );

@@ -1,9 +1,10 @@
-import { Handle, Position } from "@xyflow/react";
+import { Position } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
 import type { NoteNodeData } from "../../types/common";
 import { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { useCanvasStore } from "../../store/canvasStore";
+import { CustomHandle } from "../../utils/components";
 
 export function NoteNode(props: NodeProps) {
   const { data, id } = props;
@@ -150,8 +151,18 @@ export function NoteNode(props: NodeProps) {
           </ReactMarkdown>
         </div>
       )}
-      <Handle type="source" position={Position.Top} />
-      <Handle type="target" position={Position.Bottom} />
+      <CustomHandle type="source" position={Position.Top} id="top" />
+      <CustomHandle type="target" position={Position.Top} id="top-target" />
+      <CustomHandle type="source" position={Position.Bottom} id="bottom" />
+      <CustomHandle
+        type="target"
+        position={Position.Bottom}
+        id="bottom-target"
+      />
+      <CustomHandle type="source" position={Position.Left} id="left" />
+      <CustomHandle type="target" position={Position.Left} id="left-target" />
+      <CustomHandle type="source" position={Position.Right} id="right" />
+      <CustomHandle type="target" position={Position.Right} id="right-target" />
     </div>
   );
 }
