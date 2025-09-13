@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Edge } from "@xyflow/react";
 import { useCanvasStore } from "@/store/canvasStore";
-import type { CustomNode, CustomNodeData } from "@/types/common";
+import type { CustomNode, CustomNodeData, TODONodeData } from "@/types/common";
 import {
   ContextMenuContent,
   ContextMenuItem,
@@ -102,6 +102,30 @@ const CanvasContextMenu = ({
     onClose?.();
   }, [addNode, flowPoint, onClose]);
 
+  const addTODONode = useCallback(() => {
+    addNode({
+      id: crypto.randomUUID(),
+      position: { x: flowPoint.x, y: flowPoint.y },
+      type: "TODONode",
+      data: {
+        title: "New TODO",
+        todos: [
+          {
+            id: crypto.randomUUID(),
+            title: "Water the plants",
+            completed: false,
+          },
+          {
+            id: crypto.randomUUID(),
+            title: "Take the trash out",
+            completed: true,
+          },
+        ],
+      } as TODONodeData,
+    });
+    onClose?.();
+  }, [addNode, flowPoint, onClose]);
+
   return (
     <Dialog>
       <ContextMenuContent>
@@ -141,14 +165,14 @@ const CanvasContextMenu = ({
                 <File className="size-4" />
                 Image / Audio / Video / PDF
               </ContextMenuItem>
-              <ContextMenuItem
-                onClick={() => setAddNodeType("TODONode")}
-                className="cursor-pointer w-full"
-              >
-                <ListChecks className="size-4" />
-                TODO
-              </ContextMenuItem>
             </DialogTrigger>
+            <ContextMenuItem
+              onClick={addTODONode}
+              className="cursor-pointer w-full"
+            >
+              <ListChecks className="size-4" />
+              TODO
+            </ContextMenuItem>
           </>
         )}
       </ContextMenuContent>

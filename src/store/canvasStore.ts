@@ -29,8 +29,8 @@ So I made this for myself :D\n\n
     type: "NoteNode",
     data: {
       title: "Instructions",
-      content: `- Click and drag to move the nodes.
-- Copy and paste PDFs, links, images, audio, videos, and text to create nodes.
+      content: `- Copy and paste PDFs, links, images, audio, videos, and text to create nodes.
+- Click and drag to move the nodes.
 - Right click on the canvas to add new nodes.
 - Right click on a node/edge to duplicate/delete.
 - Connect edges from a handle to another handle.`,
@@ -39,32 +39,24 @@ So I made this for myself :D\n\n
   {
     id: "n4",
     type: "TODONode",
-    position: { x: 0, y: 300 },
+    position: { x: -250, y: 250 },
     data: {
-      title: "Node 4",
+      title: "Today's TODOs",
       todos: [
-        { id: "t1", title: "Todo 1", completed: false },
-        { id: "t2", title: "Todo 2", completed: true },
-      ],
-    } as TODONodeData,
-  },
-  {
-    id: "n5",
-    type: "TODONode",
-    position: { x: 0, y: 400 },
-    data: {
-      title: "Node Random",
-      todos: [
-        { id: "t1", title: "Todo Random", completed: false },
-        { id: "t2", title: "Todo Random 2", completed: true },
+        { id: "t1", title: "Hydrate yourself", completed: false },
+        { id: "t2", title: "Look pretty", completed: true },
+        {
+          id: "t3",
+          title: "Crack a smile, it's a beautiful day!",
+          completed: false,
+        },
       ],
     } as TODONodeData,
   },
 ];
 const initialEdges = [
   { id: "n1-n2", source: "n2", target: "n1" },
-  { id: "n1-n3", source: "n1", target: "n3" },
-  { id: "n3-n2", source: "n3", target: "n2" },
+  { id: "n1-n4", source: "n4", target: "n1" },
 ];
 
 interface CanvasStore {

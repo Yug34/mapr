@@ -23,10 +23,9 @@ export function TODONode(props: NodeProps) {
   }, [todos]);
 
   const handleTodoClick = (
-    e: React.MouseEvent<HTMLDivElement>,
+    e: React.MouseEvent<HTMLButtonElement>,
     todoNode: Todo
   ) => {
-    console.log(props);
     e.preventDefault();
     e.stopPropagation();
     setTodos((prevTodos: Todo[]) =>
@@ -38,8 +37,36 @@ export function TODONode(props: NodeProps) {
     // TODO: update the db
   };
 
+  const handleTodoEdit = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    todoNode: Todo
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setTodos((prevTodos: Todo[]) =>
+      prevTodos.map((t: Todo) =>
+        t.id === todoNode.id ? { ...t, title: todoNode.title } : t
+      )
+    );
+    // TODO: update the db
+  };
+
+  const handleTodoDelete = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    todoNode: Todo
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setTodos((prevTodos: Todo[]) =>
+      prevTodos.filter((t: Todo) => t.id !== todoNode.id)
+    );
+
+    // TODO: update the db
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="max-w-[300px] w-[300px] min-w-[300px] flex flex-col items-center justify-center">
       <Card className="p-0 border-none rounded-md gap-0 max-w-md">
         {todos.map((todo: Todo, index: number) => (
           <div
@@ -52,7 +79,9 @@ export function TODONode(props: NodeProps) {
             <Label
               htmlFor={todo.id}
               className={cn(
-                "cursor-pointer w-full hover:bg-accent/50 flex rounded-none items-start gap-3 border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950",
+                "flex items-center cursor-pointer w-full gap-3 border p-3 rounded-none hover:bg-accent/50",
+                "has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50",
+                "dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950",
                 index === 0 && "rounded-t-md"
               )}
             >
@@ -61,15 +90,32 @@ export function TODONode(props: NodeProps) {
                 className="cursor-pointer flex items-center gap-2"
                 checked={todo.completed}
               />
-              <div className="grid gap-1.5 font-normal">
-                <p className="text-sm leading-none font-medium">{todo.title}</p>
+              <div className="grid gap-1 font-normal">
+                <p className="text-xs leading-none font-medium">{todo.title}</p>
               </div>
-              <div>
-                <Button variant="ghost">
-                  <EditIcon className="w-[6px] h-[6px] text-sm" />
+              <div className="ml-auto shrink-0">
+                <Button
+                  onClick={(e) => {
+                    handleTodoEdit(e, todo);
+                  }}
+                  className="cursor-pointer w-[6px] h-[6px] p-3 rounded-sm rounded-r-none"
+                >
+                  <EditIcon
+                    className="text-xs"
+                    style={{ width: "12px", height: "12px" }}
+                  />
                 </Button>
-                <Button variant="destructive">
-                  <TrashIcon className="w-[6px] h-[6px] text-sm" />
+                <Button
+                  variant="destructive"
+                  onClick={(e) => {
+                    handleTodoDelete(e, todo);
+                  }}
+                  className="cursor-pointer w-[6px] h-[6px] p-3 rounded-sm rounded-l-none"
+                >
+                  <TrashIcon
+                    className="text-xs"
+                    style={{ width: "12px", height: "12px" }}
+                  />
                 </Button>
               </div>
             </Label>
