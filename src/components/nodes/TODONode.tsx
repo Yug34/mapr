@@ -23,7 +23,7 @@ export function TODONode(props: NodeProps) {
   }, [todos]);
 
   const handleTodoClick = (
-    e: React.MouseEvent<HTMLButtonElement>,
+    e: React.MouseEvent<HTMLDivElement>,
     todoNode: Todo
   ) => {
     e.preventDefault();
