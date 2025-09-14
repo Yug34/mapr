@@ -1,9 +1,10 @@
-import { HomeIcon, Plus, SettingsIcon } from "lucide-react";
+import { HomeIcon, Plus, SettingsIcon, TrashIcon } from "lucide-react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
+import { Separator } from "./ui/separator";
 
 type Tab = {
   title: string;
@@ -69,6 +70,27 @@ export default function DockWrapper() {
             </DockIcon>
           </DockItem>
         </span>
+        <Dialog>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>You sure you wanna delete this tab?</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-2">
+              <Button variant="destructive">Yup, delete this tab</Button>
+            </div>
+          </DialogContent>
+          <DialogTrigger>
+            <span className="cursor-pointer">
+              <DockItem className="aspect-square rounded-full bg-red-500 dark:bg-red-500 text-white">
+                <DockLabel>Delete Current Tab</DockLabel>
+                <DockIcon>
+                  <TrashIcon color="white" className={tabStyle} />
+                </DockIcon>
+              </DockItem>
+            </span>
+          </DialogTrigger>
+        </Dialog>
+        <Separator orientation="vertical" />
         <Dialog>
           <DialogContent>
             <DialogHeader>
