@@ -1,7 +1,7 @@
 import { Suspense, lazy } from "react";
-import { Plus, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 const Canvas = lazy(() => import("./components/Canvas"));
-import { Button } from "./components/ui/button";
+import DockWrapper from "./components/DockWrapper";
 
 function App() {
   return (
@@ -16,13 +16,7 @@ function App() {
         >
           <Canvas />
         </Suspense>
-        <div className="flex flex-row w-full h-8 bg-blue-500 flex-shrink-0">
-          <div className="">Tab 1</div>
-          <div className="">Tab 1</div>
-          <Button>
-            <Plus />
-          </Button>
-        </div>
+        <DockWrapper />
       </div>
     </div>
   );
