@@ -3,6 +3,7 @@ import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
+import { Button } from "./ui/button";
 
 type Tab = {
   title: string;
@@ -53,7 +54,7 @@ export default function DockWrapper() {
           >
             <DockItem
               key={idx}
-              className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800"
+              className="aspect-square rounded-full bg-gray-300 dark:bg-neutral-800"
             >
               <DockLabel>{item.title}</DockLabel>
               <DockIcon>{item.icon}</DockIcon>
@@ -61,7 +62,7 @@ export default function DockWrapper() {
           </span>
         ))}
         <span className="cursor-pointer" onClick={addTab}>
-          <DockItem className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800">
+          <DockItem className="aspect-square rounded-full bg-gray-300 dark:bg-neutral-800">
             <DockLabel>Add Tab</DockLabel>
             <DockIcon>
               <Plus className={tabStyle} />
@@ -71,12 +72,15 @@ export default function DockWrapper() {
         <Dialog>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Tab</DialogTitle>
+              <DialogTitle>Settings</DialogTitle>
             </DialogHeader>
+            <div className="flex flex-col gap-2">
+              <Button variant="destructive">Delete Database</Button>
+            </div>
           </DialogContent>
           <DialogTrigger>
             <span className="cursor-pointer">
-              <DockItem className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800">
+              <DockItem className="aspect-square rounded-full bg-gray-300 dark:bg-neutral-800">
                 <DockLabel>Settings</DockLabel>
                 <DockIcon>
                   <SettingsIcon className={tabStyle} />
