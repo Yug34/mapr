@@ -35,6 +35,7 @@ import { add as idbAdd, Stores } from "../utils/indexedDb";
 import { LoaderCircle } from "lucide-react";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { MEDIA_HANDLERS } from "@/lib/utils";
+import { blobManager } from "../utils/blobManager";
 
 const Canvas = () => {
   const { nodes, edges, setNodes, setEdges, addNode, initialized, initFromDb } =
@@ -58,17 +59,16 @@ const Canvas = () => {
         .map((i) => i.getAsFile())
         .filter((f): f is File => !!f);
 
-      // Prefer files if present
       if (files.length) {
         const nodes = await Promise.all(
           files.map(async (file) => {
             const handler = MEDIA_HANDLERS.find((h) => h.test(file.type));
             if (!handler) return null;
 
-            const blobUrl = URL.createObjectURL(file);
+            const nodeId = crypto.randomUUID();
+            const blobUrl = blobManager.createBlobUrl(file, nodeId);
             const base64 = await readAsDataURL(file);
 
-            // persist the Blob in IDB and attach mediaId
             const mediaId = crypto.randomUUID();
             await idbAdd(Stores.media, {
               id: mediaId,
@@ -80,7 +80,7 @@ const Canvas = () => {
             });
 
             const node = {
-              id: crypto.randomUUID(),
+              id: nodeId,
               type: handler.type,
               fileName: file.name,
               position: { x: 0, y: 0 },
@@ -99,7 +99,6 @@ const Canvas = () => {
         return;
       }
 
-      // Fallback to text
       const text = e.clipboardData?.getData("text")?.trim();
       if (!text) return;
 
@@ -125,6 +124,12 @@ const Canvas = () => {
   useEffect(() => {
     initFromDb();
   }, [initFromDb]);
+
+  useEffect(() => {
+    return () => {
+      blobManager.revokeAllBlobUrls();
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;

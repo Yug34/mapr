@@ -16,6 +16,7 @@ import {
 } from "../utils/serialization";
 import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import type { MediaRecord } from "../utils/indexedDb";
+import { blobManager } from "../utils/blobManager";
 
 const initialNodes: CustomNode[] = [
   {
@@ -215,7 +216,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       // Build mediaId -> blobURL map for rehydration
       const mediaRecords = await getAll<MediaRecord>(Stores.media);
       const mediaUrlById = new Map<string, string>(
-        mediaRecords.map((m) => [m.id, URL.createObjectURL(m.blob)])
+        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
       );
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
@@ -269,7 +270,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       // Build mediaId -> blobURL map for rehydration
       const mediaRecords = await getAll<MediaRecord>(Stores.media);
       const mediaUrlById = new Map<string, string>(
-        mediaRecords.map((m) => [m.id, URL.createObjectURL(m.blob)])
+        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
       );
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
@@ -378,6 +379,9 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       }),
     deleteNode: (nodeId: string) =>
       set((state) => {
+        // Clean up blob URLs for the deleted node
+        blobManager.revokeNodeBlobUrls(nodeId);
+
         const nextNodes = state.nodes.filter((node) => node.id !== nodeId);
         persistGraphDebounced();
         return { nodes: nextNodes };

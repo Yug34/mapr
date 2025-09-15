@@ -16,3 +16,4 @@ const readAsDataURL = (file: File) =>
   });
 
 export { isLink, readAsDataURL };
+export { blobManager } from "./blobManager";

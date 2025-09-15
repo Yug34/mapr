@@ -5,6 +5,7 @@ import { add as idbAdd, Stores } from "@/utils/indexedDb";
 import { MEDIA_HANDLERS } from "@/lib/utils";
 import type { MediaHandler, CustomNodeData, CustomNode } from "@/types/common";
 import { useCanvasStore } from "@/store/canvasStore";
+import { blobManager } from "@/utils/blobManager";
 
 export default function FileUpload() {
   const [files, setFiles] = useState<File[] | undefined>();
@@ -19,7 +20,8 @@ export default function FileUpload() {
         );
         if (!handler) return;
 
-        const blobUrl = URL.createObjectURL(file);
+        const nodeId = crypto.randomUUID();
+        const blobUrl = blobManager.createBlobUrl(file, nodeId);
         const base64 = await readAsDataURL(file);
 
         const mediaId = crypto.randomUUID();
@@ -35,7 +37,7 @@ export default function FileUpload() {
         displacement += 100;
 
         const node = {
-          id: crypto.randomUUID(),
+          id: nodeId,
           type: handler.type,
           fileName: file.name,
           position: {

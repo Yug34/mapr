@@ -16,7 +16,7 @@ function App() {
         <div className="px-4 py-2 absolute top-0 left-0 flex w-full items-center justify-center bg-transparent">
           <Badge
             variant="secondary"
-            className="bg-blue-500 text-white dark:bg-blue-600"
+            className="bg-blue-500 text-white dark:bg-blue-600 p-2"
           >
             {currentTabTitle}
           </Badge>

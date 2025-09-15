@@ -42,11 +42,11 @@ const CanvasContextMenu = ({
   clientPoint,
   onClose,
 }: CanvasContextMenuProps) => {
-  const { getNode, setNodes, setEdges, screenToFlowPosition } = useReactFlow<
+  const { getNode, setEdges, screenToFlowPosition } = useReactFlow<
     CustomNode,
     Edge
   >();
-  const { addNode } = useCanvasStore();
+  const { addNode, deleteNode: deleteNodeFromStore } = useCanvasStore();
   const [addNodeType, setAddNodeType] = useState<CustomNode["type"] | null>(
     null
   );
@@ -80,12 +80,14 @@ const CanvasContextMenu = ({
 
   const deleteNode = useCallback(() => {
     if (!targetId) return;
-    setNodes((nodes) => nodes.filter((n) => n.id !== targetId));
+    // Use store's deleteNode method which handles blob URL cleanup
+    deleteNodeFromStore(targetId);
+    // Also remove edges connected to this node
     setEdges((edges) =>
       edges.filter((e) => e.source !== targetId && e.target !== targetId)
     );
     onClose?.();
-  }, [targetId, setNodes, setEdges, onClose]);
+  }, [targetId, deleteNodeFromStore, setEdges, onClose]);
 
   const flowPoint = useMemo(() => {
     if (!clientPoint) return { x: 0, y: 0 };
