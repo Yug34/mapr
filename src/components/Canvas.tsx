@@ -37,16 +37,8 @@ import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { MEDIA_HANDLERS } from "@/lib/utils";
 
 const Canvas = () => {
-  const {
-    nodes,
-    edges,
-    setNodes,
-    setEdges,
-    addNode,
-    setDragging,
-    initialized,
-    initFromDb,
-  } = useCanvasStore();
+  const { nodes, edges, setNodes, setEdges, addNode, initialized, initFromDb } =
+    useCanvasStore();
 
   const canvasRef = useRef<HTMLDivElement>(null);
   type MenuInfo = {
@@ -137,31 +129,18 @@ const Canvas = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
 
-    const handleDragEnter = (e: DragEvent) => {
-      e.preventDefault();
-      setDragging(true);
-    };
-    const handleDrop = (e: DragEvent) => {
-      e.preventDefault();
-      setDragging(false);
-    };
-
     if (!canvas) return;
 
     if (initialized) {
       canvas.addEventListener("paste", handlePaste);
       canvas.addEventListener("click", () => canvas.focus());
-      canvas.addEventListener("dragenter", handleDragEnter);
-      canvas.addEventListener("drop", handleDrop);
     }
 
     return () => {
       canvas.removeEventListener("paste", handlePaste);
       canvas.removeEventListener("click", () => canvas.focus());
-      canvas.removeEventListener("dragenter", handleDragEnter);
-      canvas.removeEventListener("drop", handleDrop);
     };
-  }, [handlePaste, setDragging, initialized]);
+  }, [handlePaste, initialized]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<CustomNode>[]) =>
