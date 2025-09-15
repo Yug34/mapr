@@ -48,6 +48,7 @@ const Canvas = () => {
     initialized,
     initFromDb,
   } = useCanvasStore();
+
   const canvasRef = useRef<HTMLDivElement>(null);
   type MenuInfo = {
     type: "node" | "pane";
