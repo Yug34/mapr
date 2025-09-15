@@ -137,7 +137,7 @@ export const DropzoneEmptyState = ({
   children,
   className,
 }: DropzoneEmptyStateProps) => {
-  const { src, accept, maxSize, minSize, maxFiles } = useDropzoneContext();
+  const { src, accept, maxSize, minSize } = useDropzoneContext();
   if (src) {
     return null;
   }
@@ -147,7 +147,23 @@ export const DropzoneEmptyState = ({
   let caption = "";
   if (accept) {
     caption += "Accepts ";
-    caption += new Intl.ListFormat("en").format(Object.keys(accept));
+    const formatToStr = (key: string) => {
+      if (key === "image/*") {
+        return "images";
+      }
+      if (key === "video/*") {
+        return "videos";
+      }
+      if (key === "audio/*") {
+        return "audio files";
+      }
+      if (key === "application/pdf") {
+        return "PDFs";
+      }
+      return key;
+    };
+    const formats = Object.keys(accept).map(formatToStr);
+    caption += new Intl.ListFormat("en").format(formats);
   }
   if (minSize && maxSize) {
     caption += ` between ${renderBytes(minSize)} and ${renderBytes(maxSize)}`;
@@ -162,7 +178,10 @@ export const DropzoneEmptyState = ({
         <UploadIcon size={16} />
       </div>
       <p className="my-2 w-full truncate text-wrap font-medium text-sm">
-        Upload {maxFiles === 1 ? "a file" : "files"}
+        Upload files
+      </p>
+      <p className="mb-2 w-full truncate text-wrap text-xs">
+        Upto 10 files at a time
       </p>
       <p className="w-full truncate text-wrap text-muted-foreground text-xs">
         Drag and drop or click to upload

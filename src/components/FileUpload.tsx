@@ -62,6 +62,7 @@ export default function FileUpload() {
 
   return (
     <Dropzone
+      className="cursor-pointer"
       accept={{
         "image/*": [],
         "application/pdf": [],
