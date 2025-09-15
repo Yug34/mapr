@@ -1,4 +1,4 @@
-import { HomeIcon, Plus, SettingsIcon, TrashIcon } from "lucide-react";
+import { HomeIcon, Plus, TrashIcon } from "lucide-react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
 import { useState } from "react";
 import {
@@ -12,6 +12,7 @@ import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { useCanvasStore } from "../store/canvasStore";
+import { generate } from "random-words";
 
 const tabStyle = "h-full w-full text-neutral-600 dark:text-neutral-300";
 
@@ -24,7 +25,9 @@ export default function DockWrapper() {
     deleteTab: deleteTabFromStore,
   } = useCanvasStore();
 
-  const [newTabTitle, setNewTabTitle] = useState("New Tab");
+  const [newTabTitle, setNewTabTitle] = useState(
+    generate({ exactly: 2, minLength: 3, maxLength: 6, join: "-" })
+  );
   const [isAddingTab, setIsAddingTab] = useState(false);
   const [isAddTabDialogOpen, setIsAddTabDialogOpen] = useState(false);
 
@@ -37,7 +40,9 @@ export default function DockWrapper() {
     setIsAddingTab(true);
     try {
       await addTabToStore(newTabTitle);
-      setNewTabTitle("New Tab");
+      setNewTabTitle(
+        generate({ exactly: 2, minLength: 3, maxLength: 6, join: "-" })
+      );
       setIsAddTabDialogOpen(false); // Close the dialog after successful addition
     } catch (error) {
       console.error("Failed to add tab:", error);

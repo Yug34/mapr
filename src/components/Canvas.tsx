@@ -43,7 +43,6 @@ const Canvas = () => {
     setNodes,
     setEdges,
     addNode,
-    dragging,
     setDragging,
     initialized,
     initFromDb,
@@ -134,10 +133,6 @@ const Canvas = () => {
   useEffect(() => {
     initFromDb();
   }, [initFromDb]);
-
-  useEffect(() => {
-    console.log("Dragging", dragging);
-  }, [dragging]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

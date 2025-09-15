@@ -92,11 +92,8 @@ interface CanvasStore {
   deleteNode: (nodeId: string) => void;
   addEdge: (edge: Edge) => void;
   deleteEdge: (edgeId: string) => void;
-  dragging: boolean;
-  setDragging: (dragging: boolean) => void;
   initialized: boolean;
   initFromDb: () => Promise<void>;
-  // Tab management
   setActiveTab: (tabId: string) => void;
   addTab: (title: string) => Promise<string>;
   deleteTab: (tabId: string) => Promise<void>;
@@ -405,8 +402,6 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         return { edges: nextEdges };
       }),
 
-    dragging: false,
-    setDragging: (dragging) => set(() => ({ dragging })),
     initialized: false,
     initFromDb: loadFromDb,
 
