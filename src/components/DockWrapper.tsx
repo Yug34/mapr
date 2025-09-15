@@ -137,7 +137,7 @@ export default function DockWrapper() {
               <DialogTitle>Delete Tab</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-2">
-              <p>
+              <p className="text-sm py-2 px-4">
                 Are you sure you want to delete this tab? All nodes and edges in
                 this tab will be permanently deleted.
               </p>
@@ -146,7 +146,7 @@ export default function DockWrapper() {
                   variant="destructive"
                   disabled={tabs.length <= 1}
                   onClick={handleDeleteTab}
-                  className="cursor-pointer"
+                  className="cursor-pointer mt-2"
                 >
                   {tabs.length <= 1 ? "Cannot delete last tab" : "Delete Tab"}
                 </Button>
