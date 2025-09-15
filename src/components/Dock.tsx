@@ -1,5 +1,5 @@
 import { HomeIcon, Plus, TrashIcon } from "lucide-react";
-import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
+import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock-base";
 import { useState } from "react";
 import {
   Dialog,

@@ -1,7 +1,7 @@
 import { Suspense, lazy } from "react";
 import { LoaderCircle } from "lucide-react";
 const Canvas = lazy(() => import("./components/Canvas"));
-import DockWrapper from "./components/DockWrapper";
+import DockWrapper from "./components/Dock";
 import { useCanvasStore } from "./store/canvasStore";
 import { Badge } from "./components/ui/badge";
 
