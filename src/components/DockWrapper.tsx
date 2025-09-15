@@ -122,8 +122,8 @@ export default function DockWrapper() {
         </Dialog>
         <Separator orientation="vertical" />
         <Dialog>
-          <DialogTrigger asChild>
-            <span className="cursor-pointer">
+          {tabs.length <= 1 ? (
+            <span className="cursor-not-allowed opacity-60">
               <DockItem className="aspect-square rounded-full bg-red-500 dark:bg-red-500 text-white">
                 <DockLabel>Delete Current Tab</DockLabel>
                 <DockIcon>
@@ -131,7 +131,18 @@ export default function DockWrapper() {
                 </DockIcon>
               </DockItem>
             </span>
-          </DialogTrigger>
+          ) : (
+            <DialogTrigger asChild>
+              <span className="cursor-pointer">
+                <DockItem className="aspect-square rounded-full bg-red-500 dark:bg-red-500 text-white">
+                  <DockLabel>Delete Current Tab</DockLabel>
+                  <DockIcon>
+                    <TrashIcon color="white" className={tabStyle} />
+                  </DockIcon>
+                </DockItem>
+              </span>
+            </DialogTrigger>
+          )}
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Delete Tab</DialogTitle>
@@ -144,11 +155,10 @@ export default function DockWrapper() {
               <DialogClose asChild>
                 <Button
                   variant="destructive"
-                  disabled={tabs.length <= 1}
                   onClick={handleDeleteTab}
                   className="cursor-pointer mt-2"
                 >
-                  {tabs.length <= 1 ? "Cannot delete last tab" : "Delete Tab"}
+                  Delete Tab
                 </Button>
               </DialogClose>
             </div>
