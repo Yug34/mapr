@@ -1,6 +1,6 @@
 import type { Edge } from "@xyflow/react";
 import { create } from "zustand";
-import type { CustomNode, TODONodeData, ImageNodeData } from "../types/common";
+import type { CustomNode } from "../types/common";
 import {
   Stores,
   bulkPut,
@@ -16,83 +16,10 @@ import {
 } from "../utils/serialization";
 import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import type { MediaRecord } from "../utils/indexedDb";
-import { blobManager } from "../utils/blobManager";
-// Import the image - this will be processed by Vite
 import skyscraperImage from "/public/skyscraper.png";
+import { debounce, blobManager } from "../utils";
 
-const initialNodes: CustomNode[] = [
-  {
-    id: "n1",
-    position: { x: 0, y: 0 },
-    type: "NoteNode",
-    data: {
-      title: "About mapr",
-      content: `I used to use a mind map app called [**Edvo**](https://www.linkedin.com/company/edvo).\n\n
-Unfortunately, they shut down :(\n\n
-So I made this for myself :D\n\n
-**Source code on GitHub**: [mapr](https://github.com/yug34/mapr).`,
-    },
-  },
-  {
-    id: "n2",
-    position: { x: 250, y: 250 },
-    type: "NoteNode",
-    data: {
-      title: "'lil Tutorial",
-      content: `- Copy and paste PDFs, links, images, audio, videos, and text to create nodes.
-- Click and drag to move the nodes.
-- Right click on the canvas to add new nodes.
-- Right click on a node/edge to duplicate/delete.
-- Connect edges from a handle to another handle.`,
-    },
-  },
-  {
-    id: "n3",
-    type: "ImageNode",
-    position: { x: 500, y: 0 },
-    data: {
-      fileName: "skyscraper.png",
-      imageBlobUrl: skyscraperImage,
-      image: undefined as unknown as File,
-      imageBase64: "",
-      mediaId: "skyscraper-image",
-    } as ImageNodeData,
-  },
-  {
-    id: "n4",
-    type: "TODONode",
-    position: { x: -250, y: 250 },
-    data: {
-      title: "Today's TODOs",
-      todos: [
-        { id: "t1", title: "Hydrate yourself", completed: false },
-        { id: "t2", title: "Look pretty", completed: true },
-        {
-          id: "t3",
-          title: "Crack a smile, it's a good day! 🌻",
-          completed: false,
-        },
-      ],
-    } as TODONodeData,
-  },
-];
-
-const initialEdges = [
-  {
-    id: "n1-n2",
-    target: "n2",
-    source: "n1",
-    sourceHandle: "bottom",
-    targetHandle: "top-target",
-  },
-  {
-    id: "n1-n4",
-    target: "n4",
-    source: "n1",
-    sourceHandle: "bottom",
-    targetHandle: "top-target",
-  },
-];
+import { initialNodes, initialEdges } from "../data";
 
 interface CanvasStore {
   nodes: CustomNode[];
@@ -115,17 +42,6 @@ interface CanvasStore {
   updateTabTitle: (tabId: string, title: string) => Promise<void>;
   loadTabData: (tabId: string) => Promise<void>;
 }
-
-const debounce = <T extends (...args: unknown[]) => void>(
-  fn: T,
-  delay: number
-) => {
-  let t: number | undefined;
-  return (...args: Parameters<T>) => {
-    if (t) window.clearTimeout(t);
-    t = window.setTimeout(() => fn(...args), delay);
-  };
-};
 
 export const useCanvasStore = create<CanvasStore>()((set, get) => {
   const persistGraph = async () => {

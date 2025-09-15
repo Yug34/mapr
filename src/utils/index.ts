@@ -15,5 +15,16 @@ const readAsDataURL = (file: File) =>
     reader.readAsDataURL(file);
   });
 
-export { isLink, readAsDataURL };
+const debounce = <T extends (...args: unknown[]) => void>(
+  fn: T,
+  delay: number
+) => {
+  let t: number | undefined;
+  return (...args: Parameters<T>) => {
+    if (t) window.clearTimeout(t);
+    t = window.setTimeout(() => fn(...args), delay);
+  };
+};
+
+export { isLink, readAsDataURL, debounce };
 export { blobManager } from "./blobManager";
