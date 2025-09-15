@@ -106,6 +106,7 @@ export default function DockWrapper() {
               <DialogClose asChild>
                 <Button
                   onClick={handleAddTab}
+                  className="cursor-pointer"
                   disabled={isAddingTab || !newTabTitle.trim()}
                 >
                   {isAddingTab ? "Adding..." : "Add Tab"}
@@ -114,6 +115,7 @@ export default function DockWrapper() {
             </div>
           </DialogContent>
         </Dialog>
+        <Separator orientation="vertical" />
         <Dialog>
           <DialogTrigger asChild>
             <span className="cursor-pointer">
@@ -134,30 +136,16 @@ export default function DockWrapper() {
                 Are you sure you want to delete this tab? All nodes and edges in
                 this tab will be permanently deleted.
               </p>
-              <Button variant="destructive" onClick={handleDeleteTab}>
-                Delete Tab
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-        <Separator orientation="vertical" />
-        <Dialog>
-          <DialogTrigger asChild>
-            <span className="cursor-pointer">
-              <DockItem className="aspect-square rounded-full bg-gray-300 dark:bg-neutral-800">
-                <DockLabel>Settings</DockLabel>
-                <DockIcon>
-                  <SettingsIcon className={tabStyle} />
-                </DockIcon>
-              </DockItem>
-            </span>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Settings</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col gap-2">
-              <Button variant="destructive">Delete Database</Button>
+              <DialogClose asChild>
+                <Button
+                  variant="destructive"
+                  disabled={tabs.length <= 1}
+                  onClick={handleDeleteTab}
+                  className="cursor-pointer"
+                >
+                  {tabs.length <= 1 ? "Cannot delete last tab" : "Delete Tab"}
+                </Button>
+              </DialogClose>
             </div>
           </DialogContent>
         </Dialog>
