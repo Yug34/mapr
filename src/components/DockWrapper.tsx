@@ -1,7 +1,13 @@
 import { HomeIcon, Plus, SettingsIcon, TrashIcon } from "lucide-react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "./ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
@@ -20,6 +26,7 @@ export default function DockWrapper() {
 
   const [newTabTitle, setNewTabTitle] = useState("New Tab");
   const [isAddingTab, setIsAddingTab] = useState(false);
+  const [isAddTabDialogOpen, setIsAddTabDialogOpen] = useState(false);
 
   const handleTabClick = (tabId: string) => {
     setActiveTab(tabId);
@@ -31,6 +38,7 @@ export default function DockWrapper() {
     try {
       await addTabToStore(newTabTitle);
       setNewTabTitle("New Tab");
+      setIsAddTabDialogOpen(false); // Close the dialog after successful addition
     } catch (error) {
       console.error("Failed to add tab:", error);
     } finally {
@@ -64,12 +72,15 @@ export default function DockWrapper() {
             >
               <DockLabel>{tab.title}</DockLabel>
               <DockIcon>
-                <HomeIcon className={tabStyle} />
+                <HomeIcon
+                  className={tabStyle}
+                  style={activeTabId === tab.id ? { color: "white" } : {}}
+                />
               </DockIcon>
             </DockItem>
           </span>
         ))}
-        <Dialog>
+        <Dialog open={isAddTabDialogOpen} onOpenChange={setIsAddTabDialogOpen}>
           <DialogTrigger asChild>
             <span className="cursor-pointer">
               <DockItem className="aspect-square rounded-full bg-gray-300 dark:bg-neutral-800">
@@ -92,12 +103,14 @@ export default function DockWrapper() {
                 className="px-3 py-2 border rounded-md"
                 placeholder="Tab title"
               />
-              <Button
-                onClick={handleAddTab}
-                disabled={isAddingTab || !newTabTitle.trim()}
-              >
-                {isAddingTab ? "Adding..." : "Add Tab"}
-              </Button>
+              <DialogClose asChild>
+                <Button
+                  onClick={handleAddTab}
+                  disabled={isAddingTab || !newTabTitle.trim()}
+                >
+                  {isAddingTab ? "Adding..." : "Add Tab"}
+                </Button>
+              </DialogClose>
             </div>
           </DialogContent>
         </Dialog>
