@@ -1,6 +1,6 @@
 import type { Edge } from "@xyflow/react";
 import { create } from "zustand";
-import type { CustomNode, TODONodeData } from "../types/common";
+import type { CustomNode, TODONodeData, ImageNodeData } from "../types/common";
 import {
   Stores,
   bulkPut,
@@ -17,6 +17,8 @@ import {
 import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import type { MediaRecord } from "../utils/indexedDb";
 import { blobManager } from "../utils/blobManager";
+// Import the image - this will be processed by Vite
+import skyscraperImage from "/public/skyscraper.png";
 
 const initialNodes: CustomNode[] = [
   {
@@ -43,6 +45,18 @@ So I made this for myself :D\n\n
 - Right click on a node/edge to duplicate/delete.
 - Connect edges from a handle to another handle.`,
     },
+  },
+  {
+    id: "n3",
+    type: "ImageNode",
+    position: { x: 500, y: 0 },
+    data: {
+      fileName: "skyscraper.png",
+      imageBlobUrl: skyscraperImage,
+      image: undefined as unknown as File,
+      imageBase64: "",
+      mediaId: "skyscraper-image",
+    } as ImageNodeData,
   },
   {
     id: "n4",
@@ -185,7 +199,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         await bulkPut(Stores.tabs, [defaultTab]);
         tabs.push(defaultTab);
       } else {
-        activeTabId = tabs[0].id;
+        activeTabId = tabs[tabs.length - 1].id;
       }
 
       if (persistedNodes.length === 0 && persistedEdges.length === 0) {
@@ -218,6 +232,10 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       const mediaUrlById = new Map<string, string>(
         mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
       );
+
+      // Add the imported skyscraper image
+      mediaUrlById.set("skyscraper-image", skyscraperImage);
+
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
       // Load data for the active tab
@@ -272,6 +290,10 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       const mediaUrlById = new Map<string, string>(
         mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
       );
+
+      // Add the imported skyscraper image
+      mediaUrlById.set("skyscraper-image", skyscraperImage);
+
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
       const nodes = persistedNodes.map((n) =>

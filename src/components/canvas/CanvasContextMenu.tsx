@@ -99,7 +99,10 @@ const CanvasContextMenu = ({
       id: crypto.randomUUID(),
       position: { x: flowPoint.x, y: flowPoint.y },
       type: "NoteNode",
-      data: { title: "New note", content: "Lorem ipsum dolor sit amet." },
+      data: {
+        title: "New note",
+        content: "Lorem ipsum dolor sit sybau ts pmo icl 🥀",
+      },
     });
     onClose?.();
   }, [addNode, flowPoint, onClose]);
