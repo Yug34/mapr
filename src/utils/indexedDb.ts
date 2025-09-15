@@ -1,4 +1,10 @@
-export type StoreName = "nodes" | "edges" | "media" | "meta" | "images";
+export type StoreName =
+  | "nodes"
+  | "edges"
+  | "media"
+  | "meta"
+  | "images"
+  | "tabs";
 
 export type TxMode = IDBTransactionMode;
 
@@ -6,6 +12,7 @@ export type EdgeRecord = {
   id: string;
   source: string;
   target: string;
+  tabId: string;
   [extra: string]: unknown;
 };
 
@@ -19,8 +26,15 @@ export type MediaRecord = {
 
 export type MetaRecord = { k: string; v: unknown };
 
+export type TabRecord = {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
 const DB_NAME = "CanvasDB";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -30,18 +44,23 @@ function ensureStores(db: IDBDatabase, oldVersion: number) {
   }
 
   if (!db.objectStoreNames.contains("nodes")) {
-    db.createObjectStore("nodes", { keyPath: "id" });
+    const nodes = db.createObjectStore("nodes", { keyPath: "id" });
+    nodes.createIndex("tabId", "tabId", { unique: false });
   }
   if (!db.objectStoreNames.contains("edges")) {
     const edges = db.createObjectStore("edges", { keyPath: "id" });
     edges.createIndex("source", "source", { unique: false });
     edges.createIndex("target", "target", { unique: false });
+    edges.createIndex("tabId", "tabId", { unique: false });
   }
   if (!db.objectStoreNames.contains("media")) {
     db.createObjectStore("media", { keyPath: "id" });
   }
   if (!db.objectStoreNames.contains("meta")) {
     db.createObjectStore("meta", { keyPath: "k" });
+  }
+  if (!db.objectStoreNames.contains("tabs")) {
+    db.createObjectStore("tabs", { keyPath: "id" });
   }
 
   if (oldVersion < 2) {
@@ -64,6 +83,65 @@ function ensureStores(db: IDBDatabase, oldVersion: number) {
           }
           meta.put({ k: "migrated_images_v1", v: true } as MetaRecord);
         };
+      };
+    } catch {
+      // ignore
+    }
+  }
+
+  if (oldVersion < 3) {
+    try {
+      const tx = db.transaction(
+        ["tabs", "nodes", "edges", "meta"],
+        "readwrite"
+      );
+      const tabs = tx.objectStore("tabs");
+      const nodes = tx.objectStore("nodes");
+      const edges = tx.objectStore("edges");
+      const meta = tx.objectStore("meta");
+
+      // Create default tab
+      const defaultTab: TabRecord = {
+        id: "default-tab",
+        title: "Home",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      tabs.put(defaultTab);
+
+      // Add tabId to existing nodes and edges
+      const migratedFlagReq = meta.get("migrated_tabs_v1");
+      migratedFlagReq.onsuccess = () => {
+        const alreadyMigrated = migratedFlagReq.result?.v === true;
+        if (alreadyMigrated) return;
+
+        const getAllNodesReq = nodes.getAll();
+        getAllNodesReq.onsuccess = () => {
+          const nodeEntries = Array.isArray(getAllNodesReq.result)
+            ? getAllNodesReq.result
+            : [];
+          nodeEntries.forEach((node: Record<string, unknown>) => {
+            if (!node.tabId) {
+              node.tabId = "default-tab";
+              nodes.put(node);
+            }
+          });
+        };
+
+        const getAllEdgesReq = edges.getAll();
+        getAllEdgesReq.onsuccess = () => {
+          const edgeEntries = Array.isArray(getAllEdgesReq.result)
+            ? getAllEdgesReq.result
+            : [];
+          edgeEntries.forEach((edge: Record<string, unknown>) => {
+            if (!edge.tabId) {
+              edge.tabId = "default-tab";
+              edges.put(edge);
+            }
+          });
+        };
+
+        meta.put({ k: "migrated_tabs_v1", v: true } as MetaRecord);
       };
     } catch {
       // ignore
@@ -223,4 +301,5 @@ export const Stores = {
   media: "media" as StoreName,
   meta: "meta" as StoreName,
   images: "images" as StoreName,
+  tabs: "tabs" as StoreName,
 };

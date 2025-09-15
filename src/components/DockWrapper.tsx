@@ -1,85 +1,108 @@
 import { HomeIcon, Plus, SettingsIcon, TrashIcon } from "lucide-react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
-
-type Tab = {
-  title: string;
-  icon: React.ReactNode;
-  href: string;
-};
+import { useCanvasStore } from "../store/canvasStore";
 
 const tabStyle = "h-full w-full text-neutral-600 dark:text-neutral-300";
-const tabsData: Tab[] = [
-  {
-    title: "Home",
-    icon: <HomeIcon className={tabStyle} />,
-    href: "#",
-  },
-];
 
 export default function DockWrapper() {
-  const [tabs, setTabs] = useState<Tab[]>(tabsData);
-  const [activeTab, setActiveTab] = useState<Tab>(tabsData[0]);
+  const {
+    tabs,
+    activeTabId,
+    setActiveTab,
+    addTab: addTabToStore,
+    deleteTab: deleteTabFromStore,
+  } = useCanvasStore();
 
-  const addTab = () => {
-    setTabs([
-      ...tabs,
-      {
-        title: "New Tab",
-        icon: <HomeIcon className={tabStyle} />,
-        href: "#",
-      },
-    ]);
+  const [newTabTitle, setNewTabTitle] = useState("New Tab");
+  const [isAddingTab, setIsAddingTab] = useState(false);
+
+  const handleTabClick = (tabId: string) => {
+    setActiveTab(tabId);
   };
 
-  const handleClick = (item: Tab) => {
-    setActiveTab(item);
+  const handleAddTab = async () => {
+    if (isAddingTab) return;
+    setIsAddingTab(true);
+    try {
+      await addTabToStore(newTabTitle);
+      setNewTabTitle("New Tab");
+    } catch (error) {
+      console.error("Failed to add tab:", error);
+    } finally {
+      setIsAddingTab(false);
+    }
   };
 
-  useEffect(() => {
-    console.log(activeTab);
-  }, [activeTab]);
+  const handleDeleteTab = async () => {
+    try {
+      await deleteTabFromStore(activeTabId);
+    } catch (error) {
+      console.error("Failed to delete tab:", error);
+    }
+  };
 
   return (
     <div className="absolute bottom-2 left-1/2 max-w-full -translate-x-1/2">
       <Dock className="items-end pb-3">
-        {tabs.map((item, idx) => (
+        {tabs.map((tab) => (
           <span
             className="cursor-pointer"
-            onClick={() => handleClick(item)}
-            key={idx}
+            onClick={() => handleTabClick(tab.id)}
+            key={tab.id}
           >
             <DockItem
-              key={idx}
-              className="aspect-square rounded-full bg-gray-300 dark:bg-neutral-800"
+              className={`aspect-square rounded-full ${
+                activeTabId === tab.id
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-300 dark:bg-neutral-800"
+              }`}
             >
-              <DockLabel>{item.title}</DockLabel>
-              <DockIcon>{item.icon}</DockIcon>
+              <DockLabel>{tab.title}</DockLabel>
+              <DockIcon>
+                <HomeIcon className={tabStyle} />
+              </DockIcon>
             </DockItem>
           </span>
         ))}
-        <span className="cursor-pointer" onClick={addTab}>
-          <DockItem className="aspect-square rounded-full bg-gray-300 dark:bg-neutral-800">
-            <DockLabel>Add Tab</DockLabel>
-            <DockIcon>
-              <Plus className={tabStyle} />
-            </DockIcon>
-          </DockItem>
-        </span>
         <Dialog>
+          <DialogTrigger asChild>
+            <span className="cursor-pointer">
+              <DockItem className="aspect-square rounded-full bg-gray-300 dark:bg-neutral-800">
+                <DockLabel>Add Tab</DockLabel>
+                <DockIcon>
+                  <Plus className={tabStyle} />
+                </DockIcon>
+              </DockItem>
+            </span>
+          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>You sure you wanna delete this tab?</DialogTitle>
+              <DialogTitle>Add New Tab</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-2">
-              <Button variant="destructive">Yup, delete this tab</Button>
+              <input
+                type="text"
+                value={newTabTitle}
+                onChange={(e) => setNewTabTitle(e.target.value)}
+                className="px-3 py-2 border rounded-md"
+                placeholder="Tab title"
+              />
+              <Button
+                onClick={handleAddTab}
+                disabled={isAddingTab || !newTabTitle.trim()}
+              >
+                {isAddingTab ? "Adding..." : "Add Tab"}
+              </Button>
             </div>
           </DialogContent>
-          <DialogTrigger>
+        </Dialog>
+        <Dialog>
+          <DialogTrigger asChild>
             <span className="cursor-pointer">
               <DockItem className="aspect-square rounded-full bg-red-500 dark:bg-red-500 text-white">
                 <DockLabel>Delete Current Tab</DockLabel>
@@ -89,18 +112,24 @@ export default function DockWrapper() {
               </DockItem>
             </span>
           </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Tab</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-2">
+              <p>
+                Are you sure you want to delete this tab? All nodes and edges in
+                this tab will be permanently deleted.
+              </p>
+              <Button variant="destructive" onClick={handleDeleteTab}>
+                Delete Tab
+              </Button>
+            </div>
+          </DialogContent>
         </Dialog>
         <Separator orientation="vertical" />
         <Dialog>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Settings</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col gap-2">
-              <Button variant="destructive">Delete Database</Button>
-            </div>
-          </DialogContent>
-          <DialogTrigger>
+          <DialogTrigger asChild>
             <span className="cursor-pointer">
               <DockItem className="aspect-square rounded-full bg-gray-300 dark:bg-neutral-800">
                 <DockLabel>Settings</DockLabel>
@@ -110,6 +139,14 @@ export default function DockWrapper() {
               </DockItem>
             </span>
           </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Settings</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-2">
+              <Button variant="destructive">Delete Database</Button>
+            </div>
+          </DialogContent>
         </Dialog>
       </Dock>
     </div>

@@ -15,9 +15,10 @@ export type PersistedNode = {
   type?: CustomNode["type"];
   position: { x: number; y: number };
   data: unknown;
+  tabId: string;
 };
 
-export type PersistedEdge = Edge;
+export type PersistedEdge = Edge & { tabId: string };
 
 export type MediaLike = {
   id: string;
@@ -30,7 +31,7 @@ type MediaNodeDataRef =
   | { mediaId: string; previewBase64?: string }
   | WebPageNodeData;
 
-export function serializeNode(node: CustomNode): PersistedNode {
+export function serializeNode(node: CustomNode, tabId: string): PersistedNode {
   const { id, type, position, data } = node as CustomNode;
 
   switch (type) {
@@ -44,6 +45,7 @@ export function serializeNode(node: CustomNode): PersistedNode {
           mediaId: d.mediaId ?? "",
           previewBase64: d.imageBase64,
         },
+        tabId,
       };
     }
     case "VideoNode": {
@@ -56,6 +58,7 @@ export function serializeNode(node: CustomNode): PersistedNode {
           mediaId: d.mediaId ?? "",
           previewBase64: d.videoBase64,
         },
+        tabId,
       };
     }
     case "AudioNode": {
@@ -68,6 +71,7 @@ export function serializeNode(node: CustomNode): PersistedNode {
           mediaId: d.mediaId ?? "",
           previewBase64: d.audioBase64,
         },
+        tabId,
       };
     }
     case "PDFNode": {
@@ -82,11 +86,12 @@ export function serializeNode(node: CustomNode): PersistedNode {
           previewBase64: d.pdfBase64,
           fileName: d.fileName,
         },
+        tabId,
       };
     }
     case "WebPageNode":
     default:
-      return { id, type, position, data };
+      return { id, type, position, data, tabId };
   }
 }
 
