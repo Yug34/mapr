@@ -8,19 +8,43 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { EditIcon, TrashIcon } from "lucide-react";
 import { HandlesArray } from "../../utils/components";
+import { useCanvasStore } from "../../store/canvasStore";
 
 export function TODONode(props: NodeProps) {
   const { data, id } = props;
   const nodeData = data as TODONodeData;
 
   const [todos, setTodos] = useState<Todo[]>(nodeData.todos);
+  const { setNodes } = useCanvasStore();
+
+  const updateNodeTodos = useCallback(
+    (nextTodos: Todo[]) => {
+      setTodos(nextTodos);
+      setNodes((prevNodes) =>
+        prevNodes.map((node) =>
+          node.id === id
+            ? {
+                ...node,
+                data: {
+                  ...(node.data as TODONodeData),
+                  todos: nextTodos,
+                },
+              }
+            : node
+        )
+      );
+    },
+    [id, setNodes]
+  );
 
   const addTodo = useCallback(() => {
-    setTodos([
-      ...todos,
-      { id: crypto.randomUUID(), title: "New Todo", completed: false },
-    ]);
-  }, [todos]);
+    const newTodo: Todo = {
+      id: crypto.randomUUID(),
+      title: "New Todo",
+      completed: false,
+    };
+    updateNodeTodos([...todos, newTodo]);
+  }, [todos, updateNodeTodos]);
 
   const handleTodoClick = (
     e: React.MouseEvent<HTMLDivElement>,
@@ -28,13 +52,11 @@ export function TODONode(props: NodeProps) {
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    setTodos((prevTodos: Todo[]) =>
-      prevTodos.map((t: Todo) =>
+    updateNodeTodos(
+      todos.map((t: Todo) =>
         t.id === todoNode.id ? { ...t, completed: !t.completed } : t
       )
     );
-
-    // TODO: update the db
   };
 
   const handleTodoEdit = (
@@ -43,12 +65,13 @@ export function TODONode(props: NodeProps) {
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    setTodos((prevTodos: Todo[]) =>
-      prevTodos.map((t: Todo) =>
-        t.id === todoNode.id ? { ...t, title: todoNode.title } : t
+    const nextTitle = window.prompt("Edit todo", todoNode.title)?.trim();
+    if (nextTitle === undefined || nextTitle === null) return;
+    updateNodeTodos(
+      todos.map((t: Todo) =>
+        t.id === todoNode.id ? { ...t, title: nextTitle } : t
       )
     );
-    // TODO: update the db
   };
 
   const handleTodoDelete = (
@@ -57,12 +80,7 @@ export function TODONode(props: NodeProps) {
   ) => {
     e.preventDefault();
     e.stopPropagation();
-
-    setTodos((prevTodos: Todo[]) =>
-      prevTodos.filter((t: Todo) => t.id !== todoNode.id)
-    );
-
-    // TODO: update the db
+    updateNodeTodos(todos.filter((t: Todo) => t.id !== todoNode.id));
   };
 
   return (
