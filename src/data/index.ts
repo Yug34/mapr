@@ -34,8 +34,8 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
       title: "'lil Tutorial",
       content: `- Right click on the canvas to add new nodes.
 - Click and drag to move the nodes.
-- Right click on a node/edge to duplicate/delete.
-- Connect edges from a handle to another handle.`,
+- Right click on a node to **duplicate** or **delete** it.
+- Connect edges by clicking and dragging your cursor from a handle to another handle.`,
     },
   },
   {
