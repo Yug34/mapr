@@ -41,9 +41,11 @@ export function serializeNode(node: CustomNode, tabId: string): PersistedNode {
         id,
         type,
         position,
+        fileName: d.fileName,
         data: {
           mediaId: d.mediaId ?? "",
           previewBase64: d.imageBase64,
+          fileName: d.fileName,
         },
         tabId,
       };
@@ -54,9 +56,11 @@ export function serializeNode(node: CustomNode, tabId: string): PersistedNode {
         id,
         type,
         position,
+        fileName: d.fileName,
         data: {
           mediaId: d.mediaId ?? "",
           previewBase64: d.videoBase64,
+          fileName: d.fileName,
         },
         tabId,
       };
@@ -67,9 +71,11 @@ export function serializeNode(node: CustomNode, tabId: string): PersistedNode {
         id,
         type,
         position,
+        fileName: d.fileName,
         data: {
           mediaId: d.mediaId ?? "",
           previewBase64: d.audioBase64,
+          fileName: d.fileName,
         },
         tabId,
       };
@@ -106,6 +112,9 @@ export function deserializeNode(
     case "ImageNode": {
       const url =
         data && "mediaId" in data ? blobUrlResolver(data.mediaId) : undefined;
+      const fileNameFromData = (
+        persisted.data as { fileName?: string } | undefined
+      )?.fileName;
       return {
         id,
         type,
@@ -115,6 +124,7 @@ export function deserializeNode(
           imageBlobUrl: url ?? "",
           imageBase64:
             (data as { previewBase64?: string })?.previewBase64 ?? "",
+          fileName: persisted.fileName ?? fileNameFromData ?? "",
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
         } as ImageNodeData,
       } as CustomNode;
@@ -122,6 +132,9 @@ export function deserializeNode(
     case "VideoNode": {
       const url =
         data && "mediaId" in data ? blobUrlResolver(data.mediaId) : undefined;
+      const fileNameFromData = (
+        persisted.data as { fileName?: string } | undefined
+      )?.fileName;
       return {
         id,
         type,
@@ -131,6 +144,7 @@ export function deserializeNode(
           videoBlobUrl: url ?? "",
           videoBase64:
             (data as { previewBase64?: string })?.previewBase64 ?? "",
+          fileName: persisted.fileName ?? fileNameFromData ?? "",
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
         } as VideoNodeData,
       } as CustomNode;
@@ -138,6 +152,9 @@ export function deserializeNode(
     case "AudioNode": {
       const url =
         data && "mediaId" in data ? blobUrlResolver(data.mediaId) : undefined;
+      const fileNameFromData = (
+        persisted.data as { fileName?: string } | undefined
+      )?.fileName;
       return {
         id,
         type,
@@ -147,6 +164,7 @@ export function deserializeNode(
           audioBlobUrl: url ?? "",
           audioBase64:
             (data as { previewBase64?: string })?.previewBase64 ?? "",
+          fileName: persisted.fileName ?? fileNameFromData ?? "",
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
         } as AudioNodeData,
       } as CustomNode;
