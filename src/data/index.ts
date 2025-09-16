@@ -22,6 +22,7 @@ export const initialNodes: CustomNode[] = [
       content: `I used to use a mind map app called [**Edvo**](https://www.linkedin.com/company/edvo).\n\n
 Unfortunately, they shut down :(\n\n
 So I made this for myself :D\n\n
+You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
 **Source code on GitHub**: [mapr](https://github.com/yug34/mapr).`,
     },
   },
@@ -93,7 +94,7 @@ So I made this for myself :D\n\n
   {
     id: "n7",
     type: "PDFNode",
-    position: { x: -520, y: 0 },
+    position: { x: -520, y: -150 },
     data: {
       fileName: "Metamorphosis.pdf",
       pdfBlobUrl: metamorphosis,
