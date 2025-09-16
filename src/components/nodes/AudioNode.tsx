@@ -7,7 +7,7 @@ export function AudioNode(props: NodeProps) {
   const nodeData = data as AudioNodeData;
   return (
     <div className="flex flex-col items-center justify-center">
-      <audio src={nodeData.audioBlobUrl} controls />
+      <audio className="drag-handle" src={nodeData.audioBlobUrl} controls />
       <HandlesArray nodeId={id} />
     </div>
   );

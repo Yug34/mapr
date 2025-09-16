@@ -230,6 +230,7 @@ const Canvas = () => {
               onNodeContextMenu,
               onPaneClick,
               onPaneContextMenu,
+              nodeDragHandle: ".drag-handle",
               fitView: true,
               maxZoom: 2,
               minZoom: 0.5,

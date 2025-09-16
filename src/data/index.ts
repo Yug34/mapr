@@ -1,5 +1,6 @@
-import type { CustomNode } from "../types/common";
-import skyscraperImage from "/public/skyscraper.png";
+import type { AudioNodeData, CustomNode } from "../types/common";
+import skyscraperImage from "/skyscraper.png?url";
+import haloOST from "/Halo OST.mp3?url";
 import type { ImageNodeData } from "../types/common";
 import type { TODONodeData } from "../types/common";
 
@@ -22,9 +23,8 @@ So I made this for myself :D\n\n
     type: "NoteNode",
     data: {
       title: "'lil Tutorial",
-      content: `- Copy and paste PDFs, links, images, audio, videos, and text to create nodes.
+      content: `- Right click on the canvas to add new nodes.
 - Click and drag to move the nodes.
-- Right click on the canvas to add new nodes.
 - Right click on a node/edge to duplicate/delete.
 - Connect edges from a handle to another handle.`,
     },
@@ -57,6 +57,18 @@ So I made this for myself :D\n\n
         },
       ],
     } as TODONodeData,
+  },
+  {
+    id: "n5",
+    type: "AudioNode",
+    position: { x: -250, y: 500 },
+    data: {
+      fileName: "Halo OST.mp3",
+      audioBlobUrl: haloOST,
+      audio: haloOST as unknown as File,
+      audioBase64: "",
+      mediaId: "halo-ost",
+    } as AudioNodeData,
   },
 ];
 

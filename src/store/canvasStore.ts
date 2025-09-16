@@ -16,7 +16,8 @@ import {
 } from "../utils/serialization";
 import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import type { MediaRecord } from "../utils/indexedDb";
-import skyscraperImage from "/public/skyscraper.png";
+import skyscraperImage from "/skyscraper.png?url";
+import haloOST from "/Halo OST.mp3?url";
 import { debounce, blobManager } from "../utils";
 
 import { initialNodes, initialEdges } from "../data";
@@ -149,8 +150,8 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
       );
 
-      // Add the imported skyscraper image
       mediaUrlById.set("skyscraper-image", skyscraperImage);
+      mediaUrlById.set("halo-ost", haloOST);
 
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
@@ -207,8 +208,8 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
       );
 
-      // Add the imported skyscraper image
       mediaUrlById.set("skyscraper-image", skyscraperImage);
+      mediaUrlById.set("halo-ost", haloOST);
 
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
