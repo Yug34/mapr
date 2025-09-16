@@ -1,10 +1,16 @@
-import type { AudioNodeData, CustomNode, VideoNodeData } from "../types/common";
-import type { ImageNodeData } from "../types/common";
-import type { TODONodeData } from "../types/common";
+import type {
+  AudioNodeData,
+  CustomNode,
+  VideoNodeData,
+  ImageNodeData,
+  PDFNodeData,
+  TODONodeData,
+} from "../types/common";
 
 import skyscraperImage from "/skyscraper.png?url";
 import haloOST from "/Halo OST.mp3?url";
 import comfortablyNumb from "/Comfortably Numb.mp4?url";
+import metamorphosis from "/Metamorphosis.pdf?url";
 
 export const initialNodes: CustomNode[] = [
   {
@@ -84,6 +90,18 @@ So I made this for myself :D\n\n
       mediaId: "comfortably-numb",
     } as VideoNodeData,
   },
+  {
+    id: "n7",
+    type: "PDFNode",
+    position: { x: -520, y: 0 },
+    data: {
+      fileName: "Metamorphosis.pdf",
+      pdfBlobUrl: metamorphosis,
+      pdf: metamorphosis as unknown as File,
+      pdfBase64: "",
+      mediaId: "metamorphosis",
+    } as PDFNodeData,
+  },
 ];
 
 export const initialEdges = [
@@ -128,5 +146,12 @@ export const initialEdges = [
     source: "n6",
     sourceHandle: "right",
     targetHandle: "left-target",
+  },
+  {
+    id: "n1-n7",
+    target: "n7",
+    source: "n1",
+    sourceHandle: "left",
+    targetHandle: "right-target",
   },
 ];

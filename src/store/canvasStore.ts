@@ -21,6 +21,7 @@ import { debounce, blobManager } from "../utils";
 import skyscraperImage from "/skyscraper.png?url";
 import comfortablyNumb from "/Comfortably Numb.mp4?url";
 import haloOST from "/Halo OST.mp3?url";
+import metamorphosis from "/Metamorphosis.pdf?url";
 
 import { initialNodes, initialEdges } from "../data";
 
@@ -155,6 +156,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       mediaUrlById.set("skyscraper-image", skyscraperImage);
       mediaUrlById.set("comfortably-numb", comfortablyNumb);
       mediaUrlById.set("halo-ost", haloOST);
+      mediaUrlById.set("metamorphosis", metamorphosis);
 
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
@@ -214,6 +216,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       mediaUrlById.set("skyscraper-image", skyscraperImage);
       mediaUrlById.set("halo-ost", haloOST);
       mediaUrlById.set("comfortably-numb", comfortablyNumb);
+      mediaUrlById.set("metamorphosis", metamorphosis);
 
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
