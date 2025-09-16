@@ -9,6 +9,14 @@ import { Button } from "../ui/button";
 import { EditIcon, TrashIcon } from "lucide-react";
 import { HandlesArray } from "../../utils/components";
 import { useCanvasStore } from "../../store/canvasStore";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import { Input } from "../ui/input";
 
 export function TODONode(props: NodeProps) {
   const { data, id } = props;
@@ -16,6 +24,9 @@ export function TODONode(props: NodeProps) {
 
   const [todos, setTodos] = useState<Todo[]>(nodeData.todos);
   const { setNodes } = useCanvasStore();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
 
   const updateNodeTodos = useCallback(
     (nextTodos: Todo[]) => {
@@ -65,13 +76,9 @@ export function TODONode(props: NodeProps) {
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    const nextTitle = window.prompt("Edit todo", todoNode.title)?.trim();
-    if (nextTitle === undefined || nextTitle === null) return;
-    updateNodeTodos(
-      todos.map((t: Todo) =>
-        t.id === todoNode.id ? { ...t, title: nextTitle } : t
-      )
-    );
+    setEditingTodoId(todoNode.id);
+    setEditingTitle(todoNode.title);
+    setEditDialogOpen(true);
   };
 
   const handleTodoDelete = (
@@ -148,6 +155,54 @@ export function TODONode(props: NodeProps) {
         </Button>
       </Card>
       <HandlesArray nodeId={id} />
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit todo</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={editingTitle}
+            autoFocus
+            onChange={(e) => setEditingTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (!editingTodoId) return;
+                const title = editingTitle.trim();
+                updateNodeTodos(
+                  todos.map((t) =>
+                    t.id === editingTodoId ? { ...t, title } : t
+                  )
+                );
+                setEditDialogOpen(false);
+              }
+            }}
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEditDialogOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (!editingTodoId) return;
+                const title = editingTitle.trim();
+                updateNodeTodos(
+                  todos.map((t) =>
+                    t.id === editingTodoId ? { ...t, title } : t
+                  )
+                );
+                setEditDialogOpen(false);
+              }}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
