@@ -8,6 +8,12 @@ export function ImageNode(props: NodeProps) {
   const nodeData = data as ImageNodeData;
   return (
     <div className="flex flex-col items-center justify-center">
+      <div
+        className="mb-1 w-[360px] max-w-full text-xs text-center font-semibold truncate bg-white rounded border px-2 py-1"
+        title={nodeData.fileName}
+      >
+        {nodeData.fileName}
+      </div>
       <ImageViewer className="drag-handle w-[360px] max-w-full overflow-hidden rounded-lg border">
         <ImageViewerContent
           src={nodeData.imageBlobUrl}

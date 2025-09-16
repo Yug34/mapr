@@ -19,6 +19,12 @@ export function VideoNode(props: NodeProps) {
   const nodeData = data as VideoNodeData;
   return (
     <div className="flex flex-col items-center justify-center">
+      <div
+        className="mb-1 w-full text-xs text-center font-semibold truncate bg-white rounded border px-2 py-1"
+        title={nodeData.fileName}
+      >
+        {nodeData.fileName}
+      </div>
       <VideoPlayer className="overflow-hidden rounded-lg border">
         <VideoPlayerContent
           crossOrigin=""

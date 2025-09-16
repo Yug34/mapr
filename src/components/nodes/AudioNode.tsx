@@ -17,6 +17,12 @@ export function AudioNode(props: NodeProps) {
   const nodeData = data as AudioNodeData;
   return (
     <div className="flex flex-col items-center justify-center">
+      <div
+        className="mb-1 w-[360px] max-w-full text-xs text-center font-semibold truncate bg-white rounded border px-2 py-1"
+        title={nodeData.fileName}
+      >
+        {nodeData.fileName}
+      </div>
       <AudioPlayer className="drag-handle overflow-hidden rounded-lg border w-[360px] max-w-full h-[56px] min-h-[56px]">
         <AudioPlayerContent
           crossOrigin=""
