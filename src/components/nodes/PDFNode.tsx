@@ -2,7 +2,7 @@ import type { NodeProps } from "@xyflow/react";
 import type { PDFNodeData } from "../../types/common";
 import { Card } from "../ui/card";
 import { Document, Page, pdfjs } from "react-pdf";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { Button } from "../ui/button";
 import { Minus, Plus, SquareArrowOutUpRight } from "lucide-react";
