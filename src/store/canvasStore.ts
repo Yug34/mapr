@@ -16,9 +16,11 @@ import {
 } from "../utils/serialization";
 import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import type { MediaRecord } from "../utils/indexedDb";
-import skyscraperImage from "/skyscraper.png?url";
-import haloOST from "/Halo OST.mp3?url";
 import { debounce, blobManager } from "../utils";
+
+import skyscraperImage from "/skyscraper.png?url";
+import comfortablyNumb from "/Comfortably Numb.mp4?url";
+import haloOST from "/Halo OST.mp3?url";
 
 import { initialNodes, initialEdges } from "../data";
 
@@ -151,6 +153,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       );
 
       mediaUrlById.set("skyscraper-image", skyscraperImage);
+      mediaUrlById.set("comfortably-numb", comfortablyNumb);
       mediaUrlById.set("halo-ost", haloOST);
 
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
@@ -210,6 +213,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
 
       mediaUrlById.set("skyscraper-image", skyscraperImage);
       mediaUrlById.set("halo-ost", haloOST);
+      mediaUrlById.set("comfortably-numb", comfortablyNumb);
 
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 

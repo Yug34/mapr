@@ -1,8 +1,10 @@
-import type { AudioNodeData, CustomNode } from "../types/common";
-import skyscraperImage from "/skyscraper.png?url";
-import haloOST from "/Halo OST.mp3?url";
+import type { AudioNodeData, CustomNode, VideoNodeData } from "../types/common";
 import type { ImageNodeData } from "../types/common";
 import type { TODONodeData } from "../types/common";
+
+import skyscraperImage from "/skyscraper.png?url";
+import haloOST from "/Halo OST.mp3?url";
+import comfortablyNumb from "/Comfortably Numb.mp4?url";
 
 export const initialNodes: CustomNode[] = [
   {
@@ -32,7 +34,7 @@ So I made this for myself :D\n\n
   {
     id: "n3",
     type: "ImageNode",
-    position: { x: -75, y: 500 },
+    position: { x: 450, y: 550 },
     data: {
       fileName: "skyscraper.png",
       imageBlobUrl: skyscraperImage,
@@ -61,7 +63,7 @@ So I made this for myself :D\n\n
   {
     id: "n5",
     type: "AudioNode",
-    position: { x: -250, y: 500 },
+    position: { x: -600, y: 600 },
     data: {
       fileName: "Halo OST.mp3",
       audioBlobUrl: haloOST,
@@ -69,6 +71,18 @@ So I made this for myself :D\n\n
       audioBase64: "",
       mediaId: "halo-ost",
     } as AudioNodeData,
+  },
+  {
+    id: "n6",
+    type: "VideoNode",
+    position: { x: -125, y: 500 },
+    data: {
+      fileName: "Comfortably Numb.mp4",
+      videoBlobUrl: comfortablyNumb,
+      video: comfortablyNumb as unknown as File,
+      videoBase64: "",
+      mediaId: "comfortably-numb",
+    } as VideoNodeData,
   },
 ];
 
@@ -88,17 +102,31 @@ export const initialEdges = [
     targetHandle: "top-target",
   },
   {
-    id: "n2-n3",
-    target: "n3",
+    id: "n2-n6",
+    target: "n6",
     source: "n2",
     sourceHandle: "bottom",
     targetHandle: "top-target",
   },
   {
-    id: "n4-n3",
-    target: "n3",
+    id: "n4-n6",
+    target: "n6",
     source: "n4",
     sourceHandle: "bottom",
     targetHandle: "top-target",
+  },
+  {
+    id: "n5-n6",
+    target: "n6",
+    source: "n5",
+    sourceHandle: "right",
+    targetHandle: "left-target",
+  },
+  {
+    id: "n6-n3",
+    target: "n3",
+    source: "n6",
+    sourceHandle: "right",
+    targetHandle: "left-target",
   },
 ];
