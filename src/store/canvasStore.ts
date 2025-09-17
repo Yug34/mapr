@@ -242,9 +242,24 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
 
     await bulkPut(Stores.tabs, [newTab]);
 
+    const defaultNoteNode: CustomNode = {
+      id: crypto.randomUUID(),
+      type: "NoteNode",
+      position: { x: 160, y: 120 },
+      data: {
+        title: "New note",
+        content: "- Click to edit...",
+      },
+    };
+
+    await bulkPut(Stores.nodes, [serializeNode(defaultNoteNode, newTab.id)]);
+
     set((state) => ({
       tabs: [...state.tabs, newTab],
+      activeTabId: newTab.id,
     }));
+
+    await loadTabData(newTab.id);
 
     return newTab.id;
   };

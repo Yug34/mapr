@@ -39,7 +39,8 @@ export default function DockWrapper() {
     if (isAddingTab) return;
     setIsAddingTab(true);
     try {
-      await addTabToStore(newTabTitle);
+      const newTabId = await addTabToStore(newTabTitle);
+      setActiveTab(newTabId);
       setNewTabTitle(
         generate({ exactly: 2, minLength: 3, maxLength: 6, join: "-" })
       );
