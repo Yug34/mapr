@@ -26,9 +26,12 @@ export type MediaRecord = {
 
 export type MetaRecord = { k: string; v: unknown };
 
+import type { TabIconKey } from "../types/common";
+
 export type TabRecord = {
   id: string;
   title: string;
+  iconKey?: TabIconKey;
   createdAt: number;
   updatedAt: number;
 };
@@ -104,6 +107,7 @@ function ensureStores(db: IDBDatabase, oldVersion: number) {
       const defaultTab: TabRecord = {
         id: "default-tab",
         title: "Home",
+        iconKey: "home",
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };

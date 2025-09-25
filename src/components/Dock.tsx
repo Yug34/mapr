@@ -1,5 +1,19 @@
-import { HomeIcon, Plus, TrashIcon } from "lucide-react";
+import {
+  HomeIcon,
+  Star,
+  Folder,
+  Bolt,
+  BookOpen,
+  Atom,
+  Globe,
+  Plus,
+  TrashIcon,
+  Focus,
+  Flower,
+  Medal,
+} from "lucide-react";
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock-base";
+import type { TabIconKey } from "../types/common";
 import { useState } from "react";
 import {
   Dialog,
@@ -60,6 +74,22 @@ export default function DockWrapper() {
     }
   };
 
+  const IconByKey: Record<
+    TabIconKey,
+    React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+  > = {
+    home: HomeIcon,
+    star: Star,
+    bolt: Bolt,
+    folder: Folder,
+    atom: Atom,
+    globe: Globe,
+    bookOpen: BookOpen,
+    focus: Focus,
+    flower: Flower,
+    medal: Medal,
+  };
+
   return (
     <div className="absolute bottom-2 left-1/2 max-w-full -translate-x-1/2">
       <Dock className="items-end pb-3">
@@ -78,10 +108,18 @@ export default function DockWrapper() {
             >
               <DockLabel>{tab.title}</DockLabel>
               <DockIcon>
-                <HomeIcon
-                  className={tabStyle}
-                  style={activeTabId === tab.id ? { color: "white" } : {}}
-                />
+                {(() => {
+                  const Key =
+                    tab.iconKey && IconByKey[tab.iconKey]
+                      ? IconByKey[tab.iconKey]
+                      : HomeIcon;
+                  return (
+                    <Key
+                      className={tabStyle}
+                      style={activeTabId === tab.id ? { color: "white" } : {}}
+                    />
+                  );
+                })()}
               </DockIcon>
             </DockItem>
           </span>

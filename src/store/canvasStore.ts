@@ -9,6 +9,7 @@ import {
   getAllFromIndex,
 } from "../utils/indexedDb";
 import type { TabRecord } from "../utils/indexedDb";
+import type { TabIconKey } from "../types/common";
 import {
   deserializeEdge,
   deserializeNode,
@@ -113,6 +114,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         const defaultTab: TabRecord = {
           id: "default-tab",
           title: "Home",
+          iconKey: "home",
           createdAt: Date.now(),
           updatedAt: Date.now(),
         };
@@ -233,9 +235,24 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
   };
 
   const addTab = async (title: string): Promise<string> => {
+    const iconCycle: TabIconKey[] = [
+      "home",
+      "star",
+      "bolt",
+      "folder",
+      "atom",
+      "globe",
+      "bookOpen",
+      "focus",
+      "flower",
+      "medal",
+    ];
+
+    const nextIcon = iconCycle[get().tabs.length % iconCycle.length];
     const newTab: TabRecord = {
       id: crypto.randomUUID(),
       title,
+      iconKey: nextIcon,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };

@@ -76,7 +76,6 @@ const Canvas = () => {
           setViewport({ x: vp.x + dx, y: vp.y + dy, zoom: vp.zoom });
           return;
         }
-
         // Non-pixel (mouse wheel) or ctrl/meta pressed: let React Flow zoom/scroll
       };
 

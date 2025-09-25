@@ -94,3 +94,16 @@ export type MediaHandler<T> = {
   type: CustomNode["type"];
   buildData: (file: File, blobUrl: string, base64: string) => T;
 };
+
+// Dock / Tabs
+export type TabIconKey =
+  | "home"
+  | "star"
+  | "bolt"
+  | "folder"
+  | "atom"
+  | "globe"
+  | "bookOpen"
+  | "focus"
+  | "flower"
+  | "medal";
