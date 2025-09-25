@@ -9,9 +9,11 @@ import {
 } from "react";
 import {
   ReactFlow,
+  ReactFlowProvider,
   applyNodeChanges,
   applyEdgeChanges,
   addEdge,
+  useReactFlow,
 } from "@xyflow/react";
 import type {
   NodeChange,
@@ -48,6 +50,42 @@ const Canvas = () => {
     point: { x: number; y: number };
   } | null;
   const [menu, setMenu] = useState<MenuInfo>(null);
+
+  const WheelPanInverter = () => {
+    const { getViewport, setViewport } = useReactFlow();
+
+    useEffect(() => {
+      const el = canvasRef.current;
+      if (!el) return;
+
+      const onWheel = (e: WheelEvent) => {
+        // Trackpad: deltaMode === 0 (pixels). Mouse wheel: typically line/page.
+        const isPixel = e.deltaMode === 0;
+
+        // Allow pinch-zoom (ctrl/meta) to be handled by React Flow even on trackpad
+        const wantsZoom = e.ctrlKey || e.metaKey;
+        if (isPixel && !wantsZoom) {
+          const dx = -e.deltaX * 0.4;
+          const dy = -e.deltaY * 0.4;
+
+          e.preventDefault();
+          e.stopPropagation();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (e as any).stopImmediatePropagation?.();
+          const vp = getViewport();
+          setViewport({ x: vp.x + dx, y: vp.y + dy, zoom: vp.zoom });
+          return;
+        }
+
+        // Non-pixel (mouse wheel) or ctrl/meta pressed: let React Flow zoom/scroll
+      };
+
+      el.addEventListener("wheel", onWheel, { passive: false, capture: true });
+      return () => el.removeEventListener("wheel", onWheel as EventListener);
+    }, [getViewport, setViewport]);
+
+    return null;
+  };
 
   const handlePaste = useCallback(
     async (e: ClipboardEvent) => {
@@ -219,54 +257,59 @@ const Canvas = () => {
           tabIndex={0}
           style={{ outline: "none" }}
         >
-          <ReactFlow
-            {...{
-              nodes,
-              edges,
-              onNodesChange,
-              onEdgesChange,
-              onConnect,
-              isValidConnection,
-              onNodeContextMenu,
-              onPaneClick,
-              onPaneContextMenu,
-              fitView: true,
-              maxZoom: 2,
-              minZoom: 0.5,
-            }}
-            style={{
-              background: `
-              radial-gradient(circle, #a0a0a0 1px, transparent 1px)
-            `,
-              backgroundSize: "20px 20px",
-            }}
-            defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
-            nodeTypes={nodeTypes}
-          >
-            <Suspense fallback={null}>
-              <ControlsLazy />
-            </Suspense>
-            <Suspense fallback={null}>
-              <MiniMapLazy
-                style={{
-                  height: 120,
-                  width: 180,
-                }}
-                nodeColor={(node) => {
-                  // TODO:
-                  switch (node.type) {
-                    case "input":
-                      return "#0041d0";
-                    case "output":
-                      return "#ff0072";
-                    default:
-                      return "#1a192b";
-                  }
-                }}
-                nodeStrokeWidth={3}
-              />
-            </Suspense>
-          </ReactFlow>
+          <ReactFlowProvider>
+            <WheelPanInverter />
+            <ReactFlow
+              {...{
+                nodes,
+                edges,
+                onNodesChange,
+                onEdgesChange,
+                onConnect,
+                isValidConnection,
+                onNodeContextMenu,
+                onPaneClick,
+                onPaneContextMenu,
+                fitView: true,
+                maxZoom: 2,
+                minZoom: 0.5,
+              }}
+              zoomOnScroll
+              panOnScroll={false}
+              style={{
+                background: `
+                radial-gradient(circle, #a0a0a0 1px, transparent 1px)
+              `,
+                backgroundSize: "20px 20px",
+              }}
+              defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
+              nodeTypes={nodeTypes}
+            >
+              <Suspense fallback={null}>
+                <ControlsLazy />
+              </Suspense>
+              <Suspense fallback={null}>
+                <MiniMapLazy
+                  style={{
+                    height: 120,
+                    width: 180,
+                  }}
+                  nodeColor={(node) => {
+                    // TODO:
+                    switch (node.type) {
+                      case "input":
+                        return "#0041d0";
+                      case "output":
+                        return "#ff0072";
+                      default:
+                        return "#1a192b";
+                    }
+                  }}
+                  nodeStrokeWidth={3}
+                />
+              </Suspense>
+            </ReactFlow>
+          </ReactFlowProvider>
         </div>
       </ContextMenuTrigger>
       <Suspense fallback={null}>
