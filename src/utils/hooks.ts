@@ -28,7 +28,7 @@ export const useCanvas = () => {
   const store = useCanvasStore();
 
   // Abstracted node update method
-  const updateNode = (nodeId: string, updates: Partial<CustomNode['data']>) => {
+  const updateNode = (nodeId: string, updates: Partial<CustomNode["data"]>) => {
     store.setNodes((prevNodes) =>
       prevNodes.map((node) =>
         node.id === nodeId
@@ -45,7 +45,10 @@ export const useCanvas = () => {
   };
 
   // Abstracted node position update method
-  const updateNodePosition = (nodeId: string, position: { x: number; y: number }) => {
+  const updateNodePosition = (
+    nodeId: string,
+    position: { x: number; y: number }
+  ) => {
     store.setNodes((prevNodes) =>
       prevNodes.map((node) =>
         node.id === nodeId
@@ -59,8 +62,8 @@ export const useCanvas = () => {
   };
 
   // Abstracted node data update method for specific data fields
-  const updateNodeData = <T extends CustomNode['data']>(
-    nodeId: string, 
+  const updateNodeData = <T extends CustomNode["data"]>(
+    nodeId: string,
     dataUpdates: Partial<T>
   ) => {
     store.setNodes((prevNodes) =>

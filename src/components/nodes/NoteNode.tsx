@@ -17,7 +17,10 @@ export function NoteNode(props: NodeProps) {
   const nodeRef = useRef<HTMLDivElement>(null);
 
   const handleNodeUpdate = (newTitle: string, newContent: string) => {
-    updateNodeData(id, { title: newTitle, content: newContent } as NoteNodeData);
+    updateNodeData(id, {
+      title: newTitle,
+      content: newContent,
+    } as NoteNodeData);
   };
 
   useEffect(() => {
