@@ -36,7 +36,8 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
       content: `- Right click on the canvas to add new nodes.
 - Click and drag to move the nodes.
 - Right click on a node to **duplicate** or **delete** it.
-- Connect edges by clicking and dragging your cursor from a handle to another handle.`,
+- Connect edges by clicking and dragging your cursor from a handle to another handle.
+- Pan around the canvas using Figma-like controls.`,
     },
   },
   {
