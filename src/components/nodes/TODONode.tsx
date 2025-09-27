@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { EditIcon, TrashIcon } from "lucide-react";
 import { HandlesArray } from "../../utils/components";
-import { useCanvas } from "../../utils/hooks";
+import { useCanvas } from "../../hooks/useCanvas";
 import {
   Dialog,
   DialogContent,

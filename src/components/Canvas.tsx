@@ -22,11 +22,11 @@ import type {
   NodeMouseHandler,
   Edge,
 } from "@xyflow/react";
-import { useCanvas } from "../utils/hooks";
+import { useCanvas } from "../hooks/useCanvas";
 import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
 import { isLink, readAsDataURL } from "../utils";
-const CanvasContextMenu = lazy(() => import("./canvas/CanvasContextMenu"));
+const CanvasContextMenu = lazy(() => import("./CanvasContextMenu"));
 const MiniMapLazy = lazy(() =>
   import("@xyflow/react").then((m) => ({ default: m.MiniMap }))
 );

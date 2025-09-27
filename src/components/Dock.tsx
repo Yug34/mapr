@@ -25,7 +25,7 @@ import {
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
-import { useCanvas } from "../utils/hooks";
+import { useCanvas } from "../hooks/useCanvas";
 import { generate } from "random-words";
 
 const tabStyle = "h-full w-full text-neutral-600 dark:text-neutral-300";

@@ -2,7 +2,7 @@ import type { NodeProps } from "@xyflow/react";
 import type { NoteNodeData } from "../../types/common";
 import { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
-import { useCanvas } from "../../utils/hooks";
+import { useCanvas } from "../../hooks/useCanvas";
 import { HandlesArray } from "../../utils/components";
 
 export function NoteNode(props: NodeProps) {

@@ -1,6 +1,6 @@
 import { Handle, Position } from "@xyflow/react";
 import type { HandleProps } from "@xyflow/react";
-import { useHandleConnections } from "./hooks";
+import { useHandleConnections } from "../hooks/useCanvas";
 
 interface CustomHandleProps extends HandleProps {
   nodeId?: string;

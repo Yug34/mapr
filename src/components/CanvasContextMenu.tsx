@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Edge } from "@xyflow/react";
-import { useCanvas } from "@/utils/hooks";
+import { useCanvas } from "@/hooks/useCanvas";
 import type { CustomNode, CustomNodeData, TODONodeData } from "@/types/common";
 import {
   ContextMenuContent,
@@ -24,8 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
-import FileUpload from "../FileUpload";
+} from "./ui/dialog";
+import FileUpload from "./FileUpload";
 
 type MenuKind = "node" | "pane";
 

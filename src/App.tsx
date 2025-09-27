@@ -1,7 +1,7 @@
 import { Suspense, lazy } from "react";
 const Canvas = lazy(() => import("./components/Canvas"));
 import DockWrapper from "./components/Dock";
-import { useCanvas } from "./utils/hooks";
+import { useCanvas } from "./hooks/useCanvas";
 import { Badge } from "./components/ui/badge";
 import { Loader } from "./components/ui/loader";
 

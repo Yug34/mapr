@@ -4,7 +4,7 @@ import { readAsDataURL } from "@/utils";
 import { add as idbAdd, Stores } from "@/utils/indexedDb";
 import { MEDIA_HANDLERS } from "@/lib/utils";
 import type { MediaHandler, CustomNodeData, CustomNode } from "@/types/common";
-import { useCanvas } from "@/utils/hooks";
+import { useCanvas } from "@/hooks/useCanvas";
 import { blobManager } from "@/utils/blobManager";
 
 export default function FileUpload() {
