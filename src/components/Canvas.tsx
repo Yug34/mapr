@@ -40,8 +40,16 @@ import { blobManager } from "../utils/blobManager";
 import { Loader } from "./ui/loader";
 
 const Canvas = () => {
-  const { nodes, edges, setNodes, setEdges, addNode, initialized, initFromDb } =
-    useCanvas();
+  const {
+    nodes,
+    edges,
+    setNodes,
+    setEdges,
+    addNode,
+    deleteNode,
+    initialized,
+    initFromDb,
+  } = useCanvas();
 
   const canvasRef = useRef<HTMLDivElement>(null);
   type MenuInfo = {
@@ -50,6 +58,33 @@ const Canvas = () => {
     point: { x: number; y: number };
   } | null;
   const [menu, setMenu] = useState<MenuInfo>(null);
+
+  const DeleteHandler = () => {
+    const { getNodes } = useReactFlow();
+
+    const handleKeyDown = useCallback(
+      (e: KeyboardEvent) => {
+        if (e.key === "Delete" || e.key === "Backspace") {
+          const selectedNodes = getNodes().filter((node) => node.selected);
+          if (selectedNodes.length > 0) {
+            e.preventDefault();
+            selectedNodes.forEach((node) => deleteNode(node.id));
+          }
+        }
+      },
+      [getNodes]
+    );
+
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      canvas.addEventListener("keydown", handleKeyDown);
+      return () => canvas.removeEventListener("keydown", handleKeyDown);
+    }, [handleKeyDown]);
+
+    return null;
+  };
 
   const WheelPanInverter = () => {
     const { getViewport, setViewport } = useReactFlow();
@@ -273,6 +308,7 @@ const Canvas = () => {
           style={{ outline: "none" }}
         >
           <ReactFlowProvider>
+            <DeleteHandler />
             <WheelPanInverter />
             <ReactFlow
               {...{

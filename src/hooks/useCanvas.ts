@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useCanvasStore } from "../store/canvasStore";
 import type { CustomNode } from "../types/common";
 
-// hook to check if a handle has any connections
 export const useHandleConnections = (
   nodeId: string,
   handleId: string,
@@ -23,11 +22,9 @@ export const useHandleConnections = (
   }, [edges, nodeId, handleId, handleType]);
 };
 
-// Main canvas hook that provides a simplified API over the canvas store
 export const useCanvas = () => {
   const store = useCanvasStore();
 
-  // Abstracted node update method
   const updateNode = (nodeId: string, updates: Partial<CustomNode["data"]>) => {
     store.setNodes((prevNodes) =>
       prevNodes.map((node) =>
@@ -44,7 +41,6 @@ export const useCanvas = () => {
     );
   };
 
-  // Abstracted node position update method
   const updateNodePosition = (
     nodeId: string,
     position: { x: number; y: number }
@@ -61,7 +57,6 @@ export const useCanvas = () => {
     );
   };
 
-  // Abstracted node data update method for specific data fields
   const updateNodeData = <T extends CustomNode["data"]>(
     nodeId: string,
     dataUpdates: Partial<T>
