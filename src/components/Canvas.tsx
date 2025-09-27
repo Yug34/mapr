@@ -64,7 +64,23 @@ const Canvas = () => {
 
         // Allow pinch-zoom (ctrl/meta) to be handled by React Flow even on trackpad
         const wantsZoom = e.ctrlKey || e.metaKey;
+
+        if (e.shiftKey) {
+          // horizontal pan
+          const dx = -e.deltaY * 0.4;
+          const dy = 0;
+
+          e.preventDefault();
+          e.stopPropagation();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (e as any).stopImmediatePropagation?.();
+          const vp = getViewport();
+          setViewport({ x: vp.x + dx, y: vp.y + dy, zoom: vp.zoom });
+          return;
+        }
+
         if (isPixel && !wantsZoom) {
+          // vertical pan
           const dx = -e.deltaX * 0.4;
           const dy = -e.deltaY * 0.4;
 
@@ -142,7 +158,7 @@ const Canvas = () => {
       if (isLink(text)) {
         addNode({
           id: crypto.randomUUID(),
-          type: "WebPageNode",
+          type: "LinkNode",
           position: { x: 0, y: 0 },
           data: { url: text },
         });

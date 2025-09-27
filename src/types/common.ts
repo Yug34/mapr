@@ -1,4 +1,4 @@
-import { WebPageNode } from "../components/nodes/WebPageNode";
+import { LinkNode } from "../components/nodes/LinkNode";
 import { ImageNode } from "../components/nodes/ImageNode";
 import type { Node } from "@xyflow/react";
 import { VideoNode } from "../components/nodes/VideoNode";
@@ -8,7 +8,7 @@ import { TODONode } from "../components/nodes/TODONode";
 import { NoteNode } from "../components/nodes/NoteNode";
 
 export const nodeTypes = {
-  WebPageNode: WebPageNode,
+  LinkNode: LinkNode,
   ImageNode: ImageNode,
   VideoNode: VideoNode,
   AudioNode: AudioNode,
@@ -17,7 +17,7 @@ export const nodeTypes = {
   NoteNode: NoteNode,
 };
 
-export type WebPageNodeData = {
+export type LinkNodeData = {
   url: string;
 };
 
@@ -70,7 +70,7 @@ export type NoteNodeData = {
 };
 
 export type CustomNodeData =
-  | WebPageNodeData
+  | LinkNodeData
   | ImageNodeData
   | VideoNodeData
   | AudioNodeData

@@ -5,7 +5,7 @@ import type {
   ImageNodeData,
   PDFNodeData,
   VideoNodeData,
-  WebPageNodeData,
+  LinkNodeData,
 } from "../types/common";
 
 // On-disk representations: no File objects, no Blob URLs.
@@ -29,7 +29,7 @@ export type MediaLike = {
 // Extract media reference fields
 type MediaNodeDataRef =
   | { mediaId: string; previewBase64?: string }
-  | WebPageNodeData;
+  | LinkNodeData;
 
 export function serializeNode(node: CustomNode, tabId: string): PersistedNode {
   const { id, type, position, data } = node as CustomNode;
@@ -95,7 +95,7 @@ export function serializeNode(node: CustomNode, tabId: string): PersistedNode {
         tabId,
       };
     }
-    case "WebPageNode":
+    case "LinkNode":
     default:
       return { id, type, position, data, tabId };
   }
