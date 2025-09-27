@@ -60,12 +60,12 @@ export function NoteNode(props: NodeProps) {
         onChange={(e) => {
           const newTitle = e.target.value;
           setNodeTitle(newTitle);
-          updateNodeData(newTitle, nodeContent);
+          handleNodeUpdate(newTitle, nodeContent);
         }}
         onBlur={(e) => {
           const trimmedTitle = e.target.value.trim();
           setNodeTitle(trimmedTitle);
-          updateNodeData(trimmedTitle, nodeContent);
+          handleNodeUpdate(trimmedTitle, nodeContent);
         }}
       />
       {isEditing ? (

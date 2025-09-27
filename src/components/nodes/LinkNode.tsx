@@ -1,7 +1,6 @@
 import type { NodeProps } from "@xyflow/react";
 import type { LinkNodeData } from "../../types/common";
 import { HandlesArray } from "../../utils/components";
-import React from "react";
 import { LinkIcon } from "lucide-react";
 
 // https://web.mit.edu/6.001/6.037/sicp.pdf
