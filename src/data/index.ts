@@ -5,6 +5,7 @@ import type {
   ImageNodeData,
   PDFNodeData,
   TODONodeData,
+  LinkNodeData,
 } from "../types/common";
 
 import skyscraperImage from "/skyscraper.png?url";
@@ -103,6 +104,14 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
       mediaId: "metamorphosis",
     } as PDFNodeData,
   },
+  {
+    id: "n8",
+    type: "LinkNode",
+    position: { x: 520, y: 50 },
+    data: {
+      url: "https://www.linkedin.com/in/yug34",
+    } as LinkNodeData,
+  },
 ];
 
 export const initialEdges = [
@@ -154,5 +163,12 @@ export const initialEdges = [
     source: "n1",
     sourceHandle: "left",
     targetHandle: "right-target",
+  },
+  {
+    id: "n1-n8",
+    target: "n8",
+    source: "n1",
+    sourceHandle: "right",
+    targetHandle: "left-target",
   },
 ];
