@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { EditIcon, TrashIcon } from "lucide-react";
 import { HandlesArray } from "../../utils/components";
-import { useCanvasStore } from "../../store/canvasStore";
+import { useCanvas } from "../../utils/hooks";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +23,7 @@ export function TODONode(props: NodeProps) {
   const nodeData = data as TODONodeData;
 
   const [todos, setTodos] = useState<Todo[]>(nodeData.todos);
-  const { setNodes } = useCanvasStore();
+  const { updateNodeData } = useCanvas();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
@@ -31,21 +31,9 @@ export function TODONode(props: NodeProps) {
   const updateNodeTodos = useCallback(
     (nextTodos: Todo[]) => {
       setTodos(nextTodos);
-      setNodes((prevNodes) =>
-        prevNodes.map((node) =>
-          node.id === id
-            ? {
-                ...node,
-                data: {
-                  ...(node.data as TODONodeData),
-                  todos: nextTodos,
-                },
-              }
-            : node
-        )
-      );
+      updateNodeData(id, { todos: nextTodos } as TODONodeData);
     },
-    [id, setNodes]
+    [id, updateNodeData]
   );
 
   const addTodo = useCallback(() => {

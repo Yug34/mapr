@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Edge } from "@xyflow/react";
-import { useCanvasStore } from "@/store/canvasStore";
+import { useCanvas } from "@/utils/hooks";
 import type { CustomNode, CustomNodeData, TODONodeData } from "@/types/common";
 import {
   ContextMenuContent,
@@ -46,7 +46,7 @@ const CanvasContextMenu = ({
     CustomNode,
     Edge
   >();
-  const { addNode, deleteNode: deleteNodeFromStore } = useCanvasStore();
+  const { addNode, deleteNode: deleteNodeFromStore } = useCanvas();
   const [addNodeType, setAddNodeType] = useState<CustomNode["type"] | null>(
     null
   );

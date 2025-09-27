@@ -25,7 +25,7 @@ import {
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
-import { useCanvasStore } from "../store/canvasStore";
+import { useCanvas } from "../utils/hooks";
 import { generate } from "random-words";
 
 const tabStyle = "h-full w-full text-neutral-600 dark:text-neutral-300";
@@ -37,7 +37,7 @@ export default function DockWrapper() {
     setActiveTab,
     addTab: addTabToStore,
     deleteTab: deleteTabFromStore,
-  } = useCanvasStore();
+  } = useCanvas();
 
   const [newTabTitle, setNewTabTitle] = useState(
     generate({ exactly: 2, minLength: 3, maxLength: 6, join: "-" })

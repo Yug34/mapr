@@ -1,12 +1,12 @@
 import { Suspense, lazy } from "react";
 const Canvas = lazy(() => import("./components/Canvas"));
 import DockWrapper from "./components/Dock";
-import { useCanvasStore } from "./store/canvasStore";
+import { useCanvas } from "./utils/hooks";
 import { Badge } from "./components/ui/badge";
 import { Loader } from "./components/ui/loader";
 
 function App() {
-  const { tabs, activeTabId, initialized } = useCanvasStore();
+  const { tabs, activeTabId, initialized } = useCanvas();
 
   const currentTabTitle = tabs.find((tab) => tab.id === activeTabId)?.title;
 

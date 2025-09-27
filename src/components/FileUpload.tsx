@@ -4,12 +4,12 @@ import { readAsDataURL } from "@/utils";
 import { add as idbAdd, Stores } from "@/utils/indexedDb";
 import { MEDIA_HANDLERS } from "@/lib/utils";
 import type { MediaHandler, CustomNodeData, CustomNode } from "@/types/common";
-import { useCanvasStore } from "@/store/canvasStore";
+import { useCanvas } from "@/utils/hooks";
 import { blobManager } from "@/utils/blobManager";
 
 export default function FileUpload() {
   const [files, setFiles] = useState<File[] | undefined>();
-  const { addNode } = useCanvasStore();
+  const { addNode } = useCanvas();
 
   useEffect(() => {
     if (files) {

@@ -2,13 +2,13 @@ import type { NodeProps } from "@xyflow/react";
 import type { NoteNodeData } from "../../types/common";
 import { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
-import { useCanvasStore } from "../../store/canvasStore";
+import { useCanvas } from "../../utils/hooks";
 import { HandlesArray } from "../../utils/components";
 
 export function NoteNode(props: NodeProps) {
   const { data, id } = props;
   const noteNodeData = data as NoteNodeData;
-  const { setNodes } = useCanvasStore();
+  const { updateNodeData } = useCanvas();
 
   const [nodeTitle, setNodeTitle] = useState(noteNodeData.title);
   const [nodeContent, setNodeContent] = useState(noteNodeData.content);
@@ -16,21 +16,8 @@ export function NoteNode(props: NodeProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const nodeRef = useRef<HTMLDivElement>(null);
 
-  const updateNodeData = (newTitle: string, newContent: string) => {
-    setNodes((prevNodes) =>
-      prevNodes.map((node) =>
-        node.id === id
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                title: newTitle,
-                content: newContent,
-              } as NoteNodeData,
-            }
-          : node
-      )
-    );
+  const handleNodeUpdate = (newTitle: string, newContent: string) => {
+    updateNodeData(id, { title: newTitle, content: newContent } as NoteNodeData);
   };
 
   useEffect(() => {
@@ -92,7 +79,7 @@ export function NoteNode(props: NodeProps) {
           onChange={(e) => {
             const newContent = e.target.value;
             setNodeContent(newContent);
-            updateNodeData(nodeTitle, newContent);
+            handleNodeUpdate(nodeTitle, newContent);
           }}
           onBlur={() => {
             setTimeout(() => {

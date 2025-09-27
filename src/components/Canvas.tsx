@@ -22,7 +22,7 @@ import type {
   NodeMouseHandler,
   Edge,
 } from "@xyflow/react";
-import { useCanvasStore } from "../store/canvasStore";
+import { useCanvas } from "../utils/hooks";
 import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
 import { isLink, readAsDataURL } from "../utils";
@@ -41,7 +41,7 @@ import { Loader } from "./ui/loader";
 
 const Canvas = () => {
   const { nodes, edges, setNodes, setEdges, addNode, initialized, initFromDb } =
-    useCanvasStore();
+    useCanvas();
 
   const canvasRef = useRef<HTMLDivElement>(null);
   type MenuInfo = {
