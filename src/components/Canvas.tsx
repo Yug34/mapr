@@ -295,19 +295,19 @@ const Canvas = () => {
   }
 
   return (
-    <ContextMenu
-      onOpenChange={(open) => {
-        if (!open) setMenu(null);
-      }}
-    >
-      <ContextMenuTrigger asChild>
-        <div
-          ref={canvasRef}
-          className="flex-1 min-h-0"
-          tabIndex={0}
-          style={{ outline: "none" }}
-        >
-          <ReactFlowProvider>
+    <ReactFlowProvider>
+      <ContextMenu
+        onOpenChange={(open) => {
+          if (!open) setMenu(null);
+        }}
+      >
+        <ContextMenuTrigger asChild>
+          <div
+            ref={canvasRef}
+            className="flex-1 min-h-0"
+            tabIndex={0}
+            style={{ outline: "none" }}
+          >
             <DeleteHandler />
             <WheelPanInverter />
             <ReactFlow
@@ -360,18 +360,18 @@ const Canvas = () => {
                 />
               </Suspense>
             </ReactFlow>
-          </ReactFlowProvider>
-        </div>
-      </ContextMenuTrigger>
-      <Suspense fallback={null}>
-        <CanvasContextMenu
-          type={menu?.type ?? "pane"}
-          targetId={menu?.id}
-          clientPoint={menu?.point}
-          onClose={() => setMenu(null)}
-        />
-      </Suspense>
-    </ContextMenu>
+          </div>
+        </ContextMenuTrigger>
+        <Suspense fallback={null}>
+          <CanvasContextMenu
+            type={menu?.type ?? "pane"}
+            targetId={menu?.id}
+            clientPoint={menu?.point}
+            onClose={() => setMenu(null)}
+          />
+        </Suspense>
+      </ContextMenu>
+    </ReactFlowProvider>
   );
 };
 
