@@ -4,6 +4,7 @@ import DockWrapper from "./components/Dock";
 import { useCanvas } from "./hooks/useCanvas";
 import { Badge } from "./components/ui/badge";
 import { Loader } from "./components/ui/loader";
+import { Walkthrough } from "./components/Walkthrough";
 
 function App() {
   const { tabs, activeTabId, initialized } = useCanvas();
@@ -35,6 +36,7 @@ function App() {
           <Canvas />
         </Suspense>
         <DockWrapper />
+        <Walkthrough />
       </div>
     </div>
   );
