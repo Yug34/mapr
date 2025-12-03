@@ -4,34 +4,61 @@ export const Loader = (props: LucideProps) => {
   const size = props.size || 24;
 
   return (
-    <svg
-      height={size}
-      preserveAspectRatio="xMidYMid"
-      viewBox="0 0 100 100"
-      width={size}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <title>Loading...</title>
-      <path
-        d="M24.3 30C11.4 30 5 43.3 5 50s6.4 20 19.3 20c19.3 0 32.1-40 51.4-40 C88.6 30 95 43.3 95 50s-6.4 20-19.3 20C56.4 70 43.6 30 24.3 30z"
-        fill="none"
-        stroke="currentColor"
-        strokeDasharray="205.271142578125 51.317785644531256"
-        strokeLinecap="round"
-        strokeWidth="10"
-        style={{
-          transform: "scale(0.8)",
-          transformOrigin: "50px 50px",
-        }}
-      >
+  <svg
+    className="ml-4"
+    height={size}
+    stroke="currentColor"
+    viewBox="0 0 44 44"
+    width={size}
+    xmlns="http://www.w3.org/2000/svg"
+    {...(props as any)}
+  >
+    <g fill="none" fillRule="evenodd" strokeWidth="2">
+      <circle cx="22" cy="22" r="1">
         <animate
-          attributeName="stroke-dashoffset"
-          dur="2s"
-          keyTimes="0;1"
+          attributeName="r"
+          begin="0s"
+          calcMode="spline"
+          dur="1.8s"
+          keySplines="0.165, 0.84, 0.44, 1"
+          keyTimes="0; 1"
           repeatCount="indefinite"
-          values="0;256.58892822265625"
+          values="1; 20"
         />
-      </path>
-    </svg>
+        <animate
+          attributeName="stroke-opacity"
+          begin="0s"
+          calcMode="spline"
+          dur="1.8s"
+          keySplines="0.3, 0.61, 0.355, 1"
+          keyTimes="0; 1"
+          repeatCount="indefinite"
+          values="1; 0"
+        />
+      </circle>
+      <circle cx="22" cy="22" r="1">
+        <animate
+          attributeName="r"
+          begin="-0.9s"
+          calcMode="spline"
+          dur="1.8s"
+          keySplines="0.165, 0.84, 0.44, 1"
+          keyTimes="0; 1"
+          repeatCount="indefinite"
+          values="1; 20"
+        />
+        <animate
+          attributeName="stroke-opacity"
+          begin="-0.9s"
+          calcMode="spline"
+          dur="1.8s"
+          keySplines="0.3, 0.61, 0.355, 1"
+          keyTimes="0; 1"
+          repeatCount="indefinite"
+          values="1; 0"
+        />
+      </circle>
+    </g>
+  </svg>
   );
 };
