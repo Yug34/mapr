@@ -114,23 +114,14 @@ const steps: WalkthroughStep[] = [
     ),
   },
   {
-    title: "Move Nodes",
-    description: "Click and drag to reposition",
+    title: "Move & Manage Nodes",
+    description: "Drag nodes and right-click for more options",
     icon: <Move className="h-6 w-6" />,
     content: (
       <div className="space-y-4">
         <p className="text-foreground">
           Click on any node and drag it to move it around the canvas. Arrange your content however you like!
         </p>
-      </div>
-    ),
-  },
-  {
-    title: "Node Actions",
-    description: "Right-click on nodes for more options",
-    icon: <MousePointer2 className="h-6 w-6" />,
-    content: (
-      <div className="space-y-4">
         <p className="text-foreground">
           Right-click on any node to access additional actions:
         </p>
