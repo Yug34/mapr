@@ -44,7 +44,7 @@ const steps: WalkthroughStep[] = [
     content: (
       <div className="space-y-4">
         <p className="text-foreground">
-          I used to use a mind map app called <strong>Edvo</strong>. Unfortunately, they shut down :(
+          I used to use a mind mapper called <strong>Edvo</strong>. Unfortunately though, they shut down. 😞
         </p>
         <p className="text-foreground">
           So I made this for myself :D
@@ -52,13 +52,13 @@ const steps: WalkthroughStep[] = [
         <p className="text-foreground">
           You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
         </p>
-        <div className="flex items-center gap-2 pt-2">
+        <div className="w-fit flex items-center gap-2 px-6 py-2 shadow-sm rounded-xl border border-primary/20 text-primary/80 hover:text-primary">
           <Github className="h-4 w-4" />
           <a
             href="https://github.com/yug34/mapr"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-primary hover:underline"
+            className="text-sm text-primary font-medium"
           >
             Source code on GitHub
           </a>
@@ -73,45 +73,42 @@ const steps: WalkthroughStep[] = [
     content: (
       <div className="space-y-4">
         <p className="text-foreground">
-          Right-click on the canvas to open the context menu and add new nodes.
+          Right-click on the canvas to open the context menu and add new nodes. There are 6 types of nodes you can add:
         </p>
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          <Card>
-            <CardHeader className="pb-2">
-              <FileText className="h-5 w-5 mb-1" />
-              <CardTitle className="text-sm">Text Notes</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <Image className="h-5 w-5 mb-1" />
-              <CardTitle className="text-sm">Images</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <Video className="h-5 w-5 mb-1" />
-              <CardTitle className="text-sm">Videos</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <Music className="h-5 w-5 mb-1" />
-              <CardTitle className="text-sm">Audio</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <FileType className="h-5 w-5 mb-1" />
-              <CardTitle className="text-sm">PDFs</CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CheckSquare className="h-5 w-5 mb-1" />
-              <CardTitle className="text-sm">TODOs</CardTitle>
-            </CardHeader>
-          </Card>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            {
+              icon: <FileText className="h-5 w-5 mb-1" />,
+              title: "Text",
+            },
+            {
+              icon: <Image className="h-5 w-5 mb-1" />,
+              title: "Images",
+            },
+            {
+              icon: <Video className="h-5 w-5 mb-1" />,
+              title: "Videos",
+            },
+            {
+              icon: <Music className="h-5 w-5 mb-1" />,
+              title: "Audio",
+            },
+            {
+              icon: <FileType className="h-5 w-5 mb-1" />,
+              title: "PDFs",
+            },
+            {
+              icon: <CheckSquare className="h-5 w-5 mb-1" />,
+              title: "TODOs",
+            },
+          ].map((item) => (
+            <Card key={item.title} className="py-2 justify-center">
+              <CardContent className="flex flex-row gap-x-2">
+                {item.icon}
+                <CardTitle className="text-sm">{item.title}</CardTitle>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     ),
