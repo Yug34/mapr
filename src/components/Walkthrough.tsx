@@ -198,10 +198,6 @@ export function Walkthrough() {
     setOpen(false);
   };
 
-  const handleSkip = () => {
-    handleComplete();
-  };
-
   const currentStepData = steps[currentStep];
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === steps.length - 1;
