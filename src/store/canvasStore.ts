@@ -98,6 +98,65 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
 
   const persistGraphDebounced = debounce(persistGraph, 500);
 
+  const seedInitialMedia = async () => {
+    // Check if initial media already exists
+    const existingMedia = await getAll<MediaRecord>(Stores.media);
+    const existingMediaIds = new Set(existingMedia.map((m) => m.id));
+
+    const initialMediaConfig = [
+      {
+        url: skyscraperImage,
+        mediaId: "skyscraper-image",
+        fileName: "skyscraper.png",
+        mime: "image/png",
+      },
+      {
+        url: haloOST,
+        mediaId: "halo-ost",
+        fileName: "Halo OST.mp3",
+        mime: "audio/mpeg",
+      },
+      {
+        url: comfortablyNumb,
+        mediaId: "comfortably-numb",
+        fileName: "Comfortably Numb.mp4",
+        mime: "video/mp4",
+      },
+      {
+        url: metamorphosis,
+        mediaId: "metamorphosis",
+        fileName: "Metamorphosis.pdf",
+        mime: "application/pdf",
+      },
+    ];
+
+    // Filter out media that already exists
+    const mediaToSeed = initialMediaConfig.filter(
+      (config) => !existingMediaIds.has(config.mediaId)
+    );
+
+    if (mediaToSeed.length === 0) return;
+
+    // Fetch and create MediaRecords for each initial media file
+    const mediaRecords = await Promise.all(
+      mediaToSeed.map(async (config) => {
+        const response = await fetch(config.url);
+        const blob = await response.blob();
+
+        return {
+          id: config.mediaId,
+          blob,
+          mime: config.mime,
+          size: blob.size,
+          createdAt: Date.now(),
+        } as MediaRecord;
+      })
+    );
+
+    // Store all media records in IndexedDB
+    await bulkPut(Stores.media, mediaRecords);
+  };
+
   const loadFromDb = async () => {
     if (get().initialized) return;
     try {
@@ -134,6 +193,9 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
           tabId: activeTabId,
         }));
 
+        // Seed initial media files into IndexedDB
+        await seedInitialMedia();
+
         await Promise.all([
           bulkPut(Stores.nodes, persistedNodes),
           bulkPut(Stores.edges, persistedEdges),
@@ -148,6 +210,9 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         }));
         return;
       }
+
+      // Always ensure initial media is seeded (in case nodes/edges exist but media doesn't)
+      await seedInitialMedia();
 
       // Build mediaId -> blobURL map for rehydration
       const mediaRecords = await getAll<MediaRecord>(Stores.media);

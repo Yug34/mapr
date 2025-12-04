@@ -3,7 +3,6 @@ export type StoreName =
   | "edges"
   | "media"
   | "meta"
-  | "images"
   | "tabs";
 
 export type TxMode = IDBTransactionMode;
@@ -37,15 +36,11 @@ export type TabRecord = {
 };
 
 const DB_NAME = "CanvasDB";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 function ensureStores(db: IDBDatabase, oldVersion: number) {
-  if (!db.objectStoreNames.contains("images")) {
-    db.createObjectStore("images", { keyPath: "url" });
-  }
-
   if (!db.objectStoreNames.contains("nodes")) {
     const nodes = db.createObjectStore("nodes", { keyPath: "id" });
     nodes.createIndex("tabId", "tabId", { unique: false });
@@ -66,30 +61,9 @@ function ensureStores(db: IDBDatabase, oldVersion: number) {
     db.createObjectStore("tabs", { keyPath: "id" });
   }
 
-  if (oldVersion < 2) {
-    try {
-      const tx = db.transaction(["images", "meta"], "readwrite");
-      const images = tx.objectStore("images");
-      const meta = tx.objectStore("meta");
-      const migratedFlagReq = meta.get("migrated_images_v1");
-      migratedFlagReq.onsuccess = () => {
-        const alreadyMigrated = migratedFlagReq.result?.v === true;
-        if (alreadyMigrated) return;
-        const getAllReq = images.getAll();
-        getAllReq.onsuccess = () => {
-          const entries = Array.isArray(getAllReq.result)
-            ? getAllReq.result
-            : [];
-          if (!entries.length) {
-            meta.put({ k: "migrated_images_v1", v: true } as MetaRecord);
-            return;
-          }
-          meta.put({ k: "migrated_images_v1", v: true } as MetaRecord);
-        };
-      };
-    } catch {
-      // ignore
-    }
+  // Remove deprecated images store (migrated to media store)
+  if (oldVersion < 4 && db.objectStoreNames.contains("images")) {
+    db.deleteObjectStore("images");
   }
 
   if (oldVersion < 3) {
@@ -304,6 +278,5 @@ export const Stores = {
   edges: "edges" as StoreName,
   media: "media" as StoreName,
   meta: "meta" as StoreName,
-  images: "images" as StoreName,
   tabs: "tabs" as StoreName,
 };

@@ -1,13 +1,40 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 const Canvas = lazy(() => import("./components/Canvas"));
 import DockWrapper from "./components/Dock";
 import { useCanvas } from "./hooks/useCanvas";
 import { Badge } from "./components/ui/badge";
 import { Loader } from "./components/ui/loader";
 import { Walkthrough } from "./components/Walkthrough";
+import { getAll, Stores } from "./utils/indexedDb";
 
 function App() {
   const { tabs, activeTabId, initialized } = useCanvas();
+
+  useEffect(() => {
+    async function logIndexedDBContents() {
+      try {
+        const [nodes, edges, media, meta, tabsData] = await Promise.all([
+          getAll(Stores.nodes),
+          getAll(Stores.edges),
+          getAll(Stores.media),
+          getAll(Stores.meta),
+          getAll(Stores.tabs),
+        ]);
+
+        console.log("=== IndexedDB Contents ===");
+        console.log("Nodes:", nodes);
+        console.log("Edges:", edges);
+        console.log("Media:", media);
+        console.log("Meta:", meta);
+        console.log("Tabs:", tabsData);
+        console.log("========================");
+      } catch (error) {
+        console.error("Error reading IndexedDB:", error);
+      }
+    }
+
+    logIndexedDBContents();
+  }, []);
 
   const currentTabTitle = tabs.find((tab) => tab.id === activeTabId)?.title;
 
