@@ -2,7 +2,7 @@ export type StoreName =
   | "nodes"
   | "edges"
   | "media"
-  | "meta"
+  | "meta" // used for db migrations
   | "tabs";
 
 export type TxMode = IDBTransactionMode;
