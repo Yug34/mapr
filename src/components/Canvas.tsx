@@ -33,7 +33,7 @@ const MiniMapLazy = lazy(() =>
 const ControlsLazy = lazy(() =>
   import("@xyflow/react").then((m) => ({ default: m.Controls }))
 );
-import { add as idbAdd, Stores } from "../utils/indexedDb";
+import { add as dbAdd, Stores } from "../utils/sqliteDb";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { MEDIA_HANDLERS } from "@/lib/utils";
 import { blobManager } from "../utils/blobManager";
@@ -158,7 +158,7 @@ const Canvas = () => {
             const base64 = await readAsDataURL(file);
 
             const mediaId = crypto.randomUUID();
-            await idbAdd(Stores.media, {
+            await dbAdd(Stores.media, {
               id: mediaId,
               fileName: file.name,
               blob: file,

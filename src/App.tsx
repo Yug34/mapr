@@ -5,13 +5,13 @@ import { useCanvas } from "./hooks/useCanvas";
 import { Badge } from "./components/ui/badge";
 import { Loader } from "./components/ui/loader";
 import { Walkthrough } from "./components/Walkthrough";
-import { getAll, Stores } from "./utils/indexedDb";
+import { getAll, Stores } from "./utils/sqliteDb";
 
 function App() {
   const { tabs, activeTabId, initialized } = useCanvas();
 
   useEffect(() => {
-    async function logIndexedDBContents() {
+    async function logDbContents() {
       try {
         const [nodes, edges, media, meta, tabsData] = await Promise.all([
           getAll(Stores.nodes),
@@ -21,7 +21,7 @@ function App() {
           getAll(Stores.tabs),
         ]);
 
-        console.log("=== IndexedDB Contents ===");
+        console.log("=== SQLite DB Contents ===");
         console.log("Nodes:", nodes);
         console.log("Edges:", edges);
         console.log("Media:", media);
@@ -29,11 +29,11 @@ function App() {
         console.log("Tabs:", tabsData);
         console.log("========================");
       } catch (error) {
-        console.error("Error reading IndexedDB:", error);
+        console.error("Error reading SQLite DB:", error);
       }
     }
 
-    logIndexedDBContents();
+    logDbContents();
   }, []);
 
   const currentTabTitle = tabs.find((tab) => tab.id === activeTabId)?.title;

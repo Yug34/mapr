@@ -7,8 +7,8 @@ import {
   getAll,
   bulkDelete,
   getAllFromIndex,
-} from "../utils/indexedDb";
-import type { TabRecord } from "../utils/indexedDb";
+} from "../utils/sqliteDb";
+import type { TabRecord } from "../utils/sqliteDb";
 import type { TabIconKey } from "../types/common";
 import {
   deserializeEdge,
@@ -16,9 +16,9 @@ import {
   serializeNode,
 } from "../utils/serialization";
 import type { PersistedEdge, PersistedNode } from "../utils/serialization";
-import type { MediaRecord } from "../utils/indexedDb";
 import { debounce, blobManager } from "../utils";
-
+import { isUsingMemoryFallback } from "../utils/sqliteDb";
+import type { MediaRecord } from "../utils/sqliteDb";
 import skyscraperImage from "/skyscraper.png?url";
 import comfortablyNumb from "/Comfortably Numb.mp4?url";
 import haloOST from "/Halo OST.mp3?url";
@@ -32,7 +32,7 @@ interface CanvasStore {
   tabs: TabRecord[];
   activeTabId: string;
   setNodes: (
-    nodes: CustomNode[] | ((prev: CustomNode[]) => CustomNode[])
+    nodes: CustomNode[] | ((prev: CustomNode[]) => CustomNode[]),
   ) => void;
   setEdges: (edges: Edge[] | ((prev: Edge[]) => Edge[])) => void;
   addNode: (node: CustomNode) => void;
@@ -52,7 +52,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
   const persistGraph = async () => {
     const state = get();
     const persistedNodes: PersistedNode[] = state.nodes.map((node) =>
-      serializeNode(node, state.activeTabId)
+      serializeNode(node, state.activeTabId),
     );
     const persistedEdges: PersistedEdge[] = state.edges.map((edge) => ({
       ...edge,
@@ -61,32 +61,32 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
 
     // Only persist nodes and edges for the current tab
     const currentTabNodes = persistedNodes.filter(
-      (node) => node.tabId === state.activeTabId
+      (node) => node.tabId === state.activeTabId,
     );
     const currentTabEdges = persistedEdges.filter(
-      (edge) => edge.tabId === state.activeTabId
+      (edge) => edge.tabId === state.activeTabId,
     );
 
     // Delete existing nodes/edges for this tab and add new ones
     const existingNodes = await getAllFromIndex<PersistedNode>(
       Stores.nodes,
       "tabId",
-      state.activeTabId
+      state.activeTabId,
     );
     const existingEdges = await getAllFromIndex<PersistedEdge>(
       Stores.edges,
       "tabId",
-      state.activeTabId
+      state.activeTabId,
     );
 
     await Promise.all([
       bulkDelete(
         Stores.nodes,
-        existingNodes.map((n) => n.id)
+        existingNodes.map((n) => n.id),
       ),
       bulkDelete(
         Stores.edges,
-        existingEdges.map((e) => e.id)
+        existingEdges.map((e) => e.id),
       ),
     ]);
 
@@ -132,7 +132,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
 
     // Filter out media that already exists
     const mediaToSeed = initialMediaConfig.filter(
-      (config) => !existingMediaIds.has(config.mediaId)
+      (config) => !existingMediaIds.has(config.mediaId),
     );
 
     if (mediaToSeed.length === 0) return;
@@ -150,10 +150,9 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
           size: blob.size,
           createdAt: Date.now(),
         } as MediaRecord;
-      })
+      }),
     );
 
-    // Store all media records in IndexedDB
     await bulkPut(Stores.media, mediaRecords);
   };
 
@@ -186,14 +185,14 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       if (persistedNodes.length === 0 && persistedEdges.length === 0) {
         // seed current defaults into DB for the default tab
         const persistedNodes: PersistedNode[] = initialNodes.map((node) =>
-          serializeNode(node, activeTabId)
+          serializeNode(node, activeTabId),
         );
         const persistedEdges: PersistedEdge[] = initialEdges.map((edge) => ({
           ...edge,
           tabId: activeTabId,
         }));
 
-        // Seed initial media files into IndexedDB
+        // Seed initial media files into DB
         await seedInitialMedia();
 
         await Promise.all([
@@ -217,7 +216,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       // Build mediaId -> blobURL map for rehydration
       const mediaRecords = await getAll<MediaRecord>(Stores.media);
       const mediaUrlById = new Map<string, string>(
-        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
+        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)]),
       );
 
       mediaUrlById.set("skyscraper-image", skyscraperImage);
@@ -229,14 +228,14 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
 
       // Load data for the active tab
       const activeTabNodes = persistedNodes.filter(
-        (n) => n.tabId === activeTabId
+        (n) => n.tabId === activeTabId,
       );
       const activeTabEdges = persistedEdges.filter(
-        (e) => e.tabId === activeTabId
+        (e) => e.tabId === activeTabId,
       );
 
       const nodes = activeTabNodes.map((n) =>
-        deserializeNode(n, resolveBlobUrl)
+        deserializeNode(n, resolveBlobUrl),
       );
       const edges = activeTabEdges.map((e) => deserializeEdge(e));
 
@@ -249,7 +248,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       }));
     } catch (err) {
       // fallback to defaults on any failure
-      console.error("Failed to load from IndexedDB", err);
+      console.error("Failed to load from SQLite + WASM", err);
       set(() => ({
         nodes: initialNodes,
         edges: initialEdges,
@@ -277,7 +276,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       // Build mediaId -> blobURL map for rehydration
       const mediaRecords = await getAll<MediaRecord>(Stores.media);
       const mediaUrlById = new Map<string, string>(
-        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
+        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)]),
       );
 
       mediaUrlById.set("skyscraper-image", skyscraperImage);
@@ -288,7 +287,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
       const nodes = persistedNodes.map((n) =>
-        deserializeNode(n, resolveBlobUrl)
+        deserializeNode(n, resolveBlobUrl),
       );
       const edges = persistedEdges.map((e) => deserializeEdge(e));
 
@@ -363,11 +362,11 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
     await Promise.all([
       bulkDelete(
         Stores.nodes,
-        tabNodes.map((n) => n.id)
+        tabNodes.map((n) => n.id),
       ),
       bulkDelete(
         Stores.edges,
-        tabEdges.map((e) => e.id)
+        tabEdges.map((e) => e.id),
       ),
       bulkDelete(Stores.tabs, [tabId]),
     ]);
@@ -388,7 +387,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
 
   const updateTabTitle = async (
     tabId: string,
-    title: string
+    title: string,
   ): Promise<void> => {
     const state = get();
     const tab = state.tabs.find((t) => t.id === tabId);
@@ -414,12 +413,14 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         persistGraphDebounced();
         return { nodes: nextNodes };
       }),
-    addNode: (node: CustomNode) =>
+    addNode: (node: CustomNode) => {
+      console.log(isUsingMemoryFallback());
       set((state) => {
         const nextNodes = [...state.nodes, node];
         persistGraphDebounced();
         return { nodes: nextNodes };
-      }),
+      });
+    },
     deleteNode: (nodeId: string) =>
       set((state) => {
         // Clean up blob URLs for the deleted node

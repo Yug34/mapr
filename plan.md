@@ -120,9 +120,7 @@ Define a small, explicit “query language” that the LLM produces and the app 
 - **Shape (example)**:
 
 ```ts
-type Scope =
-  | { type: "tab"; tabId: string }
-  | { type: "global" };
+type Scope = { type: "tab"; tabId: string } | { type: "global" };
 
 type NodeType = "note" | "todo" | "pdf" | "image" | "audio" | "video" | "link";
 
@@ -223,18 +221,6 @@ interface StructuredQuerySpec {
 
 ## Phased Implementation Plan
 
-### Phase 0 – Baseline & cleanup (very short)
-
-- **Goals**:
-  - Confirm current canvas/tab behavior is stable.
-  - Ensure PWA basics are in place (manifest, service worker).
-- **Tasks**:
-  - **Review existing IndexedDB usage** (`utils/indexedDb.ts`) and graph persistence.
-  - **Document current data flows**:
-    - How nodes/edges/tabs are loaded/saved.
-    - How media is stored / referenced (`blobManager`).
-  - Ensure PWA install works on at least one target browser.
-
 ### Phase 1 – Introduce SQLite (WASM) as primary data store
 
 - **Goals**:
@@ -266,100 +252,92 @@ interface StructuredQuerySpec {
 
 ### Phase 2 – Basic query service over SQLite
 
-- **Goals**:
-  - Implement a **non‑LLM** `QueryService` to exercise SQLite schemas.
-  - Support user‑selectable **tab vs global** scope.
+**Goals:**
 
-- **Tasks**:
-  - Implement `StructuredQuerySpec` (TS types) as above.
-  - Implement `QueryService` that:
-    - Accepts `StructuredQuerySpec`.
-    - Builds parameterized SQL against SQLite tables.
-    - Returns:
-      - `nodeIds`
-      - Minimal metadata (type, title, createdAt, tags).
-  - Add a **temporary dev UI**:
-    - Textarea for JSON `StructuredQuerySpec`.
-    - Button to execute.
-    - Console/log & simple list for results.
-  - Implement **scope handling**:
-    - `scope.type === "tab"` → add `WHERE tabId = ?`.
-    - `scope.type === "global"` → no tab filter.
-  - Validate:
-    - Queries for specific types (TODOs, PDFs).
-    - Tag‑based filtering.
-    - Date filtering.
+- [ ] Implement a **non‑LLM** `QueryService` to exercise SQLite schemas
+- [ ] Support user‑selectable **tab vs global** scope
+
+**Tasks:**
+
+- [ ] Implement `StructuredQuerySpec` (TS types) as above
+- [ ] Implement `QueryService` that:
+  - [ ] Accepts `StructuredQuerySpec`
+  - [ ] Builds parameterized SQL against SQLite tables
+  - [ ] Returns `nodeIds` and minimal metadata (type, title, createdAt, tags)
+- [ ] Add a temporary dev UI:
+  - [ ] Textarea for JSON `StructuredQuerySpec`
+  - [ ] Button to execute
+  - [ ] Console/log & simple list for results
+- [ ] Implement scope handling:
+  - [ ] `scope.type === "tab"` → add `WHERE tabId = ?`
+  - [ ] `scope.type === "global"` → no tab filter
+- [ ] Validate:
+  - [ ] Queries for specific types (TODOs, PDFs)
+  - [ ] Tag‑based filtering
+  - [ ] Date filtering
 
 ### Phase 3 – Local LLM integration (NL → StructuredQuerySpec)
 
-- **Goals**:
-  - Integrate local LLM runtime and chosen model.
-  - Enable **NL queries** translated into `StructuredQuerySpec`.
+**Goals:**
 
-- **Tasks**:
-  - **LLM runtime integration**:
-    - Add WebGPU‑first backend (e.g. WebLLM / `transformers.js`).
-    - Implement feature detection for WebGPU and WASM fallback.
-    - Build model loader with:
-      - Progress UI placeholder (for now, even console logs are fine).
-      - Basic caching between sessions.
-  - **`llmService` abstraction**:
-    - `interpretQuery(nl: string, scope: Scope): Promise<StructuredQuerySpec | Error>`
-    - Ensure strict JSON output:
-      - Use system/prompt messages telling the model to return only JSON matching the schema.
-      - Validate on the client and surface errors clearly.
-  - **Glue to `QueryService`**:
-    - For a dev UI:
-      - Text input for NL query.
-      - Scope toggle (tab/global).
-      - On submit:
-        - Call `interpretQuery`.
-        - If valid, call `QueryService.execute`.
-        - Log structured spec, SQL, and results.
-  - **Initial prompts & iteration**:
-    - Design prompts to:
-      - Map simple English requests to field filters.
-      - Respect scope consistently.
-      - Avoid generating unsupported fields.
+- [ ] Integrate local LLM runtime and chosen model
+- [ ] Enable **NL queries** translated into `StructuredQuerySpec`
+
+**Tasks:**
+
+- [ ] LLM runtime integration:
+  - [ ] Add WebGPU‑first backend (e.g. WebLLM / `transformers.js`)
+  - [ ] Implement feature detection for WebGPU and WASM fallback
+  - [ ] Build model loader with progress UI placeholder and basic caching between sessions
+- [ ] `llmService` abstraction:
+  - [ ] `interpretQuery(nl: string, scope: Scope): Promise<StructuredQuerySpec | Error>`
+  - [ ] Ensure strict JSON output (system/prompt messages telling model to return only JSON matching schema)
+  - [ ] Validate on the client and surface errors clearly
+- [ ] Glue to `QueryService`:
+  - [ ] For a dev UI: text input for NL query
+  - [ ] Scope toggle (tab/global)
+  - [ ] On submit: call `interpretQuery`, if valid call `QueryService.execute`, log structured spec, SQL, and results
+- [ ] Initial prompts & iteration:
+  - [ ] Design prompts to map simple English requests to field filters
+  - [ ] Respect scope consistently
+  - [ ] Avoid generating unsupported fields
 
 ### Phase 4 – Media text extraction (OCR + PDFs) into `node_text`
 
-- **Goals**:
-  - Automatically extract and store text for images and PDFs.
-  - Make these texts queryable via both structured and text search.
+**Goals:**
 
-- **Tasks**:
-  - **Integrate Tesseract.js for images**:
-    - Add a worker‑based OCR pipeline that:
-      - Receives image blob or URL.
-      - Produces text.
-    - Extend image upload/paste flow:
-      - After creating `ImageNode` and `media` row:
-        - Kick off OCR.
-        - On completion, create/update `node_text` record.
-  - **Integrate pdf.js for PDFs**:
-    - On PDF upload:
-      - Parse and extract text per page.
-      - Concatenate and store in `node_text.plainText`.
-  - **Indexing**:
-    - Ensure `node_text.plainText` is:
-      - Included in full‑text search.
-      - Available to the LLM as context for answers.
-  - **UX** (minimal for now):
-    - Show a small state indicator on nodes being processed.
-    - Allow user to see extracted text in a dev/debug panel.
+- [ ] Automatically extract and store text for images and PDFs
+- [ ] Make these texts queryable via both structured and text search
+
+**Tasks:**
+
+- [ ] Integrate Tesseract.js for images:
+  - [ ] Add a worker‑based OCR pipeline (receives image blob or URL, produces text)
+  - [ ] Extend image upload/paste flow: after creating `ImageNode` and `media` row, kick off OCR
+  - [ ] On completion, create/update `node_text` record
+- [ ] Integrate pdf.js for PDFs:
+  - [ ] On PDF upload, parse and extract text per page
+  - [ ] Concatenate and store in `node_text.plainText`
+- [ ] Indexing:
+  - [ ] Ensure `node_text.plainText` is included in full‑text search
+  - [ ] Make it available to the LLM as context for answers
+- [ ] UX (minimal for now):
+  - [ ] Show a small state indicator on nodes being processed
+  - [ ] Allow user to see extracted text in a dev/debug panel
 
 ### Phase 5 – LLM answering with context (global queries)
 
-- **Goals**:
-  - Support **global and tab‑scoped NL queries** end‑to‑end:
-    - Interpret NL → StructuredQuerySpec.
-    - Execute spec over SQLite.
-    - Retrieve `node_text` for matches.
-    - Ask LLM to answer with citations.
+**Goals:**
 
-- **Tasks**:
-  - Extend `llmService` with:
+- [ ] Support **global and tab‑scoped NL queries** end‑to‑end:
+  - [ ] Interpret NL → StructuredQuerySpec
+  - [ ] Execute spec over SQLite
+  - [ ] Retrieve `node_text` for matches
+  - [ ] Ask LLM to answer with citations
+
+**Tasks:**
+
+- [ ] Extend `llmService` with:
 
 ```ts
 askWithContext(
@@ -374,27 +352,28 @@ askWithContext(
 ): Promise<{ answer: string; usedNodeIds: string[] }>;
 ```
 
-  - Implement **RAG‑like flow**:
-    - Use `StructuredQuerySpec` + `QueryService` to narrow down candidate nodes.
-    - Optionally rank/limit nodes (e.g. top 20 by recency / text match).
-    - Construct a prompt that:
-      - Embeds snippets of `plainText` with node IDs.
-      - Asks the model to answer and refer to node IDs.
-  - For now, return answer + node IDs; UI can still be dev‑style (console/log overlay).
+- [ ] Implement RAG‑like flow:
+  - [ ] Use `StructuredQuerySpec` + `QueryService` to narrow down candidate nodes
+  - [ ] Optionally rank/limit nodes (e.g. top 20 by recency / text match)
+  - [ ] Construct a prompt that embeds snippets of `plainText` with node IDs
+  - [ ] Ask the model to answer and refer to node IDs
+- [ ] For now, return answer + node IDs; UI can still be dev‑style (console/log overlay)
 
 ### Phase 6 – UX integration (beyond initial request, optional next steps)
 
-- **Goals**:
-  - Tie the above capabilities into the graph UI with a polished experience.
+**Goals:**
 
-- **Ideas** (to be detailed later):
-  - **Global query input** (top bar / command palette).
-  - **Scope toggle** (tab/global) near the query input.
-  - **Query results overlay**:
-    - Highlight matching nodes.
-    - Allow quickly jumping between them.
-  - **Answer panel**:
-    - Show LLM answer with inline links to nodes.
+- [ ] Tie the above capabilities into the graph UI with a polished experience
+
+**Ideas (to be detailed later):**
+
+- [ ] Global query input (top bar / command palette)
+- [ ] Scope toggle (tab/global) near the query input
+- [ ] Query results overlay:
+  - [ ] Highlight matching nodes
+  - [ ] Allow quickly jumping between them
+- [ ] Answer panel:
+  - [ ] Show LLM answer with inline links to nodes
 
 ---
 
@@ -426,4 +405,3 @@ askWithContext(
   - You can issue a **global or tab‑scoped** NL query and:
     - Get a coherent answer from the local LLM.
     - See which nodes were used (via IDs/logging, or basic UI).
-

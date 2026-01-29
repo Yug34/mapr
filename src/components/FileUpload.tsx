@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "./ui/dropzone";
 import { readAsDataURL } from "@/utils";
-import { add as idbAdd, Stores } from "@/utils/indexedDb";
+import { add as dbAdd, Stores } from "@/utils/sqliteDb";
 import { MEDIA_HANDLERS } from "@/lib/utils";
 import type { MediaHandler, CustomNodeData, CustomNode } from "@/types/common";
 import { useCanvas } from "@/hooks/useCanvas";
@@ -25,7 +25,7 @@ export default function FileUpload() {
         const base64 = await readAsDataURL(file);
 
         const mediaId = crypto.randomUUID();
-        await idbAdd(Stores.media, {
+        await dbAdd(Stores.media, {
           id: mediaId,
           fileName: file.name,
           blob: file,

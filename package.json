@@ -17,6 +17,7 @@
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@sqlite.org/sqlite-wasm": "^3.51.2-build5",
     "@tailwindcss/vite": "^4.1.12",
     "@xyflow/react": "^12.8.4",
     "class-variance-authority": "^0.7.1",

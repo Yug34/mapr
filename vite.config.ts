@@ -19,9 +19,20 @@ export default defineConfig({
     watch: {
       usePolling: true, // wsl needs this to work
     },
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
+  },
+  preview: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
   },
   optimizeDeps: {
     include: ["react", "react-dom"],
+    exclude: ["@sqlite.org/sqlite-wasm"],
   },
   build: {
     rollupOptions: {

@@ -1,12 +1,12 @@
 // Service Worker for .mapr PWA
 // Cache version - increment this to force cache updates
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `mapr-cache-${CACHE_VERSION}`;
 
 // Assets to cache on install (app shell)
+// Exclude / and /index.html so the document is always fetched from network.
+// Cached documents can lose COOP/COEP headers, breaking SQLite WASM OPFS.
 const APP_SHELL_ASSETS = [
-  '/',
-  '/index.html',
   '/vite.svg',
 ];
 
@@ -87,11 +87,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Check if this is a cacheable asset
-  const isCacheable = CACHEABLE_PATTERNS.some((pattern) => 
-    pattern.test(url.pathname)
-  ) || url.pathname === '/' || url.pathname === '/index.html';
+  // Never serve document from cache: it must come from network to retain
+  // COOP/COEP headers required for SQLite WASM OPFS (and cross-origin isolation).
+  const isDocument = request.mode === 'navigate' || url.pathname === '/' || url.pathname === '/index.html';
+  if (isDocument) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
+  // Check if this is a cacheable asset
+  const isCacheable = CACHEABLE_PATTERNS.some((pattern) =>
+    pattern.test(url.pathname)
+  );
   if (!isCacheable) {
     return;
   }
@@ -99,13 +106,10 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(request)
       .then((cachedResponse) => {
-        // Return cached version if available
         if (cachedResponse) {
           console.log('[Service Worker] Serving from cache:', url.pathname);
           return cachedResponse;
         }
-
-        // Otherwise fetch from network
         console.log('[Service Worker] Fetching from network:', url.pathname);
         return fetch(request)
           .then((response) => {
