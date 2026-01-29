@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { queryService } from "../services/queryService";
-import type { StructuredQuerySpec, QueryResult } from "../types/query";
+import { llmService, AVAILABLE_MODELS } from "../services/llmService";
+import type { ModelKey } from "../services/llmService";
+import type { StructuredQuerySpec, QueryResult, Scope } from "../types/query";
 import { useCanvasStore } from "../store/canvasStore";
 
 export function QueryDevPanel() {
@@ -14,12 +16,53 @@ export function QueryDevPanel() {
       2,
     ),
   );
+  const [nlQuery, setNlQuery] = useState<string>("");
   const [results, setResults] = useState<QueryResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [llmLoading, setLlmLoading] = useState(false);
+  const [llmProgress, setLlmProgress] = useState<{
+    progress: number;
+    text: string;
+  } | null>(null);
+  const [llmReady, setLlmReady] = useState(false);
+  const [scope, setScope] = useState<Scope>({ type: "global" });
+  const [selectedModel, setSelectedModel] = useState<ModelKey>("qwen15b");
   const { activeTabId } = useCanvasStore();
 
-  const handleExecute = async () => {
+  // Initialize LLM on mount or when model changes
+  useEffect(() => {
+    const initLLM = async () => {
+      // Set model before initializing
+      try {
+        llmService.setModel(selectedModel);
+      } catch (err) {
+        // Model already set, dispose first
+        llmService.dispose();
+        llmService.setModel(selectedModel);
+      }
+
+      try {
+        setLlmLoading(true);
+        setLlmReady(false);
+        await llmService.initialize((progress, text) => {
+          setLlmProgress({ progress, text });
+        });
+        setLlmReady(true);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        console.error("[QueryDevPanel] LLM init error:", err);
+        setError(`Failed to initialize LLM: ${errorMessage}`);
+      } finally {
+        setLlmLoading(false);
+        setLlmProgress(null);
+      }
+    };
+
+    initLLM();
+  }, [selectedModel]);
+
+  const handleExecuteJson = async () => {
     setError(null);
     setResults([]);
     setLoading(true);
@@ -33,6 +76,53 @@ export function QueryDevPanel() {
       }
 
       console.log("[QueryDevPanel] Executing spec:", spec);
+      const queryResults = await queryService.execute(spec);
+      console.log("[QueryDevPanel] Results:", queryResults);
+
+      setResults(queryResults);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("[QueryDevPanel] Error:", err);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExecuteNL = async () => {
+    if (!nlQuery.trim()) {
+      setError("Please enter a natural language query");
+      return;
+    }
+
+    if (!llmReady) {
+      setError("LLM is not ready yet. Please wait for initialization.");
+      return;
+    }
+
+    setError(null);
+    setResults([]);
+    setLoading(true);
+
+    try {
+      // Determine scope
+      const queryScope: Scope =
+        scope.type === "tab"
+          ? { type: "tab", tabId: activeTabId }
+          : { type: "global" };
+
+      console.log("[QueryDevPanel] Interpreting NL query:", nlQuery);
+      console.log("[QueryDevPanel] Scope:", queryScope);
+
+      // Interpret NL query to StructuredQuerySpec
+      const spec = await llmService.interpretQuery(nlQuery, queryScope);
+
+      console.log("[QueryDevPanel] Interpreted spec:", spec);
+
+      // Update JSON display
+      setQueryJson(JSON.stringify(spec, null, 2));
+
+      // Execute the query
       const queryResults = await queryService.execute(spec);
       console.log("[QueryDevPanel] Results:", queryResults);
 
@@ -68,9 +158,23 @@ export function QueryDevPanel() {
     },
   };
 
+  const exampleNLQueries = [
+    "show all todos",
+    "find notes with tag important",
+    "todos due this week",
+    "incomplete todos in this tab",
+    "all PDFs created last month",
+  ];
+
   const loadExample = (example: StructuredQuerySpec) => {
     setQueryJson(JSON.stringify(example, null, 2));
   };
+
+  const loadNLExample = (example: string) => {
+    setNlQuery(example);
+  };
+
+  const currentModelInfo = AVAILABLE_MODELS[selectedModel];
 
   return (
     <div
@@ -93,65 +197,247 @@ export function QueryDevPanel() {
     >
       <h3 style={{ marginTop: 0 }}>Query Dev Panel</h3>
 
-      <div style={{ marginBottom: 12 }}>
-        <strong>Examples:</strong>
-        <div
-          style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}
-        >
-          {Object.entries(exampleQueries).map(([label, query]) => (
-            <button
-              key={label}
-              onClick={() => loadExample(query)}
-              style={{
-                padding: "4px 8px",
-                fontSize: 11,
-                cursor: "pointer",
-                border: "1px solid #ccc",
-                borderRadius: 4,
-                backgroundColor: "#f5f5f5",
-              }}
-            >
-              {label}
-            </button>
-          ))}
+      {/* Model Selection */}
+      {!llmReady && !llmLoading && (
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: "block", marginBottom: 4 }}>
+            <strong>Select Model:</strong>
+          </label>
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value as ModelKey)}
+            disabled={llmLoading}
+            style={{
+              width: "100%",
+              padding: 6,
+              fontSize: 11,
+              border: "1px solid #ccc",
+              borderRadius: 4,
+            }}
+          >
+            {Object.entries(AVAILABLE_MODELS).map(([key, model]) => (
+              <option key={key} value={key}>
+                {model.name} ({model.size}) - {model.description}
+              </option>
+            ))}
+          </select>
         </div>
-      </div>
+      )}
 
-      <div style={{ marginBottom: 12 }}>
+      {/* LLM Status */}
+      {llmLoading && llmProgress && (
+        <div
+          style={{
+            padding: 8,
+            backgroundColor: "#e3f2fd",
+            border: "1px solid #90caf9",
+            borderRadius: 4,
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ marginBottom: 4 }}>
+            <strong>Loading {currentModelInfo.name}:</strong> {llmProgress.text}
+          </div>
+          <div style={{ fontSize: 10, color: "#666", marginBottom: 4 }}>
+            Size: {currentModelInfo.size} • {currentModelInfo.description}
+          </div>
+          <div
+            style={{
+              width: "100%",
+              height: 8,
+              backgroundColor: "#ccc",
+              borderRadius: 4,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: `${llmProgress.progress * 100}%`,
+                height: "100%",
+                backgroundColor: "#2196f3",
+                transition: "width 0.3s",
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {llmReady && (
+        <div
+          style={{
+            padding: 8,
+            backgroundColor: "#e8f5e9",
+            border: "1px solid #81c784",
+            borderRadius: 4,
+            marginBottom: 12,
+            color: "#2e7d32",
+          }}
+        >
+          ✓ LLM Ready ({currentModelInfo.name})
+        </div>
+      )}
+
+      {/* Natural Language Query Section */}
+      <div
+        style={{
+          marginBottom: 12,
+          borderTop: "1px solid #eee",
+          paddingTop: 12,
+        }}
+      >
         <label style={{ display: "block", marginBottom: 4 }}>
-          <strong>StructuredQuerySpec (JSON):</strong>
+          <strong>Natural Language Query:</strong>
         </label>
-        <textarea
-          value={queryJson}
-          onChange={(e) => setQueryJson(e.target.value)}
+        <div style={{ marginBottom: 8 }}>
+          <strong>Scope:</strong>
+          <label style={{ marginLeft: 8, marginRight: 8 }}>
+            <input
+              type="radio"
+              checked={scope.type === "global"}
+              onChange={() => setScope({ type: "global" })}
+              style={{ marginRight: 4 }}
+            />
+            Global
+          </label>
+          <label>
+            <input
+              type="radio"
+              checked={scope.type === "tab"}
+              onChange={() => setScope({ type: "tab", tabId: activeTabId })}
+              style={{ marginRight: 4 }}
+            />
+            Current Tab
+          </label>
+        </div>
+        <input
+          type="text"
+          value={nlQuery}
+          onChange={(e) => setNlQuery(e.target.value)}
+          placeholder="e.g., 'show all todos due this week'"
           style={{
             width: "100%",
-            height: 200,
-            fontFamily: "monospace",
-            fontSize: 11,
             padding: 8,
+            fontSize: 12,
             border: "1px solid #ccc",
             borderRadius: 4,
+            marginBottom: 8,
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleExecuteNL();
+            }
           }}
         />
-      </div>
-
-      <div style={{ marginBottom: 12 }}>
+        <div style={{ marginBottom: 8 }}>
+          <strong>NL Examples:</strong>
+          <div
+            style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}
+          >
+            {exampleNLQueries.map((example) => (
+              <button
+                key={example}
+                onClick={() => loadNLExample(example)}
+                style={{
+                  padding: "2px 6px",
+                  fontSize: 10,
+                  cursor: "pointer",
+                  border: "1px solid #ccc",
+                  borderRadius: 4,
+                  backgroundColor: "#f5f5f5",
+                }}
+              >
+                {example}
+              </button>
+            ))}
+          </div>
+        </div>
         <button
-          onClick={handleExecute}
-          disabled={loading}
+          onClick={handleExecuteNL}
+          disabled={loading || !llmReady}
           style={{
-            padding: "8px 16px",
-            fontSize: 12,
-            cursor: loading ? "not-allowed" : "pointer",
-            backgroundColor: loading ? "#ccc" : "#007bff",
+            padding: "6px 12px",
+            fontSize: 11,
+            cursor: loading || !llmReady ? "not-allowed" : "pointer",
+            backgroundColor: loading || !llmReady ? "#ccc" : "#28a745",
             color: "white",
             border: "none",
             borderRadius: 4,
+            marginRight: 8,
           }}
         >
-          {loading ? "Executing..." : "Execute Query"}
+          {loading ? "Processing..." : "Execute NL Query"}
         </button>
+      </div>
+
+      {/* JSON Query Section */}
+      <div
+        style={{
+          marginBottom: 12,
+          borderTop: "1px solid #eee",
+          paddingTop: 12,
+        }}
+      >
+        <div style={{ marginBottom: 12 }}>
+          <strong>Examples:</strong>
+          <div
+            style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}
+          >
+            {Object.entries(exampleQueries).map(([label, query]) => (
+              <button
+                key={label}
+                onClick={() => loadExample(query)}
+                style={{
+                  padding: "4px 8px",
+                  fontSize: 11,
+                  cursor: "pointer",
+                  border: "1px solid #ccc",
+                  borderRadius: 4,
+                  backgroundColor: "#f5f5f5",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ display: "block", marginBottom: 4 }}>
+            <strong>StructuredQuerySpec (JSON):</strong>
+          </label>
+          <textarea
+            value={queryJson}
+            onChange={(e) => setQueryJson(e.target.value)}
+            style={{
+              width: "100%",
+              height: 200,
+              fontFamily: "monospace",
+              fontSize: 11,
+              padding: 8,
+              border: "1px solid #ccc",
+              borderRadius: 4,
+            }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <button
+            onClick={handleExecuteJson}
+            disabled={loading}
+            style={{
+              padding: "6px 12px",
+              fontSize: 11,
+              cursor: loading ? "not-allowed" : "pointer",
+              backgroundColor: loading ? "#ccc" : "#007bff",
+              color: "white",
+              border: "none",
+              borderRadius: 4,
+            }}
+          >
+            {loading ? "Executing..." : "Execute JSON Query"}
+          </button>
+        </div>
       </div>
 
       {error && (

@@ -280,27 +280,33 @@ interface StructuredQuerySpec {
 
 **Goals:**
 
-- [ ] Integrate local LLM runtime and chosen model
-- [ ] Enable **NL queries** translated into `StructuredQuerySpec`
+- [x] Integrate local LLM runtime and chosen model
+- [x] Enable **NL queries** translated into `StructuredQuerySpec`
 
 **Tasks:**
 
-- [ ] LLM runtime integration:
-  - [ ] Add WebGPU‑first backend (e.g. WebLLM / `transformers.js`)
-  - [ ] Implement feature detection for WebGPU and WASM fallback
-  - [ ] Build model loader with progress UI placeholder and basic caching between sessions
-- [ ] `llmService` abstraction:
-  - [ ] `interpretQuery(nl: string, scope: Scope): Promise<StructuredQuerySpec | Error>`
-  - [ ] Ensure strict JSON output (system/prompt messages telling model to return only JSON matching schema)
-  - [ ] Validate on the client and surface errors clearly
-- [ ] Glue to `QueryService`:
-  - [ ] For a dev UI: text input for NL query
-  - [ ] Scope toggle (tab/global)
-  - [ ] On submit: call `interpretQuery`, if valid call `QueryService.execute`, log structured spec, SQL, and results
-- [ ] Initial prompts & iteration:
-  - [ ] Design prompts to map simple English requests to field filters
-  - [ ] Respect scope consistently
-  - [ ] Avoid generating unsupported fields
+- [x] LLM runtime integration:
+  - [x] Add WebGPU‑first backend (WebLLM)
+  - [x] Implement feature detection for WebGPU and WASM fallback
+  - [x] Build model loader with progress UI placeholder and basic caching between sessions
+- [x] `llmService` abstraction:
+  - [x] `interpretQuery(nl: string, scope: Scope): Promise<StructuredQuerySpec | Error>`
+  - [x] Ensure strict JSON output (system/prompt messages telling model to return only JSON matching schema)
+  - [x] Validate on the client and surface errors clearly
+- [x] Glue to `QueryService`:
+  - [x] For a dev UI: text input for NL query
+  - [x] Scope toggle (tab/global)
+  - [x] On submit: call `interpretQuery`, if valid call `QueryService.execute`, log structured spec, SQL, and results
+- [x] Initial prompts & iteration:
+  - [x] Design prompts to map simple English requests to field filters
+  - [x] Respect scope consistently
+  - [x] Avoid generating unsupported fields
+
+**Implementation Notes:**
+- Using Qwen2.5-1.5B-Instruct-q4f16_1-MLC as default model (~1GB)
+- Model selection UI allows switching between available models before initialization
+- LLM service includes retry logic for failed JSON parsing
+- Optimized prompts for smaller models with example-based instructions
 
 ### Phase 4 – Media text extraction (OCR + PDFs) into `node_text`
 

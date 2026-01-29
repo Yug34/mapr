@@ -1,0 +1,5 @@
+Always use Bun for package management.
+- Use `bun install` instead of `npm install`.
+- Use `bun add <package>` instead of `npm install <package>`.
+- Use `bun run <script>` instead of `npm run <script>`.
+- Never use `npm`, `yarn`, or `pnpm`.
