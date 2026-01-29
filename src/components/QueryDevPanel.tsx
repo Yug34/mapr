@@ -17,7 +17,7 @@ export function QueryDevPanel() {
   const [results, setResults] = useState<QueryResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { tabs, activeTabId } = useCanvasStore();
+  const { activeTabId } = useCanvasStore();
 
   const handleExecute = async () => {
     setError(null);
@@ -46,7 +46,7 @@ export function QueryDevPanel() {
     }
   };
 
-  const exampleQueries = {
+  const exampleQueries: Record<string, StructuredQuerySpec> = {
     "All notes": {
       scope: { type: "global" },
       nodeTypes: ["note"],
