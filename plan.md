@@ -224,29 +224,29 @@ interface StructuredQuerySpec {
 ### Phase 1 – Introduce SQLite (WASM) as primary data store
 
 - **Goals**:
-  - Add SQLite WASM runtime.
-  - Mirror or migrate existing graph data into SQLite tables.
-  - Keep app behavior unchanged from user’s perspective.
+  - [x] Add SQLite WASM runtime.
+  - [x] Mirror or migrate existing graph data into SQLite tables.
+  - [x] Keep app behavior unchanged from user’s perspective.
 
 - **Tasks**:
-  - **Choose SQLite WASM binding**:
+  - [x] **Choose SQLite WASM binding**:
     - Evaluate options (e.g. `sql.js`, `wa-sqlite`, `sqlite-wasm` from official SQLite, etc.).
     - Pick one with:
       - Good TypeScript support.
       - OPFS/IndexedDB persistence.
-  - **Create SQLite initialization module**:
+  - [x] **Create SQLite initialization module**:
     - Open/create DB.
     - Run migrations to create tables: `tabs`, `nodes`, `edges`, `media`, `node_text`, `tags`, `node_tags`.
     - Provide a `db` abstraction with typed methods.
-  - **Bridge from Zustand store to SQLite**:
+  - [x] **Bridge from Zustand store to SQLite**:
     - When nodes/edges/tabs change:
       - Persist to SQLite instead of (or in addition to) IndexedDB.
     - On app start:
       - Load graph state from SQLite and hydrate Zustand.
-  - **Migrations / coexistence strategy** (short‑term):
+  - [x] **Migrations / coexistence strategy** (short‑term):
     - Option A: temporarily keep IndexedDB as backup; on first run, migrate to SQLite and mark a flag.
     - Option B: treat SQLite as source of truth immediately and use IDB only via SQLite internals.
-  - **Testing**:
+  - [x] **Testing**:
     - Create/edit/delete nodes, edges, tabs; reload app; verify state matches.
     - Confirm multiple tabs and large canvases behave correctly.
 
