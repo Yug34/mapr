@@ -254,27 +254,27 @@ interface StructuredQuerySpec {
 
 **Goals:**
 
-- [ ] Implement a **non‑LLM** `QueryService` to exercise SQLite schemas
-- [ ] Support user‑selectable **tab vs global** scope
+- [x] Implement a **non‑LLM** `QueryService` to exercise SQLite schemas
+- [x] Support user‑selectable **tab vs global** scope
 
 **Tasks:**
 
-- [ ] Implement `StructuredQuerySpec` (TS types) as above
-- [ ] Implement `QueryService` that:
-  - [ ] Accepts `StructuredQuerySpec`
-  - [ ] Builds parameterized SQL against SQLite tables
-  - [ ] Returns `nodeIds` and minimal metadata (type, title, createdAt, tags)
-- [ ] Add a temporary dev UI:
-  - [ ] Textarea for JSON `StructuredQuerySpec`
-  - [ ] Button to execute
-  - [ ] Console/log & simple list for results
-- [ ] Implement scope handling:
-  - [ ] `scope.type === "tab"` → add `WHERE tabId = ?`
-  - [ ] `scope.type === "global"` → no tab filter
-- [ ] Validate:
-  - [ ] Queries for specific types (TODOs, PDFs)
-  - [ ] Tag‑based filtering
-  - [ ] Date filtering
+- [x] Implement `StructuredQuerySpec` (TS types) as above
+- [x] Implement `QueryService` that:
+  - [x] Accepts `StructuredQuerySpec`
+  - [x] Builds parameterized SQL against SQLite tables
+  - [x] Returns `nodeIds` and minimal metadata (type, title, createdAt, tags)
+- [x] Add a temporary dev UI:
+  - [x] Textarea for JSON `StructuredQuerySpec`
+  - [x] Button to execute
+  - [x] Console/log & simple list for results
+- [x] Implement scope handling:
+  - [x] `scope.type === "tab"` → add `WHERE tabId = ?`
+  - [x] `scope.type === "global"` → no tab filter
+- [x] Validate:
+  - [x] Queries for specific types (TODOs, PDFs)
+  - [x] Tag‑based filtering
+  - [x] Date filtering
 
 ### Phase 3 – Local LLM integration (NL → StructuredQuerySpec)
 

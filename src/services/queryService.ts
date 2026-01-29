@@ -1,0 +1,316 @@
+import { execQuery } from "../utils/sqliteDb";
+import type { StructuredQuerySpec, QueryResult } from "../types/query";
+import type { PersistedNode } from "../utils/serialization";
+
+/**
+ * Maps ReactFlow node types to the query spec node types
+ */
+function mapNodeTypeToQueryType(nodeType: string | undefined): string | null {
+  if (!nodeType) return null;
+  const mapping: Record<string, string> = {
+    NoteNode: "note",
+    TODONode: "todo",
+    PDFNode: "pdf",
+    ImageNode: "image",
+    AudioNode: "audio",
+    VideoNode: "video",
+    LinkNode: "link",
+  };
+  return mapping[nodeType] || null;
+}
+
+/**
+ * Extracts title from node data JSON
+ */
+function extractTitle(data: unknown): string | undefined {
+  if (!data || typeof data !== "object") return undefined;
+  const obj = data as Record<string, unknown>;
+  return (obj.title as string) || undefined;
+}
+
+/**
+ * Extracts tags from node data JSON
+ */
+function extractTags(data: unknown): string[] {
+  if (!data || typeof data !== "object") return [];
+  const obj = data as Record<string, unknown>;
+  const tags = obj.tags;
+  if (Array.isArray(tags)) {
+    return tags.filter((t): t is string => typeof t === "string");
+  }
+  return [];
+}
+
+/**
+ * Extracts createdAt from node data JSON
+ */
+function extractCreatedAt(data: unknown): number | undefined {
+  if (!data || typeof data !== "object") return undefined;
+  const obj = data as Record<string, unknown>;
+  const createdAt = obj.createdAt;
+  if (typeof createdAt === "number") return createdAt;
+  return undefined;
+}
+
+/**
+ * Extracts status from node data JSON (for TODOs)
+ */
+function extractStatus(data: unknown): string | undefined {
+  if (!data || typeof data !== "object") return undefined;
+  const obj = data as Record<string, unknown>;
+  // For TODOs, check if there are todos with status
+  if (obj.todos && Array.isArray(obj.todos)) {
+    // Return the first incomplete todo's status, or "completed" if all are done
+    const todos = obj.todos as Array<{ completed?: boolean }>;
+    const hasIncomplete = todos.some((t) => !t.completed);
+    return hasIncomplete ? "incomplete" : "completed";
+  }
+  return undefined;
+}
+
+/**
+ * Extracts dueDate from node data JSON (for TODOs)
+ */
+function extractDueDate(data: unknown): number | undefined {
+  if (!data || typeof data !== "object") return undefined;
+  const obj = data as Record<string, unknown>;
+  const dueDate = obj.dueDate;
+  if (typeof dueDate === "number") return dueDate;
+  return undefined;
+}
+
+/**
+ * QueryService - executes StructuredQuerySpec against SQLite
+ */
+export class QueryService {
+  /**
+   * Execute a StructuredQuerySpec and return matching nodes
+   */
+  async execute(spec: StructuredQuerySpec): Promise<QueryResult[]> {
+    // Build the SQL query
+    const { sql, bind } = this.buildQuery(spec);
+
+    console.log("[QueryService] Executing query:", sql);
+    console.log("[QueryService] Bind params:", bind);
+
+    // Execute query
+    const rows = await execQuery<{
+      id: string;
+      tabId: string;
+      data: string;
+    }>(sql, bind);
+
+    console.log("[QueryService] Raw rows returned:", rows.length);
+
+    // Parse results
+    const results: QueryResult[] = [];
+
+    for (const row of rows) {
+      let persistedNode: PersistedNode;
+      try {
+        persistedNode = JSON.parse(row.data) as PersistedNode;
+      } catch {
+        console.warn("[QueryService] Failed to parse node data for", row.id);
+        continue; // Skip invalid JSON
+      }
+
+      // Get the persisted node type
+      const nodeType = persistedNode.type;
+      if (!nodeType) {
+        console.warn("[QueryService] Node missing type:", row.id);
+        continue;
+      }
+
+      // Map to query type
+      const queryType = mapNodeTypeToQueryType(nodeType);
+      if (!queryType) {
+        console.warn("[QueryService] Unknown node type:", nodeType);
+        continue;
+      }
+
+      // Apply nodeTypes filter if specified
+      if (spec.nodeTypes && spec.nodeTypes.length > 0) {
+        if (!spec.nodeTypes.includes(queryType as any)) continue;
+      }
+
+      // Extract fields from the nested data
+      const title = extractTitle(persistedNode.data);
+      const tags = extractTags(persistedNode.data);
+      const createdAt = extractCreatedAt(persistedNode.data);
+      const status = extractStatus(persistedNode.data);
+      const dueDate = extractDueDate(persistedNode.data);
+
+      // Apply tag filters
+      if (spec.mustHaveTags && spec.mustHaveTags.length > 0) {
+        const hasAllTags = spec.mustHaveTags.every((tag) => tags.includes(tag));
+        if (!hasAllTags) continue;
+      }
+
+      if (spec.mustNotHaveTags && spec.mustNotHaveTags.length > 0) {
+        const hasExcludedTag = spec.mustNotHaveTags.some((tag) =>
+          tags.includes(tag),
+        );
+        if (hasExcludedTag) continue;
+      }
+
+      // Apply status filter
+      if (spec.statusFilter) {
+        if (!status || !spec.statusFilter.values.includes(status)) {
+          continue;
+        }
+      }
+
+      // Apply date filters
+      if (spec.dateFilters && spec.dateFilters.length > 0) {
+        let passesDateFilters = true;
+        for (const dateFilter of spec.dateFilters) {
+          let value: number | undefined;
+          if (dateFilter.field === "createdAt") {
+            value = createdAt;
+          } else if (dateFilter.field === "dueDate") {
+            value = dueDate;
+          }
+          // updatedAt not available in current schema
+
+          if (value === undefined) {
+            passesDateFilters = false;
+            break;
+          }
+
+          if (dateFilter.op === "before") {
+            if (typeof dateFilter.value === "number") {
+              if (value >= dateFilter.value) {
+                passesDateFilters = false;
+                break;
+              }
+            }
+          } else if (dateFilter.op === "after") {
+            if (typeof dateFilter.value === "number") {
+              if (value <= dateFilter.value) {
+                passesDateFilters = false;
+                break;
+              }
+            }
+          } else if (dateFilter.op === "between") {
+            if (
+              typeof dateFilter.value === "object" &&
+              "from" in dateFilter.value &&
+              "to" in dateFilter.value
+            ) {
+              if (
+                value < dateFilter.value.from ||
+                value > dateFilter.value.to
+              ) {
+                passesDateFilters = false;
+                break;
+              }
+            }
+          }
+        }
+        if (!passesDateFilters) continue;
+      }
+
+      // Apply text search
+      if (spec.textSearch) {
+        const searchQuery = spec.textSearch.query.toLowerCase();
+        const searchableText = [title, JSON.stringify(persistedNode.data)]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        if (spec.textSearch.mode === "full-text") {
+          // Simple substring match for now
+          if (!searchableText.includes(searchQuery)) continue;
+        } else if (spec.textSearch.mode === "fuzzy") {
+          // Simple substring match for now (can be enhanced later)
+          if (!searchableText.includes(searchQuery)) continue;
+        }
+      }
+
+      // Store result with all extracted fields
+      const result: QueryResult & { dueDate?: number } = {
+        nodeId: row.id,
+        type: queryType,
+        title,
+        createdAt,
+        tags: tags.length > 0 ? tags : undefined,
+      };
+
+      // Store dueDate temporarily for sorting
+      if (dueDate !== undefined) {
+        (result as any).dueDate = dueDate;
+      }
+
+      results.push(result);
+    }
+
+    // Apply sorting
+    if (spec.sort) {
+      results.sort((a, b) => {
+        let aValue: number | undefined;
+        let bValue: number | undefined;
+
+        if (spec.sort!.field === "createdAt") {
+          aValue = a.createdAt;
+          bValue = b.createdAt;
+        } else if (spec.sort!.field === "dueDate") {
+          // Extract dueDate from the temporarily stored field
+          aValue = (a as any).dueDate;
+          bValue = (b as any).dueDate;
+        }
+
+        if (aValue === undefined && bValue === undefined) return 0;
+        if (aValue === undefined) return 1;
+        if (bValue === undefined) return -1;
+
+        const diff = aValue - bValue;
+        return spec.sort!.direction === "asc" ? diff : -diff;
+      });
+
+      // Clean up temporary dueDate field
+      results.forEach((r) => {
+        if ("dueDate" in r) delete (r as any).dueDate;
+      });
+    }
+
+    // Apply limit
+    if (spec.limit) {
+      return results.slice(0, spec.limit);
+    }
+
+    return results;
+  }
+
+  /**
+   * Build SQL query from StructuredQuerySpec
+   */
+  private buildQuery(spec: StructuredQuerySpec): {
+    sql: string;
+    bind: (string | number | null)[];
+  } {
+    const bind: (string | number | null)[] = [];
+    const conditions: string[] = [];
+
+    // Scope handling
+    if (spec.scope.type === "tab") {
+      conditions.push("tabId = ?");
+      bind.push(spec.scope.tabId);
+    }
+    // For global scope, no tabId filter
+
+    // Build SELECT query
+    let sql = "SELECT id, tabId, data FROM nodes";
+
+    if (conditions.length > 0) {
+      sql += " WHERE " + conditions.join(" AND ");
+    }
+
+    // Note: We can't filter by nodeTypes, tags, dates, or text at the SQL level
+    // because they're stored in JSON. We'll filter in JavaScript after fetching.
+    // This is acceptable for Phase 2 as a non-LLM query service.
+
+    return { sql, bind };
+  }
+}
+
+export const queryService = new QueryService();

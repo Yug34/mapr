@@ -58,10 +58,8 @@ let dbId: string | undefined;
 let usingMemoryFallback = false;
 
 function isAccessHandleError(msg: string): boolean {
-  return (
-    /Access Handles cannot be created|NoModificationAllowedError|GetSyncHandleError/i.test(
-      msg,
-    )
+  return /Access Handles cannot be created|NoModificationAllowedError|GetSyncHandleError/i.test(
+    msg,
   );
 }
 
@@ -96,66 +94,68 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
   if (usingMemoryFallback) {
     openRes = await tryOpen(DB_FILENAME_MEMORY);
   } else {
-  try {
-    // Retry opening OPFS DB with backoff if we get BUSY/locked errors
-    // (can happen when multiple tabs try to open simultaneously)
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try {
-        openRes = await tryOpen(getOpfsFilename());
-        break;
-      } catch (e) {
-        const msg = msgFromErr(e);
-        const isBusy =
-          /SQLITE_BUSY|database is locked|Access Handles cannot be created/i.test(
-            msg,
-          );
-        if (isBusy && attempt < 4) {
-          await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
-          continue;
+    try {
+      // Retry opening OPFS DB with backoff if we get BUSY/locked errors
+      // (can happen when multiple tabs try to open simultaneously)
+      for (let attempt = 0; attempt < 5; attempt++) {
+        try {
+          openRes = await tryOpen(getOpfsFilename());
+          break;
+        } catch (e) {
+          const msg = msgFromErr(e);
+          const isBusy =
+            /SQLITE_BUSY|database is locked|Access Handles cannot be created/i.test(
+              msg,
+            );
+          if (isBusy && attempt < 4) {
+            await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
+            continue;
+          }
+          throw e;
         }
-        throw e;
       }
-    }
-    if (!openRes) {
-      throw new Error("Failed to open SQLite database after retries");
-    }
-  } catch (e) {
-    const msg = msgFromErr(e);
-    const opfsUnavailable =
-      /no such vfs:\s*opfs/i.test(msg) ||
-      /SharedArrayBuffer|Atomics|COOP|COEP/i.test(msg);
-    const isAccessHandleConflict =
-      /Access Handles cannot be created|NoModificationAllowedError/i.test(msg);
-    if (isAccessHandleConflict) {
-      console.warn(
-        "[sqliteDb] OPFS file locked by another tab/instance. Using in-memory DB for this session.",
-      );
-      usingMemoryFallback = true;
-      try {
-        openRes = await tryOpen(DB_FILENAME_MEMORY);
-      } catch (memErr) {
-        throw new Error(
-          msgFromErr(memErr) || "Failed to open SQLite (memory fallback)",
+      if (!openRes) {
+        throw new Error("Failed to open SQLite database after retries");
+      }
+    } catch (e) {
+      const msg = msgFromErr(e);
+      const opfsUnavailable =
+        /no such vfs:\s*opfs/i.test(msg) ||
+        /SharedArrayBuffer|Atomics|COOP|COEP/i.test(msg);
+      const isAccessHandleConflict =
+        /Access Handles cannot be created|NoModificationAllowedError/i.test(
+          msg,
         );
-      }
-    } else if (!opfsUnavailable) {
-      throw new Error(msg || "Failed to open SQLite database");
-    } else {
-      console.warn(
-        "[sqliteDb] OPFS unavailable (",
-        msg,
-        "). Using in-memory DB; data will not persist.",
-      );
-      usingMemoryFallback = true;
-      try {
-        openRes = await tryOpen(DB_FILENAME_MEMORY);
-      } catch (memErr) {
-        throw new Error(
-          msgFromErr(memErr) || "Failed to open SQLite (memory fallback)",
+      if (isAccessHandleConflict) {
+        console.warn(
+          "[sqliteDb] OPFS file locked by another tab/instance. Using in-memory DB for this session.",
         );
+        usingMemoryFallback = true;
+        try {
+          openRes = await tryOpen(DB_FILENAME_MEMORY);
+        } catch (memErr) {
+          throw new Error(
+            msgFromErr(memErr) || "Failed to open SQLite (memory fallback)",
+          );
+        }
+      } else if (!opfsUnavailable) {
+        throw new Error(msg || "Failed to open SQLite database");
+      } else {
+        console.warn(
+          "[sqliteDb] OPFS unavailable (",
+          msg,
+          "). Using in-memory DB; data will not persist.",
+        );
+        usingMemoryFallback = true;
+        try {
+          openRes = await tryOpen(DB_FILENAME_MEMORY);
+        } catch (memErr) {
+          throw new Error(
+            msgFromErr(memErr) || "Failed to open SQLite (memory fallback)",
+          );
+        }
       }
     }
-  }
   }
 
   if (!openRes) {
@@ -277,7 +277,7 @@ async function exec(
   }
 }
 
-async function execQuery<T extends Record<string, unknown>>(
+export async function execQuery<T extends Record<string, unknown>>(
   sql: string,
   bind?: (string | number | null)[],
   retries = 3,
@@ -708,4 +708,3 @@ if (typeof window !== "undefined") {
     void closeDb();
   });
 }
-

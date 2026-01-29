@@ -5,6 +5,7 @@ import { useCanvas } from "./hooks/useCanvas";
 import { Badge } from "./components/ui/badge";
 import { Loader } from "./components/ui/loader";
 import { Walkthrough } from "./components/Walkthrough";
+import { QueryDevPanel } from "./components/QueryDevPanel";
 import { getAll, Stores } from "./utils/sqliteDb";
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
         </Suspense>
         <DockWrapper />
         <Walkthrough />
+        <QueryDevPanel />
       </div>
     </div>
   );
