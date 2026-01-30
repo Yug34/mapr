@@ -3,10 +3,12 @@ import { create } from "zustand";
 import type { CustomNode } from "../types/common";
 import {
   Stores,
+  put,
   bulkPut,
   getAll,
   bulkDelete,
   getAllFromIndex,
+  clearStore,
 } from "../utils/sqliteDb";
 import type { TabRecord } from "../utils/sqliteDb";
 import type { TabIconKey } from "../types/common";
@@ -18,6 +20,7 @@ import {
 import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import { debounce, blobManager } from "../utils";
 import { isUsingMemoryFallback } from "../utils/sqliteDb";
+import { useExtractionStore } from "./extractionStore";
 import type { MediaRecord } from "../utils/sqliteDb";
 import skyscraperImage from "/skyscraper.png?url";
 import comfortablyNumb from "/Comfortably Numb.mp4?url";
@@ -46,6 +49,8 @@ interface CanvasStore {
   deleteTab: (tabId: string) => Promise<void>;
   updateTabTitle: (tabId: string, title: string) => Promise<void>;
   loadTabData: (tabId: string) => Promise<void>;
+  /** Clear all DB tables and reinitialize with initial seed data (no page reload). */
+  resetToInitialState: () => Promise<void>;
 }
 
 export const useCanvasStore = create<CanvasStore>()((set, get) => {
@@ -200,6 +205,17 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
           bulkPut(Stores.edges, persistedEdges),
         ]);
 
+        // Populate in-memory Blobs so PDFNode (and other media nodes) can use Blob directly
+        const seedMediaRecords = await getAll<MediaRecord>(Stores.media);
+        blobManager.setMediaBlobsFromRecords(seedMediaRecords);
+
+        // Seed image (n3) gets plainText "N/A" without running OCR
+        await put(Stores.node_text, {
+          nodeId: "n3",
+          plainText: "N/A",
+          updatedAt: Date.now(),
+        });
+
         set(() => ({
           nodes: initialNodes,
           edges: initialEdges,
@@ -213,16 +229,12 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       // Always ensure initial media is seeded (in case nodes/edges exist but media doesn't)
       await seedInitialMedia();
 
-      // Build mediaId -> blobURL map for rehydration
+      // Build mediaId -> blob URL and in-memory Blob map (Blobs for react-pdf, URLs for "open in new tab")
       const mediaRecords = await getAll<MediaRecord>(Stores.media);
+      blobManager.setMediaBlobsFromRecords(mediaRecords);
       const mediaUrlById = new Map<string, string>(
         mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)]),
       );
-
-      mediaUrlById.set("skyscraper-image", skyscraperImage);
-      mediaUrlById.set("comfortably-numb", comfortablyNumb);
-      mediaUrlById.set("halo-ost", haloOST);
-      mediaUrlById.set("metamorphosis", metamorphosis);
 
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
@@ -273,16 +285,12 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         getAllFromIndex<PersistedEdge>(Stores.edges, "tabId", tabId),
       ]);
 
-      // Build mediaId -> blobURL map for rehydration
+      // Build mediaId -> blob URL and in-memory Blobs (same as loadFromDb)
       const mediaRecords = await getAll<MediaRecord>(Stores.media);
+      blobManager.setMediaBlobsFromRecords(mediaRecords);
       const mediaUrlById = new Map<string, string>(
         mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)]),
       );
-
-      mediaUrlById.set("skyscraper-image", skyscraperImage);
-      mediaUrlById.set("halo-ost", haloOST);
-      mediaUrlById.set("comfortably-numb", comfortablyNumb);
-      mediaUrlById.set("metamorphosis", metamorphosis);
 
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
@@ -401,6 +409,21 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
     }));
   };
 
+  const resetToInitialState = async (): Promise<void> => {
+    await Promise.all([
+      clearStore(Stores.nodes),
+      clearStore(Stores.edges),
+      clearStore(Stores.media),
+      clearStore(Stores.meta),
+      clearStore(Stores.tabs),
+      clearStore(Stores.node_text),
+    ]);
+    blobManager.revokeAllBlobUrls();
+    useExtractionStore.getState().clearAll();
+    set({ initialized: false });
+    await get().initFromDb();
+  };
+
   return {
     nodes: initialNodes,
     edges: initialEdges,
@@ -461,5 +484,6 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
     deleteTab,
     updateTabTitle,
     loadTabData,
+    resetToInitialState,
   };
 });

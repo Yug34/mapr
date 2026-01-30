@@ -281,10 +281,7 @@ Convert to JSON query spec. Include ONLY fields that the query explicitly asks f
         max_tokens: 300, // Smaller models need shorter outputs
       });
 
-      const content =
-        response.choices[0]?.message?.content ||
-        response.choices[0]?.message?.text ||
-        "";
+      const content = response.choices[0]?.message?.content || "";
 
       if (!content) {
         throw new Error("Empty response from LLM");
@@ -310,10 +307,7 @@ Convert to JSON query spec. Include ONLY fields that the query explicitly asks f
           max_tokens: 300,
         });
 
-        const retryContent =
-          retryResponse.choices[0]?.message?.content ||
-          retryResponse.choices[0]?.message?.text ||
-          "";
+        const retryContent = retryResponse.choices[0]?.message?.content || "";
 
         const retrySpec = this.parseAndValidateResponse(retryContent);
         if (!retrySpec) {

@@ -4,7 +4,13 @@ type SqliteWasm = {
   >;
 };
 
-export type StoreName = "nodes" | "edges" | "media" | "meta" | "tabs";
+export type StoreName =
+  | "nodes"
+  | "edges"
+  | "media"
+  | "meta"
+  | "tabs"
+  | "node_text";
 
 export type TxMode = "readonly" | "readwrite";
 
@@ -34,6 +40,12 @@ export type TabRecord = {
   title: string;
   iconKey?: TabIconKey;
   createdAt: number;
+  updatedAt: number;
+};
+
+export type NodeTextRecord = {
+  nodeId: string;
+  plainText: string;
   updatedAt: number;
 };
 
@@ -200,6 +212,12 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
       title TEXT NOT NULL,
       iconKey TEXT,
       createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS node_text (
+      nodeId TEXT PRIMARY KEY,
+      plainText TEXT NOT NULL,
       updatedAt INTEGER NOT NULL
     );`,
   );
@@ -405,6 +423,7 @@ const keyColumn: Record<StoreName, string> = {
   media: "id",
   meta: "k",
   tabs: "id",
+  node_text: "nodeId",
 };
 
 export async function get<T = unknown>(
@@ -447,6 +466,13 @@ export async function get<T = unknown>(
       updatedAt: Number(row.updatedAt),
     } as T;
   }
+  if (store === "node_text") {
+    return {
+      nodeId: row.nodeId,
+      plainText: (row.plainText as string) ?? "",
+      updatedAt: Number(row.updatedAt),
+    } as T;
+  }
   const data = row.data as string;
   return (data ? JSON.parse(data) : row) as T;
 }
@@ -480,6 +506,13 @@ export async function getAll<T = unknown>(store: StoreName): Promise<T[]> {
       title: r.title,
       iconKey: r.iconKey as TabIconKey | undefined,
       createdAt: Number(r.createdAt),
+      updatedAt: Number(r.updatedAt),
+    })) as T[];
+  }
+  if (store === "node_text") {
+    return rows.map((r) => ({
+      nodeId: r.nodeId,
+      plainText: (r.plainText as string) ?? "",
       updatedAt: Number(r.updatedAt),
     })) as T[];
   }
@@ -545,6 +578,15 @@ export async function put<T = unknown>(
     );
     return v.id;
   }
+  if (store === "node_text") {
+    const v = value as unknown as NodeTextRecord;
+    await exec(
+      `INSERT OR REPLACE INTO node_text (nodeId, plainText, updatedAt)
+       VALUES (?, ?, ?)`,
+      [v.nodeId, v.plainText, String(v.updatedAt)],
+    );
+    return v.nodeId;
+  }
   const record = value as unknown as {
     id: string;
     tabId: string;
@@ -604,6 +646,14 @@ export async function add<T = unknown>(
     );
     return v.id;
   }
+  if (store === "node_text") {
+    const v = value as unknown as NodeTextRecord;
+    await exec(
+      `INSERT INTO node_text (nodeId, plainText, updatedAt) VALUES (?, ?, ?)`,
+      [v.nodeId, v.plainText, String(v.updatedAt)],
+    );
+    return v.nodeId;
+  }
   const record = value as unknown as {
     id: string;
     tabId: string;
@@ -653,6 +703,18 @@ export async function bulkPut<T = unknown>(
     );
     return;
   }
+  if (store === "node_text") {
+    const placeholders = values.map(() => "(?, ?, ?)").join(", ");
+    const bind: (string | number | null)[] = [];
+    for (const v of values as unknown as NodeTextRecord[]) {
+      bind.push(v.nodeId, v.plainText, v.updatedAt);
+    }
+    await exec(
+      `INSERT OR REPLACE INTO node_text (nodeId, plainText, updatedAt) VALUES ${placeholders}`,
+      bind,
+    );
+    return;
+  }
 
   const placeholders = values.map(() => "(?, ?, ?)").join(", ");
   const bind: (string | number | null)[] = [];
@@ -693,6 +755,7 @@ export const Stores = {
   media: "media" as StoreName,
   meta: "meta" as StoreName,
   tabs: "tabs" as StoreName,
+  node_text: "node_text" as StoreName,
 };
 
 /** True when OPFS was unavailable and we fell back to :memory: (no persistence). */

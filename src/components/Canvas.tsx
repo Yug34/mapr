@@ -28,16 +28,31 @@ import type { CustomNode } from "../types/common";
 import { isLink, readAsDataURL } from "../utils";
 const CanvasContextMenu = lazy(() => import("./CanvasContextMenu"));
 const MiniMapLazy = lazy(() =>
-  import("@xyflow/react").then((m) => ({ default: m.MiniMap }))
+  import("@xyflow/react").then((m) => ({ default: m.MiniMap })),
 );
 const ControlsLazy = lazy(() =>
-  import("@xyflow/react").then((m) => ({ default: m.Controls }))
+  import("@xyflow/react").then((m) => ({ default: m.Controls })),
 );
 import { add as dbAdd, Stores } from "../utils/sqliteDb";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { MEDIA_HANDLERS } from "@/lib/utils";
 import { blobManager } from "../utils/blobManager";
+import { extractAndStoreNodeText } from "@/services/extractionService";
 import { Loader } from "./ui/loader";
+import { Button } from "./ui/button";
+import { Trash2, Loader2 } from "lucide-react";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Canvas = () => {
   const {
@@ -49,7 +64,9 @@ const Canvas = () => {
     deleteNode,
     initialized,
     initFromDb,
+    resetToInitialState,
   } = useCanvas();
+  const [resetLoading, setResetLoading] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   type MenuInfo = {
@@ -72,7 +89,7 @@ const Canvas = () => {
           }
         }
       },
-      [getNodes]
+      [getNodes],
     );
 
     useEffect(() => {
@@ -167,6 +184,9 @@ const Canvas = () => {
               createdAt: Date.now(),
             });
 
+            // Register Blob in blobManager so PDFNode can pass it directly to react-pdf
+            blobManager.setMediaBlob(mediaId, file);
+
             const node = {
               id: nodeId,
               type: handler.type,
@@ -180,10 +200,20 @@ const Canvas = () => {
             } as CustomNode;
 
             return node;
-          })
+          }),
         );
 
         nodes.filter(Boolean).forEach((n) => addNode(n as CustomNode));
+        // Kick off text extraction for image/PDF nodes (fire-and-forget)
+        nodes.forEach((n, i) => {
+          if (
+            n &&
+            (n.type === "ImageNode" || n.type === "PDFNode") &&
+            files[i]
+          ) {
+            void extractAndStoreNodeText(n.id, n.type, files[i]);
+          }
+        });
         return;
       }
 
@@ -206,7 +236,7 @@ const Canvas = () => {
         });
       }
     },
-    [addNode]
+    [addNode],
   );
 
   useEffect(() => {
@@ -238,12 +268,12 @@ const Canvas = () => {
   const onNodesChange = useCallback(
     (changes: NodeChange<CustomNode>[]) =>
       setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
-    [setNodes]
+    [setNodes],
   );
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) =>
       setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-    [setEdges]
+    [setEdges],
   );
   const isValidConnection = useCallback((connection: Connection | Edge) => {
     if (connection.source === connection.target) {
@@ -255,7 +285,7 @@ const Canvas = () => {
   const onConnect = useCallback(
     (params: Connection) =>
       setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
-    [setEdges]
+    [setEdges],
   );
 
   const onNodeContextMenu = useCallback<NodeMouseHandler<CustomNode>>(
@@ -266,7 +296,7 @@ const Canvas = () => {
         point: { x: e.clientX, y: e.clientY },
       });
     },
-    []
+    [],
   );
 
   const onPaneContextMenu = useCallback(
@@ -279,7 +309,7 @@ const Canvas = () => {
         },
       });
     },
-    []
+    [],
   );
 
   const onPaneClick = useCallback(() => {
@@ -304,10 +334,54 @@ const Canvas = () => {
         <ContextMenuTrigger asChild>
           <div
             ref={canvasRef}
-            className="flex-1 min-h-0"
+            className="relative flex-1 min-h-0"
             tabIndex={0}
             style={{ outline: "none" }}
           >
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  className="cursor-pointer absolute left-2 top-2 z-[1000] size-9 shadow-sm"
+                  aria-label="Reset to initial state"
+                  title="Reset to initial state"
+                  variant="destructive"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="z-[1000]">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    your account from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={resetLoading}
+                    onClick={async () => {
+                      setResetLoading(true);
+                      try {
+                        await resetToInitialState();
+                      } finally {
+                        setResetLoading(false);
+                      }
+                    }}
+                  >
+                    {resetLoading ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      "Continue"
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
             <DeleteHandler />
             <WheelPanInverter />
             <ReactFlow

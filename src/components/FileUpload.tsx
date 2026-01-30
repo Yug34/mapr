@@ -6,6 +6,7 @@ import { MEDIA_HANDLERS } from "@/lib/utils";
 import type { MediaHandler, CustomNodeData, CustomNode } from "@/types/common";
 import { useCanvas } from "@/hooks/useCanvas";
 import { blobManager } from "@/utils/blobManager";
+import { extractAndStoreNodeText } from "@/services/extractionService";
 
 export default function FileUpload() {
   const [files, setFiles] = useState<File[] | undefined>();
@@ -16,7 +17,7 @@ export default function FileUpload() {
       let displacement = 0;
       files.forEach(async (file) => {
         const handler = MEDIA_HANDLERS.find((h: MediaHandler<CustomNodeData>) =>
-          h.test(file.type)
+          h.test(file.type),
         );
         if (!handler) return;
 
@@ -33,6 +34,9 @@ export default function FileUpload() {
           size: file.size,
           createdAt: Date.now(),
         });
+
+        // Register Blob in blobManager so PDFNode can pass it directly to react-pdf
+        blobManager.setMediaBlob(mediaId, file);
 
         displacement += 100;
 
@@ -52,6 +56,9 @@ export default function FileUpload() {
         } as CustomNode;
 
         addNode(node);
+        if (node.type === "ImageNode" || node.type === "PDFNode") {
+          void extractAndStoreNodeText(node.id, node.type, file);
+        }
       });
     }
   }, [files, addNode]);

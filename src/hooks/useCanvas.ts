@@ -5,18 +5,18 @@ import type { CustomNode } from "../types/common";
 export const useHandleConnections = (
   nodeId: string,
   handleId: string,
-  handleType: "source" | "target"
+  handleType: "source" | "target",
 ) => {
   const edges = useCanvasStore((state) => state.edges);
 
   return useMemo(() => {
     if (handleType === "source") {
       return edges.some(
-        (edge) => edge.source === nodeId && edge.sourceHandle === handleId
+        (edge) => edge.source === nodeId && edge.sourceHandle === handleId,
       );
     } else {
       return edges.some(
-        (edge) => edge.target === nodeId && edge.targetHandle === handleId
+        (edge) => edge.target === nodeId && edge.targetHandle === handleId,
       );
     }
   }, [edges, nodeId, handleId, handleType]);
@@ -36,14 +36,14 @@ export const useCanvas = () => {
                 ...updates,
               },
             }
-          : node
-      )
+          : node,
+      ),
     );
   };
 
   const updateNodePosition = (
     nodeId: string,
-    position: { x: number; y: number }
+    position: { x: number; y: number },
   ) => {
     store.setNodes((prevNodes) =>
       prevNodes.map((node) =>
@@ -52,14 +52,14 @@ export const useCanvas = () => {
               ...node,
               position,
             }
-          : node
-      )
+          : node,
+      ),
     );
   };
 
   const updateNodeData = <T extends CustomNode["data"]>(
     nodeId: string,
-    dataUpdates: Partial<T>
+    dataUpdates: Partial<T>,
   ) => {
     store.setNodes((prevNodes) =>
       prevNodes.map((node) =>
@@ -71,8 +71,8 @@ export const useCanvas = () => {
                 ...dataUpdates,
               } as T,
             }
-          : node
-      )
+          : node,
+      ),
     );
   };
 
@@ -105,5 +105,6 @@ export const useCanvas = () => {
 
     // Initialization
     initFromDb: store.initFromDb,
+    resetToInitialState: store.resetToInitialState,
   };
 };

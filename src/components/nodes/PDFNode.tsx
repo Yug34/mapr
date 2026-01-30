@@ -5,12 +5,21 @@ import { Document, Page, pdfjs } from "react-pdf";
 import { useRef, useState } from "react";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { Button } from "../ui/button";
-import { Minus, Plus, SquareArrowOutUpRight } from "lucide-react";
+import {
+  Minus,
+  Plus,
+  SquareArrowOutUpRight,
+  Loader2,
+  Check,
+  AlertCircle,
+} from "lucide-react";
 import { HandlesArray } from "../../utils/components";
+import { useExtractionStore } from "../../store/extractionStore";
+import { blobManager } from "../../utils/blobManager";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
+  import.meta.url,
 ).toString();
 
 export function PDFNode(props: NodeProps) {
@@ -18,8 +27,16 @@ export function PDFNode(props: NodeProps) {
   const nodeData = data as PDFNodeData;
   const [numPages, setNumPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const status = useExtractionStore((s) => s.statusByNodeId[id]);
+  const errorMsg = useExtractionStore((s) => s.errorByNodeId[id]);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Prefer Blob from in-memory map (like IndexedDB); pdfBlobUrl is still used for "open in new tab"
+  const pdfBlob = nodeData.mediaId
+    ? blobManager.getMediaBlob(nodeData.mediaId)
+    : undefined;
 
   const incPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, numPages));
@@ -32,6 +49,12 @@ export function PDFNode(props: NodeProps) {
     numPages: nextNumPages,
   }: PDFDocumentProxy): void => {
     setNumPages(nextNumPages);
+    setLoadError(null);
+  };
+
+  const onDocumentLoadError = (err: Error) => {
+    console.error("[PDFNode] Document load error:", err);
+    setLoadError(err.message || "Failed to load PDF file");
   };
 
   const MAX_WIDTH = 800;
@@ -42,10 +65,31 @@ export function PDFNode(props: NodeProps) {
 
   return (
     <Card className="p-4">
-      <div className="flex w-full text-sm font-medium justify-between items-center">
-        <span className="nowrap overflow-hidden text-ellipsis">
+      <div className="flex w-full text-sm font-medium justify-between items-center gap-2">
+        <span className="min-w-0 flex-1 nowrap overflow-hidden text-ellipsis">
           {nodeData.fileName}
         </span>
+        {status === "extracting" && (
+          <span
+            className="shrink-0 text-muted-foreground"
+            title="Extracting text…"
+          >
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </span>
+        )}
+        {status === "done" && (
+          <span className="shrink-0 text-green-600" title="Text extracted">
+            <Check className="h-4 w-4" />
+          </span>
+        )}
+        {status === "error" && (
+          <span
+            className="shrink-0 text-destructive"
+            title={errorMsg ?? "Extraction failed"}
+          >
+            <AlertCircle className="h-4 w-4" />
+          </span>
+        )}
         <Button
           variant="outline"
           className="shrink-0 ml-2 cursor-pointer"
@@ -59,45 +103,62 @@ export function PDFNode(props: NodeProps) {
         className="flex flex-col items-center justify-center"
         ref={containerRef}
       >
-        <Document
-          className="cursor-pointer"
-          file={nodeData.pdfBase64 ? nodeData.pdfBase64 : nodeData.pdfBlobUrl}
-          onLoadSuccess={onDocumentLoadSuccess}
-          onClick={openPdfInNewTab}
-        >
-          <Page
-            renderAnnotationLayer={false}
-            renderTextLayer={false}
-            pageNumber={currentPage}
-            width={
-              containerRef.current?.clientWidth
-                ? Math.min(containerRef.current?.clientWidth, MAX_WIDTH)
-                : MAX_WIDTH
-            }
-          />
-        </Document>
-        {numPages > 1 && (
-          <div className="flex items-center text-sm font-medium">
-            <Button
-              size="icon"
-              className="cursor-pointer rounded-r-none"
-              onClick={decPage}
-              disabled={currentPage === 1}
-            >
-              <Minus />
-            </Button>
-            <Button variant="secondary" className="rounded-none font-normal">
-              Page {currentPage} of {numPages}
-            </Button>
-            <Button
-              size="icon"
-              className="cursor-pointer rounded-l-none"
-              onClick={incPage}
-              disabled={currentPage === numPages}
-            >
-              <Plus />
-            </Button>
+        {!pdfBlob && !nodeData.pdfBase64 && !nodeData.pdfBlobUrl ? (
+          <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
+            No PDF source
           </div>
+        ) : loadError ? (
+          <div className="flex flex-col items-center justify-center py-8 gap-2">
+            <AlertCircle className="h-8 w-8 text-destructive" />
+            <div className="text-sm text-destructive font-medium">
+              Failed to load PDF
+            </div>
+            <div className="text-xs text-muted-foreground">{loadError}</div>
+          </div>
+        ) : (
+          <Document
+            className="cursor-pointer"
+            file={pdfBlob ?? nodeData.pdfBase64 ?? nodeData.pdfBlobUrl}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
+          >
+            <Page
+              renderAnnotationLayer={false}
+              renderTextLayer={false}
+              pageNumber={currentPage}
+              width={
+                containerRef.current?.clientWidth
+                  ? Math.min(containerRef.current?.clientWidth, MAX_WIDTH)
+                  : MAX_WIDTH
+              }
+            />
+            {numPages > 1 && (
+              <div className="flex items-center text-sm font-medium">
+                <Button
+                  size="icon"
+                  className="cursor-pointer rounded-r-none"
+                  onClick={decPage}
+                  disabled={currentPage === 1}
+                >
+                  <Minus />
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="rounded-none font-normal"
+                >
+                  Page {currentPage} of {numPages}
+                </Button>
+                <Button
+                  size="icon"
+                  className="cursor-pointer rounded-l-none"
+                  onClick={incPage}
+                  disabled={currentPage === numPages}
+                >
+                  <Plus />
+                </Button>
+              </div>
+            )}
+          </Document>
         )}
         <HandlesArray nodeId={id} />
       </div>

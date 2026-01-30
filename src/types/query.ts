@@ -1,6 +1,13 @@
 export type Scope = { type: "tab"; tabId: string } | { type: "global" };
 
-export type NodeType = "note" | "todo" | "pdf" | "image" | "audio" | "video" | "link";
+export type NodeType =
+  | "note"
+  | "todo"
+  | "pdf"
+  | "image"
+  | "audio"
+  | "video"
+  | "link";
 
 export interface StructuredQuerySpec {
   scope: Scope;
@@ -33,4 +40,6 @@ export interface QueryResult {
   title?: string;
   createdAt?: number;
   tags?: string[];
+  /** Extracted text from media (image OCR / PDF) when present in node_text */
+  plainText?: string;
 }

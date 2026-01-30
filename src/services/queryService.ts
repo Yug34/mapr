@@ -93,11 +93,12 @@ export class QueryService {
     console.log("[QueryService] Executing query:", sql);
     console.log("[QueryService] Bind params:", bind);
 
-    // Execute query
+    // Execute query (LEFT JOIN node_text for extracted media text)
     const rows = await execQuery<{
       id: string;
       tabId: string;
       data: string;
+      plainText?: string | null;
     }>(sql, bind);
 
     console.log("[QueryService] Raw rows returned:", rows.length);
@@ -210,10 +211,14 @@ export class QueryService {
         if (!passesDateFilters) continue;
       }
 
-      // Apply text search
+      // Apply text search (include node_text.plainText for media OCR/PDF)
       if (spec.textSearch) {
         const searchQuery = spec.textSearch.query.toLowerCase();
-        const searchableText = [title, JSON.stringify(persistedNode.data)]
+        const searchableText = [
+          title,
+          JSON.stringify(persistedNode.data),
+          row.plainText ?? "",
+        ]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
@@ -234,6 +239,10 @@ export class QueryService {
         title,
         createdAt,
         tags: tags.length > 0 ? tags : undefined,
+        plainText:
+          row.plainText != null && row.plainText !== ""
+            ? row.plainText
+            : undefined,
       };
 
       // Store dueDate temporarily for sorting
@@ -298,11 +307,14 @@ export class QueryService {
     }
     // For global scope, no tabId filter
 
-    // Build SELECT query
-    let sql = "SELECT id, tabId, data FROM nodes";
+    // Build SELECT query with LEFT JOIN node_text for extracted media text
+    let sql =
+      "SELECT n.id, n.tabId, n.data, nt.plainText FROM nodes n LEFT JOIN node_text nt ON n.id = nt.nodeId";
 
     if (conditions.length > 0) {
-      sql += " WHERE " + conditions.join(" AND ");
+      sql +=
+        " WHERE " +
+        conditions.map((c) => c.replace(/^tabId/, "n.tabId")).join(" AND ");
     }
 
     // Note: We can't filter by nodeTypes, tags, dates, or text at the SQL level

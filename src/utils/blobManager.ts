@@ -1,6 +1,10 @@
+/** Media id → Blob for passing directly to react-pdf (avoids fetch/worker URL issues). */
+export type MediaBlobById = Map<string, Blob>;
+
 class BlobManager {
   private blobUrls = new Set<string>();
   private nodeBlobUrls = new Map<string, Set<string>>(); // nodeId -> Set<blobUrl>
+  private mediaBlobById: MediaBlobById = new Map();
 
   createBlobUrl(blob: Blob, nodeId?: string): string {
     const blobUrl = URL.createObjectURL(blob);
@@ -50,6 +54,24 @@ class BlobManager {
     }
     this.blobUrls.clear();
     this.nodeBlobUrls.clear();
+    this.mediaBlobById.clear();
+  }
+
+  /** Populate in-memory Blobs from media records so PDFNode can pass Blob directly to react-pdf. */
+  setMediaBlobsFromRecords(records: { id: string; blob: Blob }[]): void {
+    this.mediaBlobById.clear();
+    for (const m of records) {
+      this.mediaBlobById.set(m.id, m.blob);
+    }
+  }
+
+  /** Set a single media Blob without clearing the map. Used when adding new nodes. */
+  setMediaBlob(mediaId: string, blob: Blob): void {
+    this.mediaBlobById.set(mediaId, blob);
+  }
+
+  getMediaBlob(mediaId: string): Blob | undefined {
+    return this.mediaBlobById.get(mediaId);
   }
 
   getBlobUrlCount(): number {

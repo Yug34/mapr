@@ -162,7 +162,7 @@ export function QueryDevPanel() {
     "show all todos",
     "find notes with tag important",
     "todos due this week",
-    "incomplete todos in this tab",
+    "incomplete todos",
     "all PDFs created last month",
   ];
 
@@ -482,6 +482,37 @@ export function QueryDevPanel() {
                   <div>
                     <strong>Tags:</strong> {result.tags.join(", ")}
                   </div>
+                )}
+                {(result.type === "image" || result.type === "pdf") && (
+                  <details
+                    style={{ marginTop: 4 }}
+                    open={!!(result.plainText && result.plainText.length > 0)}
+                  >
+                    <summary style={{ cursor: "pointer", fontSize: 11 }}>
+                      <strong>plainText</strong>
+                      {result.plainText != null && result.plainText !== "" ? (
+                        <> ({result.plainText.length} chars)</>
+                      ) : (
+                        <> (no text extracted yet)</>
+                      )}
+                    </summary>
+                    <pre
+                      style={{
+                        marginTop: 4,
+                        padding: 6,
+                        fontSize: 10,
+                        overflow: "auto",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        backgroundColor: "#f5f5f5",
+                        borderRadius: 4,
+                      }}
+                    >
+                      {result.plainText != null && result.plainText !== ""
+                        ? result.plainText
+                        : "(No text extracted yet. OCR/PDF extraction may still be running or may have failed.)"}
+                    </pre>
+                  </details>
                 )}
               </li>
             ))}

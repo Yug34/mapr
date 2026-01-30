@@ -31,7 +31,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ["react", "react-dom"],
+    include: ["react", "react-dom", "pdfjs-dist"],
     exclude: ["@sqlite.org/sqlite-wasm"],
   },
   build: {
