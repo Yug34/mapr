@@ -67,8 +67,8 @@ export function PDFNode(props: NodeProps) {
   };
 
   return (
-    <Card className="p-4">
-      <div className="flex w-full text-sm font-medium justify-between items-center gap-2">
+    <Card className="p-0">
+      <div className="pt-4 px-4 flex w-full text-sm font-medium justify-between items-center gap-2">
         <EditableNodeTitle
           displayValue={nodeData.title ?? nodeData.fileName}
           onSave={(value) =>
@@ -126,7 +126,6 @@ export function PDFNode(props: NodeProps) {
           </div>
         ) : (
           <Document
-            className="cursor-pointer"
             file={pdfBlob ?? nodeData.pdfBase64 ?? nodeData.pdfBlobUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             onLoadError={onDocumentLoadError}
@@ -142,10 +141,10 @@ export function PDFNode(props: NodeProps) {
               }
             />
             {numPages > 1 && (
-              <div className="flex items-center text-sm font-medium">
+              <div className="flex w-full items-center text-sm font-medium px-4 pb-4">
                 <Button
                   size="icon"
-                  className="cursor-pointer rounded-r-none"
+                  className="cursor-pointer shrink-0 rounded-r-none"
                   onClick={decPage}
                   disabled={currentPage === 1}
                 >
@@ -153,13 +152,13 @@ export function PDFNode(props: NodeProps) {
                 </Button>
                 <Button
                   variant="secondary"
-                  className="rounded-none font-normal"
+                  className="min-w-0 flex-1 rounded-none font-normal"
                 >
                   Page {currentPage} of {numPages}
                 </Button>
                 <Button
                   size="icon"
-                  className="cursor-pointer rounded-l-none"
+                  className="cursor-pointer shrink-0 rounded-l-none"
                   onClick={incPage}
                   disabled={currentPage === numPages}
                 >

@@ -46,7 +46,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
     position: { x: 450, y: 550 },
     data: {
       fileName: "skyscraper.png",
-      title: "skyscraper",
+      title: "Skyscraper",
       imageBlobUrl: skyscraperImage,
       image: undefined as unknown as File,
       imageBase64: "",
