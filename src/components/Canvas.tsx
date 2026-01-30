@@ -35,7 +35,7 @@ const ControlsLazy = lazy(() =>
 );
 import { add as dbAdd, Stores } from "../utils/sqliteDb";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
-import { MEDIA_HANDLERS } from "@/lib/utils";
+import { MEDIA_HANDLERS, stripFileExtension } from "@/lib/utils";
 import { blobManager } from "../utils/blobManager";
 import { extractAndStoreNodeText } from "@/services/extractionService";
 import { Loader } from "./ui/loader";
@@ -196,6 +196,7 @@ const Canvas = () => {
                 ...handler.buildData(file, blobUrl, base64),
                 mediaId,
                 fileName: file.name,
+                title: stripFileExtension(file.name),
               },
             } as CustomNode;
 

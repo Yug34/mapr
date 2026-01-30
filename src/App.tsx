@@ -43,10 +43,10 @@ function App() {
     <div className="w-screen h-screen flex flex-row overflow-hidden">
       <div className="flex flex-col flex-1 min-h-0">
         {initialized && (
-          <div className="z-999 px-4 py-2 absolute top-0 left-0 flex w-full items-center justify-center bg-transparent">
+          <div className="px-4 py-2 absolute top-0 left-0 flex w-full items-center justify-center bg-transparent">
             <Badge
               variant="secondary"
-              className="bg-blue-500 text-white dark:bg-blue-600 p-2"
+              className="z-[1001] bg-blue-500 text-white dark:bg-blue-600 p-2"
             >
               {currentTabTitle}
             </Badge>

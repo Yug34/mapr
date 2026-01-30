@@ -23,6 +23,8 @@ export type LinkNodeData = {
 
 export type ImageNodeData = {
   fileName: string;
+  /** User-defined display name; when set, shown instead of fileName */
+  title?: string;
   imageBlobUrl: string;
   image: File;
   imageBase64: string;
@@ -31,6 +33,7 @@ export type ImageNodeData = {
 
 export type VideoNodeData = {
   fileName: string;
+  title?: string;
   videoBlobUrl: string;
   video: File;
   videoBase64: string;
@@ -39,6 +42,7 @@ export type VideoNodeData = {
 
 export type AudioNodeData = {
   fileName: string;
+  title?: string;
   audioBlobUrl: string;
   audio: File;
   audioBase64: string;
@@ -47,6 +51,7 @@ export type AudioNodeData = {
 
 export type PDFNodeData = {
   fileName: string;
+  title?: string;
   pdfBlobUrl: string;
   pdf: File;
   pdfBase64: string;

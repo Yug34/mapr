@@ -20,12 +20,12 @@ function mapNodeTypeToQueryType(nodeType: string | undefined): string | null {
 }
 
 /**
- * Extracts title from node data JSON
+ * Extracts title from node data JSON (notes use title; media nodes use title ?? fileName)
  */
 function extractTitle(data: unknown): string | undefined {
   if (!data || typeof data !== "object") return undefined;
   const obj = data as Record<string, unknown>;
-  return (obj.title as string) || undefined;
+  return (obj.title as string) || (obj.fileName as string) || undefined;
 }
 
 /**

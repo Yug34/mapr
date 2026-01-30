@@ -12,6 +12,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Strip the last file extension for use as a display name (e.g. "photo.png" → "photo"). */
+export function stripFileExtension(name: string): string {
+  const i = name.lastIndexOf(".");
+  if (i <= 0) return name;
+  return name.slice(0, i);
+}
+
 export const MEDIA_HANDLERS: MediaHandler<
   ImageNodeData | VideoNodeData | AudioNodeData | PDFNodeData
 >[] = [

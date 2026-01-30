@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "./ui/dropzone";
 import { readAsDataURL } from "@/utils";
 import { add as dbAdd, Stores } from "@/utils/sqliteDb";
-import { MEDIA_HANDLERS } from "@/lib/utils";
+import { MEDIA_HANDLERS, stripFileExtension } from "@/lib/utils";
 import type { MediaHandler, CustomNodeData, CustomNode } from "@/types/common";
 import { useCanvas } from "@/hooks/useCanvas";
 import { blobManager } from "@/utils/blobManager";
@@ -52,6 +52,7 @@ export default function FileUpload() {
             ...handler.buildData(file, blobUrl, base64),
             mediaId,
             fileName: file.name,
+            title: stripFileExtension(file.name),
           },
         } as CustomNode;
 

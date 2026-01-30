@@ -11,12 +11,13 @@ import {
   clearStore,
 } from "../utils/sqliteDb";
 import type { TabRecord } from "../utils/sqliteDb";
-import type { TabIconKey } from "../types/common";
+import type { TabIconKey, PDFNodeData, ImageNodeData } from "../types/common";
 import {
   deserializeEdge,
   deserializeNode,
   serializeNode,
 } from "../utils/serialization";
+import { extractAndStoreNodeText } from "../services/extractionService";
 import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import { debounce, blobManager } from "../utils";
 import { isUsingMemoryFallback } from "../utils/sqliteDb";
@@ -161,6 +162,28 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
     await bulkPut(Stores.media, mediaRecords);
   };
 
+  /** Run text extraction for PDF/Image nodes that don't have a node_text row yet (e.g. seeded or loaded from DB). */
+  const triggerExtractionForNodesWithoutText = async (
+    nodes: CustomNode[],
+  ): Promise<void> => {
+    const existing = await getAll<{ nodeId: string }>(Stores.node_text);
+    const existingIds = new Set(existing.map((r) => r.nodeId));
+    for (const node of nodes) {
+      if (node.type !== "PDFNode" && node.type !== "ImageNode") continue;
+      if (existingIds.has(node.id)) continue;
+      const data = node.data as PDFNodeData | ImageNodeData;
+      let source: Blob | string | undefined = data.mediaId
+        ? blobManager.getMediaBlob(data.mediaId)
+        : undefined;
+      if (!source && node.type === "PDFNode")
+        source = (data as PDFNodeData).pdfBlobUrl;
+      if (!source && node.type === "ImageNode")
+        source = (data as ImageNodeData).imageBlobUrl;
+      if (!source) continue;
+      void extractAndStoreNodeText(node.id, node.type, source);
+    }
+  };
+
   const loadFromDb = async () => {
     if (get().initialized) return;
     try {
@@ -223,6 +246,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
           activeTabId,
           initialized: true,
         }));
+        void triggerExtractionForNodesWithoutText(initialNodes);
         return;
       }
 
@@ -258,6 +282,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         activeTabId,
         initialized: true,
       }));
+      void triggerExtractionForNodesWithoutText(nodes);
     } catch (err) {
       // fallback to defaults on any failure
       console.error("Failed to load from SQLite + WASM", err);
@@ -275,6 +300,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         activeTabId: "default-tab",
         initialized: true,
       }));
+      void triggerExtractionForNodesWithoutText(initialNodes);
     }
   };
 
@@ -300,6 +326,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       const edges = persistedEdges.map((e) => deserializeEdge(e));
 
       set(() => ({ nodes, edges }));
+      void triggerExtractionForNodesWithoutText(nodes);
     } catch (err) {
       console.error("Failed to load tab data", err);
       set(() => ({ nodes: [], edges: [] }));

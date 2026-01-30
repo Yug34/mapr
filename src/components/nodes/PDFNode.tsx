@@ -14,7 +14,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { HandlesArray } from "../../utils/components";
+import { EditableNodeTitle } from "@/components/ui/editable-node-title";
 import { useExtractionStore } from "../../store/extractionStore";
+import { useCanvas } from "../../hooks/useCanvas";
 import { blobManager } from "../../utils/blobManager";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -30,6 +32,7 @@ export function PDFNode(props: NodeProps) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const status = useExtractionStore((s) => s.statusByNodeId[id]);
   const errorMsg = useExtractionStore((s) => s.errorByNodeId[id]);
+  const { updateNodeData } = useCanvas();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -66,9 +69,15 @@ export function PDFNode(props: NodeProps) {
   return (
     <Card className="p-4">
       <div className="flex w-full text-sm font-medium justify-between items-center gap-2">
-        <span className="min-w-0 flex-1 nowrap overflow-hidden text-ellipsis">
-          {nodeData.fileName}
-        </span>
+        <EditableNodeTitle
+          displayValue={nodeData.title ?? nodeData.fileName}
+          onSave={(value) =>
+            updateNodeData(id, {
+              title: value || undefined,
+            } as Partial<PDFNodeData>)
+          }
+          title={nodeData.fileName}
+        />
         {status === "extracting" && (
           <span
             className="shrink-0 text-muted-foreground"

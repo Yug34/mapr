@@ -46,6 +46,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
     position: { x: 450, y: 550 },
     data: {
       fileName: "skyscraper.png",
+      title: "skyscraper",
       imageBlobUrl: skyscraperImage,
       image: undefined as unknown as File,
       imageBase64: "",
@@ -75,6 +76,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
     position: { x: -600, y: 600 },
     data: {
       fileName: "Halo OST.mp3",
+      title: "Halo OST",
       audioBlobUrl: haloOST,
       audio: haloOST as unknown as File,
       audioBase64: "",
@@ -87,6 +89,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
     position: { x: -125, y: 500 },
     data: {
       fileName: "Comfortably Numb.mp4",
+      title: "Comfortably Numb",
       videoBlobUrl: comfortablyNumb,
       video: comfortablyNumb as unknown as File,
       videoBase64: "",
@@ -99,6 +102,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
     position: { x: -520, y: -150 },
     data: {
       fileName: "Metamorphosis.pdf",
+      title: "Metamorphosis",
       pdfBlobUrl: metamorphosis,
       pdf: metamorphosis as unknown as File,
       pdfBase64: "",

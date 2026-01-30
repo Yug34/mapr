@@ -312,33 +312,33 @@ interface StructuredQuerySpec {
 
 **Goals:**
 
-- [ ] Automatically extract and store text for images and PDFs
-- [ ] Make these texts queryable via both structured and text search
+- [x] Automatically extract and store text for images and PDFs
+- [x] Make these texts queryable via both structured and text search
 
 **Tasks:**
 
-- [ ] Integrate Tesseract.js for images:
-  - [ ] Add a worker‑based OCR pipeline (receives image blob or URL, produces text)
-  - [ ] Extend image upload/paste flow: after creating `ImageNode` and `media` row, kick off OCR
-  - [ ] On completion, create/update `node_text` record
-- [ ] Integrate pdf.js for PDFs:
-  - [ ] On PDF upload, parse and extract text per page
-  - [ ] Concatenate and store in `node_text.plainText`
-- [ ] Indexing:
-  - [ ] Ensure `node_text.plainText` is included in full‑text search
-  - [ ] Make it available to the LLM as context for answers
-- [ ] UX (minimal for now):
-  - [ ] Show a small state indicator on nodes being processed
-  - [ ] Allow user to see extracted text in a dev/debug panel
+- [x] Integrate Tesseract.js for images:
+  - [x] Add a worker‑based OCR pipeline (receives image blob or URL, produces text)
+  - [x] Extend image upload/paste flow: after creating `ImageNode` and `media` row, kick off OCR
+  - [x] On completion, create/update `node_text` record
+- [x] Integrate pdf.js for PDFs:
+  - [x] On PDF upload, parse and extract text per page
+  - [x] Concatenate and store in `node_text.plainText`
+- [x] Indexing:
+  - [x] Ensure `node_text.plainText` is included in full‑text search
+  - [x] Make it available to the LLM as context for answers
+- [x] UX (minimal for now):
+  - [x] Show a small state indicator on nodes being processed
+  - [x] Allow user to see extracted text in a dev/debug panel
 
 ### Phase 5 – LLM answering with context (global queries)
 
 **Goals:**
 
 - [ ] Support **global and tab‑scoped NL queries** end‑to‑end:
-  - [ ] Interpret NL → StructuredQuerySpec
-  - [ ] Execute spec over SQLite
-  - [ ] Retrieve `node_text` for matches
+  - [x] Interpret NL → StructuredQuerySpec
+  - [x] Execute spec over SQLite
+  - [x] Retrieve `node_text` for matches
   - [ ] Ask LLM to answer with citations
 
 **Tasks:**
@@ -359,8 +359,8 @@ askWithContext(
 ```
 
 - [ ] Implement RAG‑like flow:
-  - [ ] Use `StructuredQuerySpec` + `QueryService` to narrow down candidate nodes
-  - [ ] Optionally rank/limit nodes (e.g. top 20 by recency / text match)
+  - [x] Use `StructuredQuerySpec` + `QueryService` to narrow down candidate nodes
+  - [x] Optionally rank/limit nodes (e.g. top 20 by recency / text match)
   - [ ] Construct a prompt that embeds snippets of `plainText` with node IDs
   - [ ] Ask the model to answer and refer to node IDs
 - [ ] For now, return answer + node IDs; UI can still be dev‑style (console/log overlay)
