@@ -35,7 +35,7 @@ export function TODONode(props: NodeProps) {
       setTodos(nextTodos);
       updateNodeData(id, { todos: nextTodos } as TODONodeData);
     },
-    [id, updateNodeData]
+    [id, updateNodeData],
   );
 
   const updateNodeTitle = useCallback(
@@ -43,7 +43,7 @@ export function TODONode(props: NodeProps) {
       setTitle(newTitle);
       updateNodeData(id, { title: newTitle, todos } as TODONodeData);
     },
-    [id, todos, updateNodeData]
+    [id, todos, updateNodeData],
   );
 
   const addTodo = useCallback(() => {
@@ -57,20 +57,20 @@ export function TODONode(props: NodeProps) {
 
   const handleTodoClick = (
     e: React.MouseEvent<HTMLDivElement>,
-    todoNode: Todo
+    todoNode: Todo,
   ) => {
     e.preventDefault();
     e.stopPropagation();
     updateNodeTodos(
       todos.map((t: Todo) =>
-        t.id === todoNode.id ? { ...t, completed: !t.completed } : t
-      )
+        t.id === todoNode.id ? { ...t, completed: !t.completed } : t,
+      ),
     );
   };
 
   const handleTodoEdit = (
     e: React.MouseEvent<HTMLButtonElement>,
-    todoNode: Todo
+    todoNode: Todo,
   ) => {
     e.preventDefault();
     e.stopPropagation();
@@ -81,7 +81,7 @@ export function TODONode(props: NodeProps) {
 
   const handleTodoDelete = (
     e: React.MouseEvent<HTMLButtonElement>,
-    todoNode: Todo
+    todoNode: Todo,
   ) => {
     e.preventDefault();
     e.stopPropagation();
@@ -91,12 +91,11 @@ export function TODONode(props: NodeProps) {
   return (
     <div className="max-w-[300px] w-[300px] min-w-[300px] flex flex-col items-center justify-center">
       <Card className="w-full p-0 border-none rounded-md gap-0">
-        <div className="px-3 py-2 rounded-t-md border-b bg-muted/30 flex w-full text-sm font-medium items-center gap-2 min-h-[2.5rem]">
+        <div className="px-3 py-2 rounded-t-md border-b bg-muted/30 flex w-full text-sm font-medium items-center justify-center gap-2 min-h-[2.5rem]">
           <EditableNodeTitle
             displayValue={title}
             onSave={(value) => updateNodeTitle(value.trim() || "TODO")}
             title={title}
-            className="flex-1 min-w-0"
           />
         </div>
         {todos.map((todo: Todo) => (
@@ -112,7 +111,7 @@ export function TODONode(props: NodeProps) {
               className={cn(
                 "flex items-center cursor-pointer w-full gap-3 border p-3 rounded-none hover:bg-accent/50",
                 "has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50",
-                "dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950"
+                "dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950",
               )}
             >
               <Checkbox
@@ -175,8 +174,8 @@ export function TODONode(props: NodeProps) {
                 const title = editingTitle.trim();
                 updateNodeTodos(
                   todos.map((t) =>
-                    t.id === editingTodoId ? { ...t, title } : t
-                  )
+                    t.id === editingTodoId ? { ...t, title } : t,
+                  ),
                 );
                 setEditDialogOpen(false);
               }
@@ -197,8 +196,8 @@ export function TODONode(props: NodeProps) {
                 const title = editingTitle.trim();
                 updateNodeTodos(
                   todos.map((t) =>
-                    t.id === editingTodoId ? { ...t, title } : t
-                  )
+                    t.id === editingTodoId ? { ...t, title } : t,
+                  ),
                 );
                 setEditDialogOpen(false);
               }}
