@@ -16,6 +16,7 @@ import {
   ListChecks,
   File,
   Notebook,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -26,6 +27,9 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import FileUpload from "./FileUpload";
+import { resolveNodeText } from "@/services/nodeTextResolver";
+import { llmService } from "@/services/llmService";
+import { Button } from "./ui/button";
 
 type MenuKind = "node" | "pane";
 
@@ -48,8 +52,15 @@ const CanvasContextMenu = ({
   >();
   const { addNode, deleteNode: deleteNodeFromStore } = useCanvas();
   const [addNodeType, setAddNodeType] = useState<CustomNode["type"] | null>(
-    null
+    null,
   );
+  const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
+  const [summaryStatus, setSummaryStatus] = useState<
+    "loading-llm" | "summarizing" | "done" | "error"
+  >("loading-llm");
+  const [summaryProgress, setSummaryProgress] = useState<string | null>(null);
+  const [summaryText, setSummaryText] = useState("");
+  const [summaryError, setSummaryError] = useState("");
 
   const handleCopyId = useCallback(() => {
     if (!targetId) return;
@@ -84,7 +95,7 @@ const CanvasContextMenu = ({
     deleteNodeFromStore(targetId);
     // Also remove edges connected to this node
     setEdges((edges) =>
-      edges.filter((e) => e.source !== targetId && e.target !== targetId)
+      edges.filter((e) => e.source !== targetId && e.target !== targetId),
     );
     onClose?.();
   }, [targetId, deleteNodeFromStore, setEdges, onClose]);
@@ -131,63 +142,168 @@ const CanvasContextMenu = ({
     onClose?.();
   }, [addNode, flowPoint, onClose]);
 
+  const handleSummarize = useCallback(async () => {
+    if (!targetId) return;
+    const node = getNode(targetId);
+    if (!node) return;
+    onClose?.();
+
+    const text = await resolveNodeText(node.id, node.type ?? "", node.data);
+    if (!text || text.length < 2) {
+      const isMedia = node.type === "ImageNode" || node.type === "PDFNode";
+      toast.error(
+        isMedia
+          ? "No text available. Extraction may still be running or failed."
+          : "No text to summarize.",
+      );
+      return;
+    }
+
+    const status = llmService.getStatus();
+    if (status.isLoading) {
+      toast.info("LLM is loading, please wait and try again.");
+      return;
+    }
+
+    setSummaryDialogOpen(true);
+    setSummaryStatus("loading-llm");
+    setSummaryProgress(null);
+    setSummaryText("");
+    setSummaryError("");
+
+    try {
+      if (!llmService.getIsReady()) {
+        setSummaryStatus("loading-llm");
+        await llmService.initialize((_p, t) => setSummaryProgress(t));
+      }
+      setSummaryStatus("summarizing");
+      setSummaryProgress("Summarizing...");
+      const result = await llmService.summarizeText(text);
+      setSummaryStatus("done");
+      setSummaryText(result);
+      setSummaryProgress(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setSummaryStatus("error");
+      setSummaryError(message);
+      setSummaryProgress(null);
+      toast.error(`Summarization failed: ${message}`);
+    }
+  }, [targetId, getNode, onClose]);
+
+  const node = type === "node" && targetId ? getNode(targetId) : null;
+  const showSummarize =
+    node &&
+    (node.type === "NoteNode" ||
+      node.type === "ImageNode" ||
+      node.type === "PDFNode");
+
   return (
-    <Dialog>
-      <ContextMenuContent>
-        {type === "node" ? (
-          <>
-            <ContextMenuLabel>Node: {targetId}</ContextMenuLabel>
-            <ContextMenuSeparator />
-            <ContextMenuItem onClick={handleCopyId}>
-              <Copy className="size-4" />
-              Copy ID
-            </ContextMenuItem>
-            <ContextMenuItem onClick={duplicateNode}>
-              <CopyPlus className="size-4" />
-              Duplicate
-            </ContextMenuItem>
-            <ContextMenuItem variant="destructive" onClick={deleteNode}>
-              <Trash2 className="size-4" />
-              Delete
-            </ContextMenuItem>
-          </>
-        ) : (
-          <>
-            <ContextMenuLabel>Add new node to Canvas</ContextMenuLabel>
-            <ContextMenuSeparator />
-            <ContextMenuItem
-              onClick={addNoteNode}
-              className="cursor-pointer w-full"
-            >
-              <Notebook className="size-4" />
-              Note
-            </ContextMenuItem>
-            <DialogTrigger className="w-full">
+    <>
+      <Dialog>
+        <ContextMenuContent>
+          {type === "node" ? (
+            <>
+              <ContextMenuLabel>Node: {targetId}</ContextMenuLabel>
+              <ContextMenuSeparator />
+              {showSummarize && (
+                <>
+                  <ContextMenuItem onClick={handleSummarize}>
+                    <FileText className="size-4" />
+                    Summarize
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
+                </>
+              )}
+              <ContextMenuItem onClick={handleCopyId}>
+                <Copy className="size-4" />
+                Copy ID
+              </ContextMenuItem>
+              <ContextMenuItem onClick={duplicateNode}>
+                <CopyPlus className="size-4" />
+                Duplicate
+              </ContextMenuItem>
+              <ContextMenuItem variant="destructive" onClick={deleteNode}>
+                <Trash2 className="size-4" />
+                Delete
+              </ContextMenuItem>
+            </>
+          ) : (
+            <>
+              <ContextMenuLabel>Add new node to Canvas</ContextMenuLabel>
+              <ContextMenuSeparator />
               <ContextMenuItem
-                onClick={() => setAddNodeType("FileNode")}
+                onClick={addNoteNode}
                 className="cursor-pointer w-full"
               >
-                <File className="size-4" />
-                Image / Audio / Video / PDF
+                <Notebook className="size-4" />
+                Note
               </ContextMenuItem>
-            </DialogTrigger>
-            <ContextMenuItem
-              onClick={addTODONode}
-              className="cursor-pointer w-full"
-            >
-              <ListChecks className="size-4" />
-              TODO
-            </ContextMenuItem>
-          </>
-        )}
-      </ContextMenuContent>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add {addNodeType}</DialogTitle>
-        </DialogHeader>
-        <FileUpload />
-      </DialogContent>
-    </Dialog>
+              <DialogTrigger className="w-full">
+                <ContextMenuItem
+                  onClick={() => setAddNodeType("FileNode")}
+                  className="cursor-pointer w-full"
+                >
+                  <File className="size-4" />
+                  Image / Audio / Video / PDF
+                </ContextMenuItem>
+              </DialogTrigger>
+              <ContextMenuItem
+                onClick={addTODONode}
+                className="cursor-pointer w-full"
+              >
+                <ListChecks className="size-4" />
+                TODO
+              </ContextMenuItem>
+            </>
+          )}
+        </ContextMenuContent>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add {addNodeType}</DialogTitle>
+          </DialogHeader>
+          <FileUpload />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={summaryDialogOpen} onOpenChange={setSummaryDialogOpen}>
+        <DialogContent className="z-[1001]">
+          <DialogHeader>
+            <DialogTitle>
+              {summaryStatus === "loading-llm"
+                ? "Preparing LLM…"
+                : summaryStatus === "summarizing"
+                  ? "Summarizing…"
+                  : summaryStatus === "done"
+                    ? "Summary"
+                    : "Error"}
+            </DialogTitle>
+          </DialogHeader>
+          {summaryStatus === "loading-llm" ||
+          summaryStatus === "summarizing" ? (
+            <p className="text-muted-foreground">
+              {summaryProgress ?? "Please wait…"}
+            </p>
+          ) : summaryStatus === "done" ? (
+            <>
+              <p className="whitespace-pre-wrap text-sm">{summaryText}</p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  navigator.clipboard.writeText(summaryText);
+                  toast.success("Copied summary to clipboard!");
+                }}
+              >
+                <Copy className="size-4" />
+                Copy Summary
+              </Button>
+            </>
+          ) : summaryStatus === "error" ? (
+            <p className="text-destructive text-sm">{summaryError}</p>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

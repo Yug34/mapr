@@ -303,6 +303,7 @@ interface StructuredQuerySpec {
   - [x] Avoid generating unsupported fields
 
 **Implementation Notes:**
+
 - Using Qwen2.5-1.5B-Instruct-q4f16_1-MLC as default model (~1GB)
 - Model selection UI allows switching between available models before initialization
 - LLM service includes retry logic for failed JSON parsing
@@ -385,9 +386,7 @@ askWithContext(
 
 ## Non‑Goals (for now)
 
-- Multi‑user collaboration and server‑side sync.
 - Cloud‑hosted LLMs (we’re local‑only to start).
-- Advanced vector databases; we may simulate vector search via SQLite tables if/when needed.
 
 ---
 

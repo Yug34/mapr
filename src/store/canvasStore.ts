@@ -470,7 +470,6 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         return { nodes: nextNodes };
       }),
     addNode: (node: CustomNode) => {
-      console.log(isUsingMemoryFallback());
       set((state) => {
         const nextNodes = [...state.nodes, node];
         persistGraphDebounced();

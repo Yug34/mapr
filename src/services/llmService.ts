@@ -1,5 +1,6 @@
 import { CreateMLCEngine, type MLCEngine } from "@mlc-ai/web-llm";
 import type { StructuredQuerySpec, Scope } from "../types/query";
+import { SUMMARIZE_MAX_INPUT_CHARS } from "../constants";
 
 /**
  * Available model configurations
@@ -57,16 +58,12 @@ export class LLMService {
     this.currentModel = modelKey;
   }
 
-  /**
-   * Get current model info
-   */
+  // Get current model info
   getCurrentModel(): (typeof AVAILABLE_MODELS)[ModelKey] {
     return AVAILABLE_MODELS[this.currentModel];
   }
 
-  /**
-   * Check if WebGPU is available
-   */
+  // Check if WebGPU is available
   async checkWebGPUSupport(): Promise<boolean> {
     if (!navigator.gpu) {
       return false;
@@ -79,9 +76,7 @@ export class LLMService {
     }
   }
 
-  /**
-   * Initialize the LLM engine with progress callback
-   */
+  // Initialize the LLM engine with progress callback
   async initialize(
     onProgress?: (progress: number, text: string) => void,
   ): Promise<void> {
@@ -129,9 +124,12 @@ export class LLMService {
     }
   }
 
-  /**
-   * Get initialization status
-   */
+  // Whether the LLM is ready for inference (initialize has completed successfully).
+  getIsReady(): boolean {
+    return this.isReady;
+  }
+
+  // Get initialization status
   getStatus(): {
     isReady: boolean;
     isLoading: boolean;
@@ -146,10 +144,8 @@ export class LLMService {
     };
   }
 
-  /**
-   * Build the system prompt for query interpretation
-   * Optimized for smaller models with clear, structured instructions
-   */
+  // Build the system prompt for query interpretation
+  // Optimized for smaller models with clear, structured instructions
   private buildSystemPrompt(): string {
     // For smaller models, we use a more direct, example-based prompt
     return `
@@ -173,9 +169,7 @@ Examples:
 "incomplete todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}}`;
   }
 
-  /**
-   * Build the user prompt for a specific query
-   */
+  // Build the user prompt for a specific query
   private buildUserPrompt(nlQuery: string, scope: Scope): string {
     const scopeDescription =
       scope.type === "tab"
@@ -330,6 +324,43 @@ Convert to JSON query spec. Include ONLY fields that the query explicitly asks f
         error instanceof Error ? error.message : String(error);
       throw new Error(`LLM interpretation failed: ${errorMessage}`);
     }
+  }
+
+  /**
+   * Summarize the given text. Call initialize() first if not ready.
+   * Input is truncated to SUMMARIZE_MAX_INPUT_CHARS to respect context limits.
+   */
+  async summarizeText(text: string): Promise<string> {
+    if (!this.isReady || !this.engine) {
+      throw new Error("LLM not initialized. Call initialize() first.");
+    }
+
+    const trimmed = text.trim();
+    if (!trimmed) {
+      throw new Error("Text to summarize cannot be empty.");
+    }
+
+    let input = trimmed;
+    if (input.length > SUMMARIZE_MAX_INPUT_CHARS) {
+      input = input.slice(0, SUMMARIZE_MAX_INPUT_CHARS) + "\n[... truncated]";
+    }
+
+    const systemPrompt =
+      "Summarize the following text. Use markdown to format the summary. Return ONLY a summary, no preamble or intro.";
+    const response = await this.engine.chat.completions.create({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: input },
+      ],
+      temperature: 0.2,
+      max_tokens: 2048,
+    });
+
+    const content = response.choices[0]?.message?.content?.trim() ?? "";
+    if (!content) {
+      throw new Error("Empty summary response from LLM");
+    }
+    return content;
   }
 
   /**

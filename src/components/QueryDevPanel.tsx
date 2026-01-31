@@ -27,7 +27,7 @@ export function QueryDevPanel() {
   } | null>(null);
   const [llmReady, setLlmReady] = useState(false);
   const [scope, setScope] = useState<Scope>({ type: "global" });
-  const [selectedModel, setSelectedModel] = useState<ModelKey>("qwen15b");
+  const [selectedModel, setSelectedModel] = useState<ModelKey>("llama1b");
   const { activeTabId } = useCanvasStore();
 
   // Initialize LLM on mount or when model changes
