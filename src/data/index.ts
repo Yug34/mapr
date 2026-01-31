@@ -16,7 +16,7 @@ import metamorphosis from "/Metamorphosis.pdf?url";
 export const initialNodes: CustomNode[] = [
   {
     id: "n1",
-    position: { x: -120, y: -170 },
+    position: { x: -120, y: -195 },
     type: "NoteNode",
     data: {
       title: "About mapr",
@@ -29,7 +29,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   },
   {
     id: "n2",
-    position: { x: 250, y: 180 },
+    position: { x: 250, y: 130 },
     type: "NoteNode",
     data: {
       title: "'lil Tutorial",
@@ -56,7 +56,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   {
     id: "n4",
     type: "TODONode",
-    position: { x: -250, y: 250 },
+    position: { x: -220, y: 210 },
     data: {
       title: "Today's TODOs",
       todos: [
@@ -71,9 +71,9 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
     } as TODONodeData,
   },
   {
-    id: "n5",
+    id: "n6",
     type: "AudioNode",
-    position: { x: -600, y: 600 },
+    position: { x: -125, y: 555 },
     data: {
       fileName: "Halo OST.mp3",
       title: "Halo OST",
@@ -84,9 +84,9 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
     } as AudioNodeData,
   },
   {
-    id: "n6",
+    id: "n5",
     type: "VideoNode",
-    position: { x: -125, y: 570 },
+    position: { x: -730, y: 440 },
     data: {
       fileName: "Comfortably Numb.mp4",
       title: "Comfortably Numb",
@@ -112,9 +112,25 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   {
     id: "n8",
     type: "LinkNode",
-    position: { x: 520, y: 50 },
+    position: { x: 520, y: -125 },
     data: {
       url: "https://www.linkedin.com/in/yug34",
+    } as LinkNodeData,
+  },
+  {
+    id: "n9",
+    type: "LinkNode",
+    position: { x: 500, y: -35 },
+    data: {
+      url: "https://github.com/yug34",
+    } as LinkNodeData,
+  },
+  {
+    id: "n10",
+    type: "LinkNode",
+    position: { x: 540, y: 55 },
+    data: {
+      url: "https://megalith.blog",
     } as LinkNodeData,
   },
 ];
@@ -149,6 +165,13 @@ export const initialEdges = [
     targetHandle: "top-target",
   },
   {
+    id: "n5-n7",
+    target: "n5",
+    source: "n7",
+    sourceHandle: "bottom",
+    targetHandle: "top-target",
+  },
+  {
     id: "n5-n6",
     target: "n6",
     source: "n5",
@@ -172,6 +195,20 @@ export const initialEdges = [
   {
     id: "n1-n8",
     target: "n8",
+    source: "n1",
+    sourceHandle: "right",
+    targetHandle: "left-target",
+  },
+  {
+    id: "n8-n9",
+    target: "n9",
+    source: "n8",
+    sourceHandle: "bottom",
+    targetHandle: "top-target",
+  },
+  {
+    id: "n1-n10",
+    target: "n10",
     source: "n1",
     sourceHandle: "right",
     targetHandle: "left-target",

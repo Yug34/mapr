@@ -21,8 +21,8 @@ export function NoteNode(props: NodeProps) {
   useEffect(() => {
     setNodes((prev) =>
       prev.map((n) =>
-        n.id === id ? { ...n, draggable: !isEditingTitleOrContent } : n
-      )
+        n.id === id ? { ...n, draggable: !isEditingTitleOrContent } : n,
+      ),
     );
   }, [id, isEditingTitleOrContent, setNodes]);
 
