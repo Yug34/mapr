@@ -83,7 +83,7 @@ export function PDFNode(props: NodeProps) {
   };
 
   return (
-    <Card className="p-0">
+    <Card className="p-0 gap-0">
       <div className="pt-4 px-4 flex w-full text-sm font-medium justify-between items-center gap-2">
         <EditableNodeTitle
           displayValue={nodeData.title ?? nodeData.fileName}

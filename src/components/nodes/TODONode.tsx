@@ -7,6 +7,7 @@ import { useCallback, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { EditIcon, TrashIcon } from "lucide-react";
+import { EditableNodeTitle } from "@/components/ui/editable-node-title";
 import { HandlesArray } from "../../utils/components";
 import { useCanvas } from "../../hooks/useCanvas";
 import {
@@ -22,6 +23,7 @@ export function TODONode(props: NodeProps) {
   const { data, id } = props;
   const nodeData = data as TODONodeData;
 
+  const [title, setTitle] = useState(nodeData.title ?? "TODO");
   const [todos, setTodos] = useState<Todo[]>(nodeData.todos);
   const { updateNodeData } = useCanvas();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -34,6 +36,14 @@ export function TODONode(props: NodeProps) {
       updateNodeData(id, { todos: nextTodos } as TODONodeData);
     },
     [id, updateNodeData]
+  );
+
+  const updateNodeTitle = useCallback(
+    (newTitle: string) => {
+      setTitle(newTitle);
+      updateNodeData(id, { title: newTitle, todos } as TODONodeData);
+    },
+    [id, todos, updateNodeData]
   );
 
   const addTodo = useCallback(() => {
@@ -81,7 +91,15 @@ export function TODONode(props: NodeProps) {
   return (
     <div className="max-w-[300px] w-[300px] min-w-[300px] flex flex-col items-center justify-center">
       <Card className="w-full p-0 border-none rounded-md gap-0">
-        {todos.map((todo: Todo, index: number) => (
+        <div className="px-3 py-2 rounded-t-md border-b bg-muted/30 flex w-full text-sm font-medium items-center gap-2 min-h-[2.5rem]">
+          <EditableNodeTitle
+            displayValue={title}
+            onSave={(value) => updateNodeTitle(value.trim() || "TODO")}
+            title={title}
+            className="flex-1 min-w-0"
+          />
+        </div>
+        {todos.map((todo: Todo) => (
           <div
             key={todo.id}
             className="flex items-center gap-0 w-full"
@@ -94,8 +112,7 @@ export function TODONode(props: NodeProps) {
               className={cn(
                 "flex items-center cursor-pointer w-full gap-3 border p-3 rounded-none hover:bg-accent/50",
                 "has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50",
-                "dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950",
-                index === 0 && "rounded-t-md"
+                "dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950"
               )}
             >
               <Checkbox

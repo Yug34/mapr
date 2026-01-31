@@ -398,7 +398,7 @@ const Canvas = () => {
                 onPaneContextMenu,
                 fitView: true,
                 maxZoom: 2,
-                minZoom: 0.5,
+                minZoom: 0.2,
               }}
               zoomOnScroll
               panOnScroll={false}
