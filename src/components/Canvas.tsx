@@ -367,10 +367,7 @@ const Canvas = () => {
 
   return (
     <ReactFlowProvider>
-      <PasteHandler
-        canvasRef={canvasRef}
-        onPaste={handlePasteWithPosition}
-      />
+      <PasteHandler canvasRef={canvasRef} onPaste={handlePasteWithPosition} />
       <ContextMenu
         onOpenChange={(open) => {
           if (!open) setMenu(null);
@@ -400,8 +397,8 @@ const Canvas = () => {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    your account from our servers.
+                    This action will reset the canvas to the initial state. All
+                    of your data will be lost.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
