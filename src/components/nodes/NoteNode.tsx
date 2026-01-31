@@ -8,13 +8,28 @@ import { HandlesArray } from "../../utils/components";
 export function NoteNode(props: NodeProps) {
   const { data, id } = props;
   const noteNodeData = data as NoteNodeData;
-  const { updateNodeData } = useCanvas();
+  const { updateNodeData, setNodes, setNoteNodeEditing } = useCanvas();
 
   const [nodeTitle, setNodeTitle] = useState(noteNodeData.title);
   const [nodeContent, setNodeContent] = useState(noteNodeData.content);
   const [isEditing, setIsEditing] = useState(false);
+  const [isTitleFocused, setIsTitleFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const nodeRef = useRef<HTMLDivElement>(null);
+
+  const isEditingTitleOrContent = isTitleFocused || isEditing;
+  useEffect(() => {
+    setNodes((prev) =>
+      prev.map((n) =>
+        n.id === id ? { ...n, draggable: !isEditingTitleOrContent } : n
+      )
+    );
+  }, [id, isEditingTitleOrContent, setNodes]);
+
+  useEffect(() => {
+    setNoteNodeEditing(isEditingTitleOrContent);
+    return () => setNoteNodeEditing(false);
+  }, [isEditingTitleOrContent, setNoteNodeEditing]);
 
   const handleNodeUpdate = (newTitle: string, newContent: string) => {
     updateNodeData(id, {
@@ -51,13 +66,13 @@ export function NoteNode(props: NodeProps) {
     <div ref={nodeRef} className="w-[380px] min-w-[380px]">
       <div className="relative mt-[60px] w-[380px] min-w-[380px] max-w-[380px] p-5 bg-[#FFFFA5] -rotate-[1deg] shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
         <div
-          className="note-tape absolute -top-[22px] left-0 right-0 h-12 min-w-[100px] max-w-[180px] rotate-[1deg] bg-white/30 shadow-[inset_0_0_1em_0.5em_rgba(255,255,255,0.1)] [filter:drop-shadow(0_1px_0.7px_hsla(0,0%,0%,0.3))]"
+          className="note-tape absolute -top-[22px] left-1/2 -translate-x-1/2 h-12 w-[180px] min-w-[100px] max-w-[180px] rotate-[1deg] bg-white/30 shadow-[inset_0_0_1em_0.5em_rgba(255,255,255,0.1)] [filter:drop-shadow(0_1px_0.7px_hsla(0,0%,0%,0.3))]"
           aria-hidden
         />
         <h3 className="m-0 mb-2 text-lg font-semibold">
           <input
             id="title"
-            className="font-semibold w-full break-words overflow-wrap-anywhere bg-transparent border-none p-0 text-inherit focus:outline-none focus:ring-0"
+            className="font-semibold w-full break-words overflow-wrap-anywhere bg-transparent border-none p-0.5 rounded text-inherit focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 focus:ring-offset-[#FFFFA5]"
             value={nodeTitle}
             onClick={(e) => {
               e.stopPropagation();
@@ -68,7 +83,9 @@ export function NoteNode(props: NodeProps) {
               setNodeTitle(newTitle);
               handleNodeUpdate(newTitle, nodeContent);
             }}
+            onFocus={() => setIsTitleFocused(true)}
             onBlur={(e) => {
+              setIsTitleFocused(false);
               const trimmedTitle = e.target.value.trim();
               setNodeTitle(trimmedTitle);
               handleNodeUpdate(trimmedTitle, nodeContent);
@@ -80,7 +97,7 @@ export function NoteNode(props: NodeProps) {
             ref={textareaRef}
             id="content"
             value={nodeContent}
-            className="min-h-[200px] leading-none w-full mt-2 resize-none break-words bg-transparent border-none p-0 focus:outline-none focus:ring-0"
+            className="h-[200px] min-h-[200px] leading-none w-full mt-2 resize-none break-words bg-transparent border-none p-0 focus:outline-none focus:ring-0 overflow-auto"
             onClick={(e) => {
               e.stopPropagation();
               (e.target as HTMLTextAreaElement).focus();
@@ -105,7 +122,7 @@ export function NoteNode(props: NodeProps) {
           />
         ) : (
           <div
-            className="min-h-[200px] leading-none w-full mt-2 break-words cursor-text [&_p]:mb-2 [&_p:last-child]:mb-0"
+            className="h-[200px] min-h-[200px] leading-none w-full mt-2 break-words cursor-text overflow-auto [&_p]:mb-2 [&_p:last-child]:mb-0"
             onClick={(e) => {
               e.stopPropagation();
               setIsEditing(true);

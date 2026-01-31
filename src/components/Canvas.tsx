@@ -65,6 +65,7 @@ const Canvas = () => {
     initialized,
     initFromDb,
     resetToInitialState,
+    isNoteNodeEditing,
   } = useCanvas();
   const [resetLoading, setResetLoading] = useState(false);
 
@@ -402,6 +403,7 @@ const Canvas = () => {
               }}
               zoomOnScroll
               panOnScroll={false}
+              panOnDrag={!isNoteNodeEditing}
               style={{
                 background: `
                 radial-gradient(circle, #a0a0a0 1px, transparent 1px)

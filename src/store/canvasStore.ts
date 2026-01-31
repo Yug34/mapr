@@ -31,6 +31,9 @@ import metamorphosis from "/Metamorphosis.pdf?url";
 import { initialNodes, initialEdges } from "../data";
 
 interface CanvasStore {
+  /** True when any NoteNode is being edited (title or content). Pane drag is disabled while true. */
+  isNoteNodeEditing: boolean;
+  setNoteNodeEditing: (editing: boolean) => void;
   nodes: CustomNode[];
   edges: Edge[];
   tabs: TabRecord[];
@@ -452,6 +455,9 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
   };
 
   return {
+    isNoteNodeEditing: false,
+    setNoteNodeEditing: (editing: boolean) =>
+      set({ isNoteNodeEditing: editing }),
     nodes: initialNodes,
     edges: initialEdges,
     tabs: [],

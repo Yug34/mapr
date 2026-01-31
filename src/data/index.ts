@@ -16,7 +16,7 @@ import metamorphosis from "/Metamorphosis.pdf?url";
 export const initialNodes: CustomNode[] = [
   {
     id: "n1",
-    position: { x: 0, y: 0 },
+    position: { x: -120, y: -170 },
     type: "NoteNode",
     data: {
       title: "About mapr",
@@ -29,7 +29,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   },
   {
     id: "n2",
-    position: { x: 250, y: 250 },
+    position: { x: 250, y: 180 },
     type: "NoteNode",
     data: {
       title: "'lil Tutorial",
@@ -86,7 +86,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   {
     id: "n6",
     type: "VideoNode",
-    position: { x: -125, y: 500 },
+    position: { x: -125, y: 570 },
     data: {
       fileName: "Comfortably Numb.mp4",
       title: "Comfortably Numb",
@@ -99,7 +99,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   {
     id: "n7",
     type: "PDFNode",
-    position: { x: -520, y: -150 },
+    position: { x: -650, y: -150 },
     data: {
       fileName: "Metamorphosis.pdf",
       title: "Metamorphosis",

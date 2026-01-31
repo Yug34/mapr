@@ -80,6 +80,8 @@ export const useCanvas = () => {
     // Data
     nodes: store.nodes,
     edges: store.edges,
+    isNoteNodeEditing: store.isNoteNodeEditing,
+    setNoteNodeEditing: store.setNoteNodeEditing,
     tabs: store.tabs,
     activeTabId: store.activeTabId,
     initialized: store.initialized,
