@@ -54,6 +54,42 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+type FlowPosition = { x: number; y: number };
+
+const PasteHandler = ({
+  canvasRef,
+  onPaste,
+}: {
+  canvasRef: React.RefObject<HTMLDivElement | null>;
+  onPaste: (position: FlowPosition, e: ClipboardEvent) => void;
+}) => {
+  const { screenToFlowPosition } = useReactFlow();
+  const lastMouseRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const onMouseMove = (e: MouseEvent) => {
+      lastMouseRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const onPasteEvent = (e: ClipboardEvent) => {
+      const flowPosition = screenToFlowPosition(lastMouseRef.current);
+      onPaste(flowPosition, e);
+    };
+
+    canvas.addEventListener("mousemove", onMouseMove);
+    canvas.addEventListener("paste", onPasteEvent);
+    return () => {
+      canvas.removeEventListener("mousemove", onMouseMove);
+      canvas.removeEventListener("paste", onPasteEvent);
+    };
+  }, [canvasRef, onPaste, screenToFlowPosition]);
+
+  return null;
+};
+
 const Canvas = () => {
   const {
     nodes,
@@ -155,8 +191,8 @@ const Canvas = () => {
     return null;
   };
 
-  const handlePaste = useCallback(
-    async (e: ClipboardEvent) => {
+  const handlePasteWithPosition = useCallback(
+    async (position: FlowPosition, e: ClipboardEvent) => {
       e.preventDefault();
 
       const items = Array.from(e.clipboardData?.items ?? []);
@@ -167,7 +203,7 @@ const Canvas = () => {
 
       if (files.length) {
         const nodes = await Promise.all(
-          files.map(async (file) => {
+          files.map(async (file, i) => {
             const handler = MEDIA_HANDLERS.find((h) => h.test(file.type));
             if (!handler) return null;
 
@@ -188,11 +224,16 @@ const Canvas = () => {
             // Register Blob in blobManager so PDFNode can pass it directly to react-pdf
             blobManager.setMediaBlob(mediaId, file);
 
+            const nodePosition = {
+              x: position.x + i * 30,
+              y: position.y + i * 30,
+            };
+
             const node = {
               id: nodeId,
               type: handler.type,
               fileName: file.name,
-              position: { x: 0, y: 0 },
+              position: nodePosition,
               data: {
                 ...handler.buildData(file, blobUrl, base64),
                 mediaId,
@@ -226,14 +267,14 @@ const Canvas = () => {
         addNode({
           id: crypto.randomUUID(),
           type: "LinkNode",
-          position: { x: 0, y: 0 },
+          position: { x: position.x, y: position.y },
           data: { url: text },
         });
       } else {
         addNode({
           id: crypto.randomUUID(),
           type: "NoteNode",
-          position: { x: 0, y: 0 },
+          position: { x: position.x, y: position.y },
           data: { title: "Add title", content: text },
         });
       }
@@ -257,15 +298,13 @@ const Canvas = () => {
     if (!canvas) return;
 
     if (initialized) {
-      canvas.addEventListener("paste", handlePaste);
       canvas.addEventListener("click", () => canvas.focus());
     }
 
     return () => {
-      canvas.removeEventListener("paste", handlePaste);
       canvas.removeEventListener("click", () => canvas.focus());
     };
-  }, [handlePaste, initialized]);
+  }, [initialized]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<CustomNode>[]) =>
@@ -328,6 +367,10 @@ const Canvas = () => {
 
   return (
     <ReactFlowProvider>
+      <PasteHandler
+        canvasRef={canvasRef}
+        onPaste={handlePasteWithPosition}
+      />
       <ContextMenu
         onOpenChange={(open) => {
           if (!open) setMenu(null);
