@@ -48,99 +48,100 @@ export function NoteNode(props: NodeProps) {
   }, [isEditing]);
 
   return (
-    <div ref={nodeRef} className="sticky-note sticky-note-one">
-      <input
-        id="title"
-        className="font-semibold mb-1 w-full break-words overflow-wrap-anywhere"
-        value={nodeTitle}
-        onClick={(e) => {
-          e.stopPropagation();
-          (e.target as HTMLInputElement).focus();
-        }}
-        onChange={(e) => {
-          const newTitle = e.target.value;
-          setNodeTitle(newTitle);
-          handleNodeUpdate(newTitle, nodeContent);
-        }}
-        onBlur={(e) => {
-          const trimmedTitle = e.target.value.trim();
-          setNodeTitle(trimmedTitle);
-          handleNodeUpdate(trimmedTitle, nodeContent);
-        }}
-      />
-      {isEditing ? (
-        <textarea
-          ref={textareaRef}
-          id="content"
-          value={nodeContent}
-          className="min-h-[100px] leading-none w-full pb-2 resize-none break-words"
-          onClick={(e) => {
-            e.stopPropagation();
-            (e.target as HTMLTextAreaElement).focus();
-            setIsEditing(true);
-          }}
-          onChange={(e) => {
-            const newContent = e.target.value;
-            setNodeContent(newContent);
-            handleNodeUpdate(nodeTitle, newContent);
-          }}
-          onBlur={() => {
-            setTimeout(() => {
-              // Using delay to allow for focus changes within the node
-              if (
-                nodeRef.current &&
-                !nodeRef.current.contains(document.activeElement)
-              ) {
-                setIsEditing(false);
-              }
-            }, 100);
-          }}
-          autoFocus
-        />
-      ) : (
+    <div ref={nodeRef} className="w-[380px] min-w-[380px]">
+      <div className="relative mt-[60px] w-[380px] min-w-[380px] max-w-[380px] p-5 bg-[#FFFFA5] -rotate-[1deg] shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
         <div
-          className="min-h-[100px] leading-none w-full pb-2 break-words cursor-text"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsEditing(true);
-          }}
-        >
-          <ReactMarkdown
-            components={{
-              p: ({ children }) => (
-                <div className="mb-2 last:mb-0">{children}</div>
-              ),
-              strong: ({ children }) => (
-                <strong className="font-bold">{children}</strong>
-              ),
-              em: ({ children }) => <em className="italic">{children}</em>,
-              a: ({ href, children }) => (
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
-                  {children}
-                </a>
-              ),
-              ul: ({ children }) => (
-                <ul className="list-disc list-inside mb-2 space-y-1">
-                  {children}
-                </ul>
-              ),
-              li: ({ children }) => (
-                <li className="ml-[2px] [&>div]:inline [&>div]:mb-0">
-                  {children}
-                </li>
-              ),
+          className="note-tape absolute -top-[22px] left-0 right-0 h-12 min-w-[100px] max-w-[180px] rotate-[1deg] bg-white/30 shadow-[inset_0_0_1em_0.5em_rgba(255,255,255,0.1)] [filter:drop-shadow(0_1px_0.7px_hsla(0,0%,0%,0.3))]"
+          aria-hidden
+        />
+        <h3 className="m-0 mb-2 text-lg font-semibold">
+          <input
+            id="title"
+            className="font-semibold w-full break-words overflow-wrap-anywhere bg-transparent border-none p-0 text-inherit focus:outline-none focus:ring-0"
+            value={nodeTitle}
+            onClick={(e) => {
+              e.stopPropagation();
+              (e.target as HTMLInputElement).focus();
+            }}
+            onChange={(e) => {
+              const newTitle = e.target.value;
+              setNodeTitle(newTitle);
+              handleNodeUpdate(newTitle, nodeContent);
+            }}
+            onBlur={(e) => {
+              const trimmedTitle = e.target.value.trim();
+              setNodeTitle(trimmedTitle);
+              handleNodeUpdate(trimmedTitle, nodeContent);
+            }}
+          />
+        </h3>
+        {isEditing ? (
+          <textarea
+            ref={textareaRef}
+            id="content"
+            value={nodeContent}
+            className="min-h-[200px] leading-none w-full mt-2 resize-none break-words bg-transparent border-none p-0 focus:outline-none focus:ring-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              (e.target as HTMLTextAreaElement).focus();
+              setIsEditing(true);
+            }}
+            onChange={(e) => {
+              const newContent = e.target.value;
+              setNodeContent(newContent);
+              handleNodeUpdate(nodeTitle, newContent);
+            }}
+            onBlur={() => {
+              setTimeout(() => {
+                if (
+                  nodeRef.current &&
+                  !nodeRef.current.contains(document.activeElement)
+                ) {
+                  setIsEditing(false);
+                }
+              }, 100);
+            }}
+            autoFocus
+          />
+        ) : (
+          <div
+            className="min-h-[200px] leading-none w-full mt-2 break-words cursor-text [&_p]:mb-2 [&_p:last-child]:mb-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
             }}
           >
-            {nodeContent}
-          </ReactMarkdown>
-        </div>
-      )}
-      <HandlesArray nodeId={id} />
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => <p>{children}</p>,
+                strong: ({ children }) => (
+                  <strong className="font-bold">{children}</strong>
+                ),
+                em: ({ children }) => <em className="italic">{children}</em>,
+                a: ({ href, children }) => (
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                  >
+                    {children}
+                  </a>
+                ),
+                ul: ({ children }) => (
+                  <ul className="list-none p-0 m-0 my-2 [&_li]:list-none [&_li]:before:content-['-'] [&_li]:before:mr-[0.75em] [&_li]:mt-1">
+                    {children}
+                  </ul>
+                ),
+                li: ({ children }) => <li>{children}</li>,
+              }}
+            >
+              {nodeContent}
+            </ReactMarkdown>
+          </div>
+        )}
+        <HandlesArray nodeId={id} />
+      </div>
     </div>
   );
 }

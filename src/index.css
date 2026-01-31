@@ -128,64 +128,29 @@
   }
 }
 
-.sticky-note {
-  padding: 16px;
-  font-size: 10px;
-  width: 200px;
-  max-width: 200px;
-  min-width: 200px;
-  min-height: 200px;
-  font-family: cursive;
-}
-
-.sticky-note::before {
-  content: "";
-  position: absolute;
-  display: block;
-}
-
-.sticky-note::after {
-  content: "";
-  position: absolute;
+/* NoteNode tape folded edges (pseudo-elements need custom CSS) */
+.note-tape::after,
+.note-tape::before {
+  background-size: 0.4em 0.4em;
   bottom: 0;
-  border-width: 12px 12px 12px 12px;
-  border-style: solid;
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 0.2em;
 }
-.sticky-note.sticky-note-one {
-  background-color: #fae3e3;
-  box-shadow: 9px 0px 10px -5px rgba(0, 0, 0, 0.42);
+
+.note-tape::after {
+  background-image:
+    linear-gradient(45deg, transparent 50%, hsla(0, 0%, 100%, 0.3) 50%),
+    linear-gradient(-45deg, transparent 50%, hsla(0, 0%, 100%, 0.3) 50%);
+  background-position: 0 100%;
+  left: -0.2em;
 }
-.sticky-note.sticky-note-one::before {
-  background-color: rgba(108, 212, 255, 0.6);
-  width: 120px;
-  height: 35px;
-  left: 50%;
-  top: -15px;
-  transform: translateX(-50%) rotate(3deg);
-}
-.sticky-note.sticky-note-one::after {
-  left: 0;
-  border-top-color: #51c0ef;
-  border-right-color: #51c0ef;
-  border-bottom-color: white;
-  border-left-color: white;
-}
-.sticky-note.sticky-note-two {
-  background-color: #fae3e3;
-  box-shadow: -9px 0px 10px -5px rgba(0, 0, 0, 0.42);
-}
-.sticky-note.sticky-note-two::before {
-  background-color: rgba(108, 212, 255, 0.6);
-  height: 45px;
-  width: 50px;
-  left: 50%;
-  top: -30px;
-  transform: rotate(-3deg) translateX(-50%);
-}
-.sticky-note.sticky-note-two::after {
-  right: 0;
-  border-top-color: #ddc6c3;
-  border-left-color: #ddc6c3;
-  border-bottom-color: white;
-  border-right-color: white;
+
+.note-tape::before {
+  background-image:
+    linear-gradient(135deg, transparent 50%, hsla(0, 0%, 100%, 0.3) 50%),
+    linear-gradient(-135deg, transparent 50%, hsla(0, 0%, 100%, 0.3) 50%);
+  background-position: 100% 100%;
+  right: -0.2em;
 }
