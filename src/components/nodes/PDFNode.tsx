@@ -12,6 +12,8 @@ import {
   Loader2,
   Check,
   AlertCircle,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { HandlesArray } from "../../utils/components";
 import { EditableNodeTitle } from "@/components/ui/editable-node-title";
@@ -46,6 +48,20 @@ export function PDFNode(props: NodeProps) {
   };
   const decPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+  const decPageBy10 = () => {
+    if (currentPage - 10 < 1) {
+      setCurrentPage(1);
+    } else {
+      setCurrentPage((prev) => Math.max(prev - 10, 1));
+    }
+  };
+  const incPageBy10 = () => {
+    if (currentPage + 10 > numPages) {
+      setCurrentPage(numPages);
+    } else {
+      setCurrentPage((prev) => Math.min(prev + 10, numPages));
+    }
   };
 
   const onDocumentLoadSuccess = ({
@@ -145,6 +161,14 @@ export function PDFNode(props: NodeProps) {
                 <Button
                   size="icon"
                   className="cursor-pointer shrink-0 rounded-r-none"
+                  onClick={decPageBy10}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronsLeft />
+                </Button>
+                <Button
+                  size="icon"
+                  className="cursor-pointer shrink-0 rounded-none"
                   onClick={decPage}
                   disabled={currentPage === 1}
                 >
@@ -158,11 +182,19 @@ export function PDFNode(props: NodeProps) {
                 </Button>
                 <Button
                   size="icon"
-                  className="cursor-pointer shrink-0 rounded-l-none"
+                  className="cursor-pointer shrink-0 rounded-none"
                   onClick={incPage}
                   disabled={currentPage === numPages}
                 >
                   <Plus />
+                </Button>
+                <Button
+                  size="icon"
+                  className="cursor-pointer shrink-0 rounded-l-none"
+                  onClick={incPageBy10}
+                  disabled={currentPage === numPages}
+                >
+                  <ChevronsRight />
                 </Button>
               </div>
             )}
