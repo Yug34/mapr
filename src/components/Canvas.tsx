@@ -366,8 +366,9 @@ const Canvas = () => {
   }
 
   return (
-    <ReactFlowProvider>
-      <PasteHandler canvasRef={canvasRef} onPaste={handlePasteWithPosition} />
+    <div className="flex h-full w-full min-h-0 min-w-0 flex-1 flex-col">
+      <ReactFlowProvider>
+        <PasteHandler canvasRef={canvasRef} onPaste={handlePasteWithPosition} />
       <ContextMenu
         onOpenChange={(open) => {
           if (!open) setMenu(null);
@@ -376,7 +377,7 @@ const Canvas = () => {
         <ContextMenuTrigger asChild>
           <div
             ref={canvasRef}
-            className="relative flex-1 min-h-0"
+            className="relative flex-1 min-h-0 w-full"
             tabIndex={0}
             style={{ outline: "none" }}
           >
@@ -488,7 +489,8 @@ const Canvas = () => {
           />
         </Suspense>
       </ContextMenu>
-    </ReactFlowProvider>
+      </ReactFlowProvider>
+    </div>
   );
 };
 

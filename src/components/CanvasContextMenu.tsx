@@ -29,6 +29,8 @@ import {
 import FileUpload from "./FileUpload";
 import { resolveNodeText } from "@/services/nodeTextResolver";
 import { summarizeWithOpenAI } from "@/services/openaiSummaryService";
+import { useChatStore } from "@/store/chatStore";
+import { useSidebar } from "./ui/sidebar";
 import { Button } from "./ui/button";
 
 type MenuKind = "node" | "pane";
@@ -51,6 +53,8 @@ const CanvasContextMenu = ({
     Edge
   >();
   const { addNode, deleteNode: deleteNodeFromStore } = useCanvas();
+  const { addMessage, ensureDefaultThread } = useChatStore();
+  const { setOpen: setSidebarOpen } = useSidebar();
   const [addNodeType, setAddNodeType] = useState<CustomNode["type"] | null>(
     null,
   );
@@ -170,6 +174,16 @@ const CanvasContextMenu = ({
       setSummaryStatus("done");
       setSummaryText(result);
       setSummaryProgress(null);
+      const threadId = ensureDefaultThread();
+      const sourceTitle =
+        (node.data as { title?: string })?.title ?? "Node";
+      addMessage(threadId, {
+        role: "summary",
+        content: result,
+        sourceNodeId: targetId,
+        sourceTitle,
+      });
+      setSidebarOpen(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setSummaryStatus("error");
