@@ -20,7 +20,6 @@ import {
 import { extractAndStoreNodeText } from "../services/extractionService";
 import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import { debounce, blobManager } from "../utils";
-import { isUsingMemoryFallback } from "../utils/sqliteDb";
 import { useExtractionStore } from "./extractionStore";
 import type { MediaRecord } from "../utils/sqliteDb";
 import skyscraperImage from "/skyscraper.png?url";
