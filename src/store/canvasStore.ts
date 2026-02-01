@@ -26,7 +26,7 @@ import skyscraperImage from "/skyscraper.png?url";
 import comfortablyNumb from "/Comfortably Numb.mp4?url";
 import haloOST from "/Halo OST.mp3?url";
 import metamorphosis from "/Metamorphosis.pdf?url";
-
+import whiteNights from "/WhiteNights.pdf?url";
 import { initialNodes, initialEdges } from "../data";
 
 interface CanvasStore {
@@ -134,6 +134,12 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         url: metamorphosis,
         mediaId: "metamorphosis",
         fileName: "Metamorphosis.pdf",
+        mime: "application/pdf",
+      },
+      {
+        url: whiteNights,
+        mediaId: "white-nights",
+        fileName: "WhiteNights.pdf",
         mime: "application/pdf",
       },
     ];

@@ -1,5 +1,13 @@
 /// <reference types="vite/client" />
 
+interface ImportMetaEnv {
+  readonly VITE_OPENAI_API_KEY: string | undefined;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 // WebGPU API type definitions (minimal for Navigator.gpu)
 interface Navigator {
   gpu?: GPU;

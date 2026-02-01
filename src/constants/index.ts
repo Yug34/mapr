@@ -1,6 +1,7 @@
-/** Max characters sent to the LLM for summarisation to respect context limits. */
-export const SUMMARIZE_MAX_INPUT_CHARS = 10000;
-
+/**
+ * Available model configurations
+ * All models use q4f16_1 quantization (4-bit with 16-bit float)
+ */
 export const AVAILABLE_MODELS = {
   // Recommended - good balance of size and capability
   qwen15b: {
@@ -39,6 +40,15 @@ export const AVAILABLE_MODELS = {
   },
 } as const;
 
-export const DEFAULT_MODEL = "qwen15b";
-
 export type ModelKey = keyof typeof AVAILABLE_MODELS;
+
+export const DEFAULT_MODEL: ModelKey = "qwen05b";
+
+/** OpenAI model used for summarisation. Use gpt-4o-mini if gpt-5-nano is not available. */
+export const OPENAI_SUMMARY_MODEL = "gpt-5-nano";
+
+/** Max characters sent to the LLM for summarisation to respect context limits. */
+export const SUMMARIZE_MAX_INPUT_CHARS = 128000;
+
+/** Max tokens sent to the LLM for summarisation to respect context limits. */
+export const SUMMARIZE_MAX_OUTPUT_TOKENS = 512;

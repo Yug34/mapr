@@ -1,39 +1,8 @@
-import { CreateMLCEngine, type MLCEngine } from "@mlc-ai/web-llm";
+import { CreateMLCEngine } from "@mlc-ai/web-llm";
+import type { MLCEngine } from "@mlc-ai/web-llm";
 import type { StructuredQuerySpec, Scope } from "../types/query";
-import { SUMMARIZE_MAX_INPUT_CHARS } from "../constants";
-
-/**
- * Available model configurations
- * All models use q4f16_1 quantization (4-bit with 16-bit float)
- */
-export const AVAILABLE_MODELS = {
-  // Recommended - good balance of size and capability
-  qwen15b: {
-    name: "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
-    size: "~1GB",
-    description: "Recommended: Good balance of size and JSON output quality.",
-  },
-  // Smallest option - fastest download, may struggle with complex JSON
-  tinyllama: {
-    name: "TinyLlama-1.1B-Chat-v1.0-q4f16_1-MLC",
-    size: "~700MB",
-    description: "Smallest model, fastest download. Good for simple queries.",
-  },
-  // Alternative small option
-  llama1b: {
-    name: "Llama-3.2-1B-Instruct-q4f16_1-MLC",
-    size: "~880MB",
-    description: "Meta's small model, instruction-tuned.",
-  },
-  // Larger option if needed (not recommended for initial use)
-  phi3mini: {
-    name: "Phi-3-mini-4k-instruct-q4f16_1-MLC",
-    size: "~2.3GB",
-    description: "Larger model, best quality but slow download.",
-  },
-} as const;
-
-export type ModelKey = keyof typeof AVAILABLE_MODELS;
+import { DEFAULT_MODEL, AVAILABLE_MODELS } from "../constants";
+import type { ModelKey } from "../constants";
 
 /**
  * LLM Service - handles natural language to StructuredQuerySpec conversion
@@ -44,7 +13,7 @@ export class LLMService {
   private isLoading = false;
   private loadProgress = 0;
   private isReady = false;
-  private currentModel: ModelKey = "qwen15b"; // Default to Qwen2.5-1.5B
+  private currentModel: ModelKey = DEFAULT_MODEL;
 
   /**
    * Set the model to use (must be called before initialize)
@@ -324,43 +293,6 @@ Convert to JSON query spec. Include ONLY fields that the query explicitly asks f
         error instanceof Error ? error.message : String(error);
       throw new Error(`LLM interpretation failed: ${errorMessage}`);
     }
-  }
-
-  /**
-   * Summarize the given text. Call initialize() first if not ready.
-   * Input is truncated to SUMMARIZE_MAX_INPUT_CHARS to respect context limits.
-   */
-  async summarizeText(text: string): Promise<string> {
-    if (!this.isReady || !this.engine) {
-      throw new Error("LLM not initialized. Call initialize() first.");
-    }
-
-    const trimmed = text.trim();
-    if (!trimmed) {
-      throw new Error("Text to summarize cannot be empty.");
-    }
-
-    let input = trimmed;
-    if (input.length > SUMMARIZE_MAX_INPUT_CHARS) {
-      input = input.slice(0, SUMMARIZE_MAX_INPUT_CHARS) + "\n[... truncated]";
-    }
-
-    const systemPrompt =
-      "Summarize the following text. Use markdown to format the summary. Return ONLY a summary, no preamble or intro.";
-    const response = await this.engine.chat.completions.create({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: input },
-      ],
-      temperature: 0.2,
-      max_tokens: 2048,
-    });
-
-    const content = response.choices[0]?.message?.content?.trim() ?? "";
-    if (!content) {
-      throw new Error("Empty summary response from LLM");
-    }
-    return content;
   }
 
   /**

@@ -28,7 +28,7 @@ import {
 } from "./ui/dialog";
 import FileUpload from "./FileUpload";
 import { resolveNodeText } from "@/services/nodeTextResolver";
-import { llmService } from "@/services/llmService";
+import { summarizeWithOpenAI } from "@/services/openaiSummaryService";
 import { Button } from "./ui/button";
 
 type MenuKind = "node" | "pane";
@@ -56,8 +56,8 @@ const CanvasContextMenu = ({
   );
   const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
   const [summaryStatus, setSummaryStatus] = useState<
-    "loading-llm" | "summarizing" | "done" | "error"
-  >("loading-llm");
+    "summarizing" | "done" | "error"
+  >("done");
   const [summaryProgress, setSummaryProgress] = useState<string | null>(null);
   const [summaryText, setSummaryText] = useState("");
   const [summaryError, setSummaryError] = useState("");
@@ -159,26 +159,14 @@ const CanvasContextMenu = ({
       return;
     }
 
-    const status = llmService.getStatus();
-    if (status.isLoading) {
-      toast.info("LLM is loading, please wait and try again.");
-      return;
-    }
-
     setSummaryDialogOpen(true);
-    setSummaryStatus("loading-llm");
-    setSummaryProgress(null);
+    setSummaryStatus("summarizing");
+    setSummaryProgress("Summarizing...");
     setSummaryText("");
     setSummaryError("");
 
     try {
-      if (!llmService.getIsReady()) {
-        setSummaryStatus("loading-llm");
-        await llmService.initialize((_p, t) => setSummaryProgress(t));
-      }
-      setSummaryStatus("summarizing");
-      setSummaryProgress("Summarizing...");
-      const result = await llmService.summarizeText(text);
+      const result = await summarizeWithOpenAI(text);
       setSummaryStatus("done");
       setSummaryText(result);
       setSummaryProgress(null);
@@ -270,17 +258,14 @@ const CanvasContextMenu = ({
         <DialogContent className="z-[1001]">
           <DialogHeader>
             <DialogTitle>
-              {summaryStatus === "loading-llm"
-                ? "Preparing LLM…"
-                : summaryStatus === "summarizing"
-                  ? "Summarizing…"
-                  : summaryStatus === "done"
-                    ? "Summary"
-                    : "Error"}
+              {summaryStatus === "summarizing"
+                ? "Summarizing…"
+                : summaryStatus === "done"
+                  ? "Summary"
+                  : "Error"}
             </DialogTitle>
           </DialogHeader>
-          {summaryStatus === "loading-llm" ||
-          summaryStatus === "summarizing" ? (
+          {summaryStatus === "summarizing" ? (
             <p className="text-muted-foreground">
               {summaryProgress ?? "Please wait…"}
             </p>

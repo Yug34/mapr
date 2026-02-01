@@ -12,6 +12,7 @@ import skyscraperImage from "/skyscraper.png?url";
 import haloOST from "/Halo OST.mp3?url";
 import comfortablyNumb from "/Comfortably Numb.mp4?url";
 import metamorphosis from "/Metamorphosis.pdf?url";
+import whiteNights from "/WhiteNights.pdf?url";
 
 export const initialNodes: CustomNode[] = [
   {
@@ -107,6 +108,19 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
       pdf: metamorphosis as unknown as File,
       pdfBase64: "",
       mediaId: "metamorphosis",
+    } as PDFNodeData,
+  },
+    {
+    id: "whiteNights",
+    type: "PDFNode",
+    position: { x: -950, y: -150 },
+    data: {
+      fileName: "WhiteNights.pdf",
+      title: "White Nights",
+      pdfBlobUrl: whiteNights,
+      pdf: whiteNights as unknown as File,
+      pdfBase64: "",
+      mediaId: "white-nights",
     } as PDFNodeData,
   },
   {

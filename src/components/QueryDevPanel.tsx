@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { queryService } from "../services/queryService";
-import { llmService, AVAILABLE_MODELS } from "../services/llmService";
-import type { ModelKey } from "../services/llmService";
+import { llmService } from "../services/llmService";
+import { AVAILABLE_MODELS } from "../constants";
+import type { ModelKey } from "../constants";
 import type { StructuredQuerySpec, QueryResult, Scope } from "../types/query";
 import { useCanvasStore } from "../store/canvasStore";
 
