@@ -53,7 +53,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ChatSidebarTrigger } from "./ChatSidebar";
 
 type FlowPosition = { x: number; y: number };
 
@@ -492,7 +491,6 @@ const Canvas = () => {
             />
           </Suspense>
         </ContextMenu>
-        <ChatSidebarTrigger />
       </ReactFlowProvider>
     </div>
   );

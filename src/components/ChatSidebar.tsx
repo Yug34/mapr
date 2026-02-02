@@ -13,13 +13,13 @@ export const ChatSidebarTrigger = () => {
 
   return (
     <Button
-      className="absolute top-1/2 right-2 -translate-y-1/2 z-[1002] pointer-events-auto w-6 h-12 cursor-pointer"
+      className="w-8 h-14 cursor-pointer shrink-0 rounded-r-none"
       onClick={toggleSidebar}
     >
       {state === "expanded" ? (
-        <ChevronRightIcon className="w-6 h-6" />
+        <ChevronRightIcon className="w-8 h-8" />
       ) : (
-        <ChevronLeftIcon className="w-6 h-6" />
+        <ChevronLeftIcon className="w-8 h-8" />
       )}
     </Button>
   );

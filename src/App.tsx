@@ -12,7 +12,7 @@ import {
   Sidebar,
   SidebarInset,
 } from "./components/ui/sidebar";
-import { ChatSidebar } from "./components/ChatSidebar";
+import { ChatSidebar, ChatSidebarTrigger } from "./components/ChatSidebar";
 import { useChatStore } from "./store/chatStore";
 
 function App() {
@@ -30,12 +30,24 @@ function App() {
   useEffect(() => {
     async function logDbContents() {
       try {
-        const [nodes, edges, media, meta, tabsData] = await Promise.all([
+        const [
+          nodes,
+          edges,
+          media,
+          meta,
+          tabsData,
+          nodeTextData,
+          chatThreadsData,
+          chatMessagesData,
+        ] = await Promise.all([
           getAll(Stores.nodes),
           getAll(Stores.edges),
           getAll(Stores.media),
           getAll(Stores.meta),
           getAll(Stores.tabs),
+          getAll(Stores.node_text),
+          getAll(Stores.chat_threads),
+          getAll(Stores.chat_messages),
         ]);
 
         console.log("=== SQLite DB Contents ===");
@@ -44,6 +56,9 @@ function App() {
         console.log("Media:", media);
         console.log("Meta:", meta);
         console.log("Tabs:", tabsData);
+        console.log("Node Text:", nodeTextData);
+        console.log("Chat Threads:", chatThreadsData);
+        console.log("Chat Messages:", chatMessagesData);
         console.log("========================");
       } catch (error) {
         console.error("Error reading SQLite DB:", error);
@@ -88,7 +103,7 @@ function App() {
             {/* <QueryDevPanel /> */}
           </div>
         </SidebarInset>
-        <Sidebar>
+        <Sidebar trigger={<ChatSidebarTrigger />}>
           <ChatSidebar />
         </Sidebar>
       </div>

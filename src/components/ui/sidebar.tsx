@@ -41,25 +41,38 @@ const SidebarProvider = ({
 
 const Sidebar = ({
   children,
+  trigger,
   className,
   ...props
 }: React.ComponentProps<"aside"> & {
   children: React.ReactNode;
+  trigger?: React.ReactNode;
 }) => {
   const { open } = useSidebar();
   return (
-    <aside
+    <div
       className={cn(
-        "flex h-full flex-shrink-0 flex-col border-l bg-background transition-[width] duration-300 ease-in-out overflow-hidden",
-        open ? "w-[320px]" : "w-0",
-        className
+        "relative flex-shrink-0 h-full overflow-visible transition-[width] duration-300 ease-in-out",
+        open ? "w-[320px]" : "w-0"
       )}
-      {...props}
     >
-      <div className={cn("w-[320px] min-h-full", !open && "invisible")}>
-        {children}
-      </div>
-    </aside>
+      {trigger && (
+        <div className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 z-[1002] pointer-events-auto">
+          {trigger}
+        </div>
+      )}
+      <aside
+        className={cn(
+          "flex h-full w-full flex-col border-l bg-background overflow-hidden",
+          className
+        )}
+        {...props}
+      >
+        <div className={cn("w-[320px] min-h-full", !open && "invisible")}>
+          {children}
+        </div>
+      </aside>
+    </div>
   );
 };
 
