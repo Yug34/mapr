@@ -11,10 +11,8 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarInset,
-  SidebarTrigger,
 } from "./components/ui/sidebar";
 import { ChatSidebar } from "./components/ChatSidebar";
-import { PanelRightClose } from "lucide-react";
 import { useChatStore } from "./store/chatStore";
 
 function App() {
@@ -75,14 +73,6 @@ function App() {
                 </Badge>
               </div>
             )}
-            <div className="absolute top-2 right-2 z-[1002] pointer-events-auto">
-              <SidebarTrigger
-                className="inline-flex size-9 items-center justify-center rounded-md border bg-background text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground"
-                aria-label="Open chat sidebar"
-              >
-                <PanelRightClose className="size-4" />
-              </SidebarTrigger>
-            </div>
 
             <div className="flex min-h-0 flex-1 flex-col">
               <Suspense

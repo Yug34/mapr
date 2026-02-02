@@ -28,10 +28,10 @@ import type { CustomNode } from "../types/common";
 import { isLink, readAsDataURL } from "../utils";
 const CanvasContextMenu = lazy(() => import("./CanvasContextMenu"));
 const MiniMapLazy = lazy(() =>
-  import("@xyflow/react").then((m) => ({ default: m.MiniMap })),
+  import("@xyflow/react").then((m) => ({ default: m.MiniMap }))
 );
 const ControlsLazy = lazy(() =>
-  import("@xyflow/react").then((m) => ({ default: m.Controls })),
+  import("@xyflow/react").then((m) => ({ default: m.Controls }))
 );
 import { add as dbAdd, Stores } from "../utils/sqliteDb";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
@@ -53,6 +53,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { ChatSidebarTrigger } from "./ChatSidebar";
 
 type FlowPosition = { x: number; y: number };
 
@@ -126,7 +127,7 @@ const Canvas = () => {
           }
         }
       },
-      [getNodes],
+      [getNodes]
     );
 
     useEffect(() => {
@@ -243,7 +244,7 @@ const Canvas = () => {
             } as CustomNode;
 
             return node;
-          }),
+          })
         );
 
         nodes.filter(Boolean).forEach((n) => addNode(n as CustomNode));
@@ -279,7 +280,7 @@ const Canvas = () => {
         });
       }
     },
-    [addNode],
+    [addNode]
   );
 
   useEffect(() => {
@@ -309,12 +310,12 @@ const Canvas = () => {
   const onNodesChange = useCallback(
     (changes: NodeChange<CustomNode>[]) =>
       setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
-    [setNodes],
+    [setNodes]
   );
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) =>
       setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-    [setEdges],
+    [setEdges]
   );
   const isValidConnection = useCallback((connection: Connection | Edge) => {
     if (connection.source === connection.target) {
@@ -326,7 +327,7 @@ const Canvas = () => {
   const onConnect = useCallback(
     (params: Connection) =>
       setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
-    [setEdges],
+    [setEdges]
   );
 
   const onNodeContextMenu = useCallback<NodeMouseHandler<CustomNode>>(
@@ -337,7 +338,7 @@ const Canvas = () => {
         point: { x: e.clientX, y: e.clientY },
       });
     },
-    [],
+    []
   );
 
   const onPaneContextMenu = useCallback(
@@ -350,7 +351,7 @@ const Canvas = () => {
         },
       });
     },
-    [],
+    []
   );
 
   const onPaneClick = useCallback(() => {
@@ -369,126 +370,129 @@ const Canvas = () => {
     <div className="flex h-full w-full min-h-0 min-w-0 flex-1 flex-col">
       <ReactFlowProvider>
         <PasteHandler canvasRef={canvasRef} onPaste={handlePasteWithPosition} />
-      <ContextMenu
-        onOpenChange={(open) => {
-          if (!open) setMenu(null);
-        }}
-      >
-        <ContextMenuTrigger asChild>
-          <div
-            ref={canvasRef}
-            className="relative flex-1 min-h-0 w-full"
-            tabIndex={0}
-            style={{ outline: "none" }}
-          >
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  type="button"
-                  size="icon"
-                  className="cursor-pointer absolute left-2 top-2 z-[1000] size-9 shadow-sm"
-                  aria-label="Reset to initial state"
-                  title="Reset to initial state"
-                  variant="destructive"
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="z-[1000]">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action will reset the canvas to the initial state. All
-                    of your data will be lost.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    disabled={resetLoading}
-                    onClick={async () => {
-                      setResetLoading(true);
-                      try {
-                        await resetToInitialState();
-                      } finally {
-                        setResetLoading(false);
-                      }
-                    }}
+        <ContextMenu
+          onOpenChange={(open) => {
+            if (!open) setMenu(null);
+          }}
+        >
+          <ContextMenuTrigger asChild>
+            <div
+              ref={canvasRef}
+              className="relative flex-1 min-h-0 w-full"
+              tabIndex={0}
+              style={{ outline: "none" }}
+            >
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    size="icon"
+                    className="cursor-pointer absolute left-2 top-2 z-[1000] size-9 shadow-sm"
+                    aria-label="Reset to initial state"
+                    title="Reset to initial state"
+                    variant="destructive"
                   >
-                    {resetLoading ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      "Continue"
-                    )}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    <Trash2 className="size-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="z-[1000]">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action will reset the canvas to the initial state.
+                      All of your data will be lost.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      disabled={resetLoading}
+                      onClick={async () => {
+                        setResetLoading(true);
+                        try {
+                          await resetToInitialState();
+                        } finally {
+                          setResetLoading(false);
+                        }
+                      }}
+                    >
+                      {resetLoading ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        "Continue"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
 
-            <DeleteHandler />
-            <WheelPanInverter />
-            <ReactFlow
-              {...{
-                nodes,
-                edges,
-                onNodesChange,
-                onEdgesChange,
-                onConnect,
-                isValidConnection,
-                onNodeContextMenu,
-                onPaneClick,
-                onPaneContextMenu,
-                fitView: true,
-                maxZoom: 2,
-                minZoom: 0.2,
-              }}
-              zoomOnScroll
-              panOnScroll={false}
-              panOnDrag={!isNoteNodeEditing}
-              style={{
-                background: `
+              <DeleteHandler />
+              <WheelPanInverter />
+              <ReactFlow
+                {...{
+                  nodes,
+                  edges,
+                  onNodesChange,
+                  onEdgesChange,
+                  onConnect,
+                  isValidConnection,
+                  onNodeContextMenu,
+                  onPaneClick,
+                  onPaneContextMenu,
+                  fitView: true,
+                  maxZoom: 2,
+                  minZoom: 0.2,
+                }}
+                zoomOnScroll
+                panOnScroll={false}
+                panOnDrag={!isNoteNodeEditing}
+                style={{
+                  background: `
                 radial-gradient(circle, #a0a0a0 1px, transparent 1px)
               `,
-                backgroundSize: "20px 20px",
-              }}
-              defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
-              nodeTypes={nodeTypes}
-            >
-              <Suspense fallback={null}>
-                <ControlsLazy />
-              </Suspense>
-              <Suspense fallback={null}>
-                <MiniMapLazy
-                  style={{
-                    height: 120,
-                    width: 180,
-                  }}
-                  nodeColor={(node) => {
-                    // TODO:
-                    switch (node.type) {
-                      case "input":
-                        return "#0041d0";
-                      case "output":
-                        return "#ff0072";
-                      default:
-                        return "#1a192b";
-                    }
-                  }}
-                  nodeStrokeWidth={3}
-                />
-              </Suspense>
-            </ReactFlow>
-          </div>
-        </ContextMenuTrigger>
-        <Suspense fallback={null}>
-          <CanvasContextMenu
-            type={menu?.type ?? "pane"}
-            targetId={menu?.id}
-            clientPoint={menu?.point}
-            onClose={() => setMenu(null)}
-          />
-        </Suspense>
-      </ContextMenu>
+                  backgroundSize: "20px 20px",
+                }}
+                defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
+                nodeTypes={nodeTypes}
+              >
+                <Suspense fallback={null}>
+                  <ControlsLazy />
+                </Suspense>
+                <Suspense fallback={null}>
+                  <MiniMapLazy
+                    style={{
+                      height: 120,
+                      width: 180,
+                    }}
+                    nodeColor={(node) => {
+                      // TODO:
+                      switch (node.type) {
+                        case "input":
+                          return "#0041d0";
+                        case "output":
+                          return "#ff0072";
+                        default:
+                          return "#1a192b";
+                      }
+                    }}
+                    nodeStrokeWidth={3}
+                  />
+                </Suspense>
+              </ReactFlow>
+            </div>
+          </ContextMenuTrigger>
+          <Suspense fallback={null}>
+            <CanvasContextMenu
+              type={menu?.type ?? "pane"}
+              targetId={menu?.id}
+              clientPoint={menu?.point}
+              onClose={() => setMenu(null)}
+            />
+          </Suspense>
+        </ContextMenu>
+        <ChatSidebarTrigger />
       </ReactFlowProvider>
     </div>
   );

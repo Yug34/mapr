@@ -4,8 +4,26 @@ import type { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { MessageSquarePlus, Send } from "lucide-react";
+import { Send, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { useSidebar } from "./ui/sidebar";
+
+export const ChatSidebarTrigger = () => {
+  const { toggleSidebar, state } = useSidebar();
+
+  return (
+    <Button
+      className="absolute top-1/2 right-2 -translate-y-1/2 z-[1002] pointer-events-auto w-6 h-12 cursor-pointer"
+      onClick={toggleSidebar}
+    >
+      {state === "expanded" ? (
+        <ChevronRightIcon className="w-6 h-6" />
+      ) : (
+        <ChevronLeftIcon className="w-6 h-6" />
+      )}
+    </Button>
+  );
+};
 
 function MessageBubble({ message }: { message: Message }) {
   const isUser = message.role === "user";
@@ -13,17 +31,14 @@ function MessageBubble({ message }: { message: Message }) {
 
   return (
     <div
-      className={cn(
-        "flex w-full",
-        isUser ? "justify-end" : "justify-start",
-      )}
+      className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}
     >
       <div
         className={cn(
           "max-w-[85%] rounded-lg px-3 py-2 text-sm",
           isUser
             ? "bg-primary text-primary-foreground"
-            : "bg-muted text-foreground",
+            : "bg-muted text-foreground"
         )}
       >
         {isSummary && message.sourceTitle && (
@@ -103,14 +118,6 @@ export function ChatSidebar() {
             ))}
           </div>
         </ScrollArea>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="New chat"
-          onClick={handleNewThread}
-        >
-          <MessageSquarePlus className="size-4" />
-        </Button>
       </div>
 
       {/* Message list */}

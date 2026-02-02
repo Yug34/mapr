@@ -4,12 +4,14 @@ import * as React from "react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-interface SidebarContextValue {
+type SidebarContextProps = {
+  state: "expanded" | "collapsed";
   open: boolean;
   setOpen: (open: boolean) => void;
-}
+  toggleSidebar: () => void;
+};
 
-const SidebarContext = React.createContext<SidebarContextValue | null>(null);
+const SidebarContext = React.createContext<SidebarContextProps | null>(null);
 
 function useSidebar() {
   const ctx = React.useContext(SidebarContext);
@@ -25,8 +27,14 @@ const SidebarProvider = ({
   defaultOpen?: boolean;
 }) => {
   const [open, setOpen] = React.useState(defaultOpen);
+  const state = open ? "expanded" : "collapsed";
+  const toggleSidebar = React.useCallback(
+    () => setOpen((open) => !open),
+    [setOpen]
+  );
+
   return (
-    <SidebarContext.Provider value={{ open, setOpen }}>
+    <SidebarContext.Provider value={{ open, setOpen, state, toggleSidebar }}>
       {children}
     </SidebarContext.Provider>
   );
@@ -68,25 +76,4 @@ const SidebarInset = ({
   );
 };
 
-const SidebarTrigger = React.forwardRef<
-  HTMLButtonElement,
-  React.ComponentProps<"button">
->(({ className, onClick, ...props }, ref) => {
-  const { setOpen } = useSidebar();
-  return (
-    <button
-      ref={ref}
-      type="button"
-      aria-label="Toggle sidebar"
-      className={cn(className)}
-      onClick={(e) => {
-        setOpen(true);
-        onClick?.(e);
-      }}
-      {...props}
-    />
-  );
-});
-SidebarTrigger.displayName = "SidebarTrigger";
-
-export { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger, useSidebar };
+export { SidebarProvider, Sidebar, SidebarInset, useSidebar };
