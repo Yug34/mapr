@@ -68,9 +68,7 @@ const Sidebar = ({
         )}
         {...props}
       >
-        <div className={cn("w-[320px] min-h-full", !open && "invisible")}>
-          {children}
-        </div>
+        <div className={cn("min-h-full", !open && "invisible")}>{children}</div>
       </aside>
     </div>
   );

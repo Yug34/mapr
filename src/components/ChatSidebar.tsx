@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useChatStore } from "@/store/chatStore";
 import type { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Send, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useSidebar } from "./ui/sidebar";
+import { Loader } from "./ui/loader";
 
 export const ChatSidebarTrigger = () => {
   const { toggleSidebar, state } = useSidebar();
@@ -25,17 +26,27 @@ export const ChatSidebarTrigger = () => {
   );
 };
 
-function MessageBubble({ message }: { message: Message }) {
+function MessageBubble({
+  message,
+  isThinking,
+}: {
+  message: Message;
+  isThinking?: boolean;
+}) {
   const isUser = message.role === "user";
   const isSummary = message.role === "summary";
+  const isEmpty = !message.content || message.content.trim() === "";
 
   return (
     <div
-      className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}
+      className={cn(
+        "flex w-full max-w-[400px]",
+        isUser ? "justify-end" : "justify-start"
+      )}
     >
       <div
         className={cn(
-          "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+          "max-w-[320px] rounded-lg px-3 py-2 text-sm",
           isUser
             ? "bg-primary text-primary-foreground"
             : "bg-muted text-foreground"
@@ -46,7 +57,12 @@ function MessageBubble({ message }: { message: Message }) {
             Summary of {message.sourceTitle}
           </div>
         )}
-        {isSummary || message.role === "assistant" ? (
+        {isThinking || (isEmpty && !isUser) ? (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader className="ml-0" size={16} />
+            <span className="text-xs italic">Thinking...</span>
+          </div>
+        ) : isSummary || message.role === "assistant" ? (
           <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1">
             <ReactMarkdown>{message.content}</ReactMarkdown>
           </div>
@@ -84,9 +100,34 @@ export function ChatSidebar() {
     ? messagesByThreadId[activeThreadId] ?? []
     : [];
 
+  // Determine if we should show a thinking state
+  const showThinking = useMemo(() => {
+    if (messages.length === 0) return false;
+    const lastMessage = messages[messages.length - 1];
+    // Show thinking if last message is user (no response yet)
+    if (lastMessage.role === "user") return true;
+    // Show thinking if last message is assistant/summary with empty content
+    if (
+      (lastMessage.role === "assistant" || lastMessage.role === "summary") &&
+      (!lastMessage.content || lastMessage.content.trim() === "")
+    ) {
+      return true;
+    }
+    return false;
+  }, [messages]);
+
+  // Create a dependency that changes when message content changes (for streaming updates)
+  const messagesContentKey = useMemo(() => {
+    return messages.map((m) => `${m.id}:${m.content.length}`).join(",");
+  }, [messages]);
+
+  // Scroll to bottom whenever messages change (including content updates during streaming)
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
+    // Use requestAnimationFrame to ensure DOM has updated
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollIntoView({ behavior: "auto" });
+    });
+  }, [messagesContentKey, messages.length]);
 
   const handleNewThread = async () => {
     await addThread();
@@ -122,10 +163,36 @@ export function ChatSidebar() {
 
       {/* Message list */}
       <ScrollArea className="flex-1 p-3">
-        <div className="flex flex-col gap-3">
-          {messages.map((m) => (
-            <MessageBubble key={m.id} message={m} />
-          ))}
+        <div className="flex flex-col gap-5">
+          {messages.map((m) => {
+            const isLastMessage = m.id === messages[messages.length - 1]?.id;
+            const isThinkingBubble =
+              showThinking &&
+              isLastMessage &&
+              (m.role === "assistant" || m.role === "summary") &&
+              (!m.content || m.content.trim() === "");
+            return (
+              <MessageBubble
+                key={m.id}
+                message={m}
+                isThinking={isThinkingBubble}
+              />
+            );
+          })}
+          {showThinking &&
+            messages.length > 0 &&
+            messages[messages.length - 1]?.role === "user" && (
+              <MessageBubble
+                message={{
+                  id: "thinking",
+                  threadId: activeThreadId || "",
+                  role: "assistant",
+                  content: "",
+                  createdAt: Date.now(),
+                }}
+                isThinking={true}
+              />
+            )}
           <div ref={scrollRef} />
         </div>
       </ScrollArea>

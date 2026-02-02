@@ -28,10 +28,9 @@ import {
 } from "./ui/dialog";
 import FileUpload from "./FileUpload";
 import { resolveNodeText } from "@/services/nodeTextResolver";
-import { summarizeWithOpenAI } from "@/services/openaiSummaryService";
+import { streamSummarizeWithOpenAI } from "@/services/openaiSummaryService";
 import { useChatStore } from "@/store/chatStore";
 import { useSidebar } from "./ui/sidebar";
-import { Button } from "./ui/button";
 
 type MenuKind = "node" | "pane";
 
@@ -53,18 +52,11 @@ const CanvasContextMenu = ({
     Edge
   >();
   const { addNode, deleteNode: deleteNodeFromStore } = useCanvas();
-  const { addMessage, ensureDefaultThread } = useChatStore();
+  const { addMessage, updateMessage, addThread } = useChatStore();
   const { setOpen: setSidebarOpen } = useSidebar();
   const [addNodeType, setAddNodeType] = useState<CustomNode["type"] | null>(
-    null,
+    null
   );
-  const [summaryDialogOpen, setSummaryDialogOpen] = useState(false);
-  const [summaryStatus, setSummaryStatus] = useState<
-    "summarizing" | "done" | "error"
-  >("done");
-  const [summaryProgress, setSummaryProgress] = useState<string | null>(null);
-  const [summaryText, setSummaryText] = useState("");
-  const [summaryError, setSummaryError] = useState("");
 
   const handleCopyId = useCallback(() => {
     if (!targetId) return;
@@ -99,7 +91,7 @@ const CanvasContextMenu = ({
     deleteNodeFromStore(targetId);
     // Also remove edges connected to this node
     setEdges((edges) =>
-      edges.filter((e) => e.source !== targetId && e.target !== targetId),
+      edges.filter((e) => e.source !== targetId && e.target !== targetId)
     );
     onClose?.();
   }, [targetId, deleteNodeFromStore, setEdges, onClose]);
@@ -158,40 +150,60 @@ const CanvasContextMenu = ({
       toast.error(
         isMedia
           ? "No text available. Extraction may still be running or failed."
-          : "No text to summarize.",
+          : "No text to summarize."
       );
       return;
     }
 
-    setSummaryDialogOpen(true);
-    setSummaryStatus("summarizing");
-    setSummaryProgress("Summarizing...");
-    setSummaryText("");
-    setSummaryError("");
+    const sourceTitle = (node.data as { title?: string })?.title ?? "Node";
 
     try {
-      const result = await summarizeWithOpenAI(text);
-      setSummaryStatus("done");
-      setSummaryText(result);
-      setSummaryProgress(null);
-      const threadId = await ensureDefaultThread();
-      const sourceTitle =
-        (node.data as { title?: string })?.title ?? "Node";
+      // Create a new thread
+      const threadId = await addThread();
+      setSidebarOpen(true);
+
+      // Add the extracted text as a user message
       await addMessage(threadId, {
-        role: "summary",
-        content: result,
+        role: "user",
+        content: text,
         sourceNodeId: targetId,
         sourceTitle,
       });
-      setSidebarOpen(true);
+
+      // Create an assistant message with empty content initially
+      const assistantMessageId = await addMessage(threadId, {
+        role: "assistant",
+        content: "",
+        sourceNodeId: targetId,
+        sourceTitle,
+      });
+
+      let accumulatedContent = "";
+
+      // Stream the summary response
+      await streamSummarizeWithOpenAI(text, (chunk) => {
+        accumulatedContent += chunk;
+        // Update the message content as chunks arrive
+        updateMessage(assistantMessageId, accumulatedContent).catch((err) => {
+          console.error("Failed to update message:", err);
+        });
+      });
+
+      // Final update to ensure the complete message is saved
+      await updateMessage(assistantMessageId, accumulatedContent.trim());
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      setSummaryStatus("error");
-      setSummaryError(message);
-      setSummaryProgress(null);
       toast.error(`Summarization failed: ${message}`);
     }
-  }, [targetId, getNode, onClose]);
+  }, [
+    targetId,
+    getNode,
+    onClose,
+    addThread,
+    addMessage,
+    updateMessage,
+    setSidebarOpen,
+  ]);
 
   const node = type === "node" && targetId ? getNode(targetId) : null;
   const showSummarize =
@@ -265,41 +277,6 @@ const CanvasContextMenu = ({
             <DialogTitle>Add {addNodeType}</DialogTitle>
           </DialogHeader>
           <FileUpload />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={summaryDialogOpen} onOpenChange={setSummaryDialogOpen}>
-        <DialogContent className="z-[1001]">
-          <DialogHeader>
-            <DialogTitle>
-              {summaryStatus === "summarizing"
-                ? "Summarizing…"
-                : summaryStatus === "done"
-                  ? "Summary"
-                  : "Error"}
-            </DialogTitle>
-          </DialogHeader>
-          {summaryStatus === "summarizing" ? (
-            <p className="text-muted-foreground">
-              {summaryProgress ?? "Please wait…"}
-            </p>
-          ) : summaryStatus === "done" ? (
-            <>
-              <p className="whitespace-pre-wrap text-sm">{summaryText}</p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  navigator.clipboard.writeText(summaryText);
-                  toast.success("Copied summary to clipboard!");
-                }}
-              >
-                <Copy className="size-4" />
-                Copy Summary
-              </Button>
-            </>
-          ) : summaryStatus === "error" ? (
-            <p className="text-destructive text-sm">{summaryError}</p>
-          ) : null}
         </DialogContent>
       </Dialog>
     </>

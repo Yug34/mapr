@@ -12,8 +12,9 @@ interface ChatStore {
   setActiveThread: (id: string | null) => Promise<void>;
   addMessage: (
     threadId: string,
-    message: Omit<Message, "id" | "threadId" | "createdAt">,
-  ) => Promise<void>;
+    message: Omit<Message, "id" | "threadId" | "createdAt">
+  ) => Promise<string>;
+  updateMessage: (messageId: string, content: string) => Promise<void>;
   ensureDefaultThread: () => Promise<string>;
   loadFromStorage: () => Promise<void>;
 }
@@ -32,7 +33,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
         acc[m.threadId].push(m);
         return acc;
       },
-      {},
+      {}
     );
     for (const arr of Object.values(messagesByThreadId)) {
       arr.sort((a, b) => a.createdAt - b.createdAt);
@@ -40,7 +41,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     let activeThreadId: string | null = null;
     const metaRecord = await getFromDb<{ k: string; v: unknown }>(
       Stores.meta,
-      META_KEY_ACTIVE_THREAD,
+      META_KEY_ACTIVE_THREAD
     );
     if (metaRecord && typeof metaRecord.v === "string") {
       activeThreadId = metaRecord.v;
@@ -103,6 +104,46 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
         },
       };
     });
+    return id;
+  },
+
+  updateMessage: async (messageId, content) => {
+    // Find the message in the store
+    const state = get();
+    let foundMessage: Message | null = null;
+    let threadId: string | null = null;
+
+    for (const [tid, messages] of Object.entries(state.messagesByThreadId)) {
+      const msg = messages.find((m) => m.id === messageId);
+      if (msg) {
+        foundMessage = msg;
+        threadId = tid;
+        break;
+      }
+    }
+
+    if (!foundMessage || !threadId) {
+      throw new Error(`Message ${messageId} not found`);
+    }
+
+    const updatedMessage: Message = {
+      ...foundMessage,
+      content,
+    };
+
+    await put(Stores.chat_messages, updatedMessage);
+    set((state) => {
+      const list = state.messagesByThreadId[threadId] ?? [];
+      const updatedList = list.map((m) =>
+        m.id === messageId ? updatedMessage : m
+      );
+      return {
+        messagesByThreadId: {
+          ...state.messagesByThreadId,
+          [threadId]: updatedList,
+        },
+      };
+    });
   },
 
   ensureDefaultThread: async () => {
@@ -111,7 +152,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     let activeThreadId: string | null = null;
     const metaRecord = await getFromDb<{ k: string; v: unknown }>(
       Stores.meta,
-      META_KEY_ACTIVE_THREAD,
+      META_KEY_ACTIVE_THREAD
     );
     if (metaRecord && typeof metaRecord.v === "string") {
       activeThreadId = metaRecord.v;
