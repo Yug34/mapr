@@ -11,7 +11,6 @@ import type {
 import skyscraperImage from "/skyscraper.png?url";
 import haloOST from "/Halo OST.mp3?url";
 import comfortablyNumb from "/Comfortably Numb.mp4?url";
-import metamorphosis from "/Metamorphosis.pdf?url";
 import whiteNights from "/WhiteNights.pdf?url";
 
 export const initialNodes: CustomNode[] = [
@@ -57,7 +56,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   {
     id: "n4",
     type: "TODONode",
-    position: { x: -220, y: 210 },
+    position: { x: -220, y: 250 },
     data: {
       title: "Today's TODOs",
       todos: [
@@ -74,7 +73,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   {
     id: "n6",
     type: "AudioNode",
-    position: { x: -125, y: 555 },
+    position: { x: -125, y: 625 },
     data: {
       fileName: "Halo OST.mp3",
       title: "Halo OST",
