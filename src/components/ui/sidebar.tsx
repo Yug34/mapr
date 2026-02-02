@@ -44,6 +44,7 @@ const Sidebar = ({
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent
         side="right"
+        hideOverlay
         className={cn("w-[320px] sm:max-w-[320px] p-0 gap-0", className)}
         {...props}
       >
