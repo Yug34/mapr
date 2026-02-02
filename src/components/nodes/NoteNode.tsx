@@ -21,8 +21,8 @@ export function NoteNode(props: NodeProps) {
   useEffect(() => {
     setNodes((prev) =>
       prev.map((n) =>
-        n.id === id ? { ...n, draggable: !isEditingTitleOrContent } : n,
-      ),
+        n.id === id ? { ...n, draggable: !isEditingTitleOrContent } : n
+      )
     );
   }, [id, isEditingTitleOrContent, setNodes]);
 
@@ -64,7 +64,7 @@ export function NoteNode(props: NodeProps) {
 
   return (
     <div ref={nodeRef} className="w-[380px] min-w-[380px]">
-      <div className="relative mt-[60px] w-[380px] min-w-[380px] max-w-[380px] p-5 bg-[#FFFFA5] -rotate-[1deg] shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+      <div className="relative w-[380px] min-w-[380px] max-w-[380px] p-5 bg-[#FFFFA5] -rotate-[1deg] shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
         <div
           className="note-tape absolute -top-[22px] left-1/2 -translate-x-1/2 h-12 w-[180px] min-w-[100px] max-w-[180px] rotate-[1deg] bg-white/30 shadow-[inset_0_0_1em_0.5em_rgba(255,255,255,0.1)] [filter:drop-shadow(0_1px_0.7px_hsla(0,0%,0%,0.3))]"
           aria-hidden

@@ -1,49 +1,21 @@
 import { create } from "zustand";
 import type { Thread, Message } from "@/types/chat";
+import { get as getFromDb, getAll, put, Stores } from "@/utils/sqliteDb";
 
-const STORAGE_KEY_THREADS = "mapr-chat-threads";
-const STORAGE_KEY_MESSAGES = "mapr-chat-messages";
-const STORAGE_KEY_ACTIVE = "mapr-chat-active-thread-id";
-
-function loadThreads(): Thread[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_THREADS);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as Thread[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function loadMessages(): Record<string, Message[]> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_MESSAGES);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, Message[]>;
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function loadActiveThreadId(): string | null {
-  try {
-    return localStorage.getItem(STORAGE_KEY_ACTIVE);
-  } catch {
-    return null;
-  }
-}
+const META_KEY_ACTIVE_THREAD = "chat_active_thread_id";
 
 interface ChatStore {
   threads: Thread[];
   messagesByThreadId: Record<string, Message[]>;
   activeThreadId: string | null;
-  addThread: () => string;
-  setActiveThread: (id: string | null) => void;
-  addMessage: (threadId: string, message: Omit<Message, "id" | "threadId" | "createdAt">) => void;
-  ensureDefaultThread: () => string;
-  loadFromStorage: () => void;
+  addThread: () => Promise<string>;
+  setActiveThread: (id: string | null) => Promise<void>;
+  addMessage: (
+    threadId: string,
+    message: Omit<Message, "id" | "threadId" | "createdAt">,
+  ) => Promise<void>;
+  ensureDefaultThread: () => Promise<string>;
+  loadFromStorage: () => Promise<void>;
 }
 
 export const useChatStore = create<ChatStore>()((set, get) => ({
@@ -51,18 +23,39 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
   messagesByThreadId: {},
   activeThreadId: null,
 
-  loadFromStorage: () => {
-    const threads = loadThreads();
-    const messagesByThreadId = loadMessages();
-    let activeThreadId = loadActiveThreadId();
-    if (threads.length > 0 && (!activeThreadId || !threads.some((t) => t.id === activeThreadId))) {
+  loadFromStorage: async () => {
+    const threads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
+    const messages = (await getAll<Message>(Stores.chat_messages)) ?? [];
+    const messagesByThreadId = messages.reduce<Record<string, Message[]>>(
+      (acc, m) => {
+        if (!acc[m.threadId]) acc[m.threadId] = [];
+        acc[m.threadId].push(m);
+        return acc;
+      },
+      {},
+    );
+    for (const arr of Object.values(messagesByThreadId)) {
+      arr.sort((a, b) => a.createdAt - b.createdAt);
+    }
+    let activeThreadId: string | null = null;
+    const metaRecord = await getFromDb<{ k: string; v: unknown }>(
+      Stores.meta,
+      META_KEY_ACTIVE_THREAD,
+    );
+    if (metaRecord && typeof metaRecord.v === "string") {
+      activeThreadId = metaRecord.v;
+    }
+    if (
+      threads.length > 0 &&
+      (!activeThreadId || !threads.some((t) => t.id === activeThreadId))
+    ) {
       activeThreadId = threads[0].id;
-      localStorage.setItem(STORAGE_KEY_ACTIVE, activeThreadId);
+      await put(Stores.meta, { k: META_KEY_ACTIVE_THREAD, v: activeThreadId });
     }
     set({ threads, messagesByThreadId, activeThreadId });
   },
 
-  addThread: () => {
+  addThread: async () => {
     const id = crypto.randomUUID();
     const now = Date.now();
     const thread: Thread = {
@@ -71,35 +64,24 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
       createdAt: now,
       updatedAt: now,
     };
-    set((state) => {
-      const threads = [...state.threads, thread];
-      const messagesByThreadId = { ...state.messagesByThreadId, [id]: [] };
-      try {
-        localStorage.setItem(STORAGE_KEY_THREADS, JSON.stringify(threads));
-        localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messagesByThreadId));
-        localStorage.setItem(STORAGE_KEY_ACTIVE, id);
-      } catch {
-        // ignore
-      }
-      return {
-        threads,
-        messagesByThreadId,
-        activeThreadId: id,
-      };
-    });
+    await put(Stores.chat_threads, thread);
+    await put(Stores.meta, { k: META_KEY_ACTIVE_THREAD, v: id });
+    set((state) => ({
+      threads: [...state.threads, thread],
+      messagesByThreadId: { ...state.messagesByThreadId, [id]: [] },
+      activeThreadId: id,
+    }));
     return id;
   },
 
-  setActiveThread: (id) => {
-    set({ activeThreadId: id });
-    try {
-      if (id) localStorage.setItem(STORAGE_KEY_ACTIVE, id);
-    } catch {
-      // ignore
+  setActiveThread: async (id) => {
+    if (id) {
+      await put(Stores.meta, { k: META_KEY_ACTIVE_THREAD, v: id });
     }
+    set({ activeThreadId: id });
   },
 
-  addMessage: (threadId, partial) => {
+  addMessage: async (threadId, partial) => {
     const id = crypto.randomUUID();
     const createdAt = Date.now();
     const message: Message = {
@@ -111,31 +93,37 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
       sourceTitle: partial.sourceTitle,
       createdAt,
     };
+    await put(Stores.chat_messages, message);
     set((state) => {
       const list = state.messagesByThreadId[threadId] ?? [];
-      const messages = [...list, message];
-      const messagesByThreadId = { ...state.messagesByThreadId, [threadId]: messages };
-      try {
-        localStorage.setItem(STORAGE_KEY_MESSAGES, JSON.stringify(messagesByThreadId));
-      } catch {
-        // ignore
-      }
-      return { messagesByThreadId };
+      return {
+        messagesByThreadId: {
+          ...state.messagesByThreadId,
+          [threadId]: [...list, message],
+        },
+      };
     });
   },
 
-  ensureDefaultThread: () => {
-    const { threads, activeThreadId, addThread } = get();
-    if (threads.length === 0) {
-      return addThread();
+  ensureDefaultThread: async () => {
+    const { threads, addThread } = get();
+    if (threads.length === 0) return addThread();
+    let activeThreadId: string | null = null;
+    const metaRecord = await getFromDb<{ k: string; v: unknown }>(
+      Stores.meta,
+      META_KEY_ACTIVE_THREAD,
+    );
+    if (metaRecord && typeof metaRecord.v === "string") {
+      activeThreadId = metaRecord.v;
     }
-    const id = activeThreadId ?? threads[0].id;
+    const id =
+      activeThreadId && threads.some((t) => t.id === activeThreadId)
+        ? activeThreadId
+        : threads[0].id;
+    if (id !== activeThreadId) {
+      await put(Stores.meta, { k: META_KEY_ACTIVE_THREAD, v: id });
+    }
     set({ activeThreadId: id });
-    try {
-      localStorage.setItem(STORAGE_KEY_ACTIVE, id);
-    } catch {
-      // ignore
-    }
     return id;
   },
 }));

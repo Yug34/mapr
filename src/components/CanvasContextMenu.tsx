@@ -174,10 +174,10 @@ const CanvasContextMenu = ({
       setSummaryStatus("done");
       setSummaryText(result);
       setSummaryProgress(null);
-      const threadId = ensureDefaultThread();
+      const threadId = await ensureDefaultThread();
       const sourceTitle =
         (node.data as { title?: string })?.title ?? "Node";
-      addMessage(threadId, {
+      await addMessage(threadId, {
         role: "summary",
         content: result,
         sourceNodeId: targetId,

@@ -39,7 +39,7 @@ export async function summarizeWithOpenAI(text: string): Promise<string> {
     model: openai(OPENAI_SUMMARY_MODEL),
     system: SYSTEM_PROMPT,
     prompt: input,
-    maxTokens: SUMMARIZE_MAX_OUTPUT_TOKENS,
+    maxOutputTokens: SUMMARIZE_MAX_OUTPUT_TOKENS,
     temperature: 0.2,
   });
 

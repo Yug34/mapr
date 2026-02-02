@@ -14,7 +14,7 @@ import {
   SidebarTrigger,
 } from "./components/ui/sidebar";
 import { ChatSidebar } from "./components/ChatSidebar";
-import { PanelLeftClose } from "lucide-react";
+import { PanelRightClose } from "lucide-react";
 import { useChatStore } from "./store/chatStore";
 
 function App() {
@@ -23,8 +23,10 @@ function App() {
   const ensureDefaultThread = useChatStore((s) => s.ensureDefaultThread);
 
   useEffect(() => {
-    loadFromStorage();
-    ensureDefaultThread();
+    (async () => {
+      await loadFromStorage();
+      await ensureDefaultThread();
+    })();
   }, [loadFromStorage, ensureDefaultThread]);
 
   useEffect(() => {
@@ -63,40 +65,40 @@ function App() {
         </Sidebar>
         <SidebarInset className="flex-1 min-w-0 overflow-hidden">
           <div className="flex h-full flex-col min-h-0 w-full">
-          {initialized && (
-            <div className="px-4 py-2 absolute top-0 left-0 flex w-full items-center justify-center bg-transparent pointer-events-none">
-              <Badge
-                variant="secondary"
-                className="z-[1001] bg-blue-500 text-white dark:bg-blue-600 p-2"
+            {initialized && (
+              <div className="px-4 py-2 absolute top-0 left-0 flex w-full items-center justify-center bg-transparent pointer-events-none">
+                <Badge
+                  variant="secondary"
+                  className="z-[1001] bg-blue-500 text-white dark:bg-blue-600 p-2"
+                >
+                  {currentTabTitle}
+                </Badge>
+              </div>
+            )}
+            <div className="absolute top-2 right-2 z-[1002] pointer-events-auto">
+              <SidebarTrigger
+                className="inline-flex size-9 items-center justify-center rounded-md border bg-background text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground"
+                aria-label="Open chat sidebar"
               >
-                {currentTabTitle}
-              </Badge>
+                <PanelRightClose className="size-4" />
+              </SidebarTrigger>
             </div>
-          )}
-          <div className="absolute top-2 left-2 z-[1002] pointer-events-auto">
-            <SidebarTrigger
-              className="inline-flex size-9 items-center justify-center rounded-md border bg-background text-foreground shadow-sm hover:bg-accent hover:text-accent-foreground"
-              aria-label="Open chat sidebar"
-            >
-              <PanelLeftClose className="size-4" />
-            </SidebarTrigger>
-          </div>
 
-          <div className="flex min-h-0 flex-1 flex-col">
-            <Suspense
-              fallback={
-                <div className="flex flex-1 items-center justify-center text-lg">
-                  Initializing
-                  <Loader />
-                </div>
-              }
-            >
-              <Canvas />
-            </Suspense>
-          </div>
-          <DockWrapper />
-          <Walkthrough />
-          <QueryDevPanel />
+            <div className="flex min-h-0 flex-1 flex-col">
+              <Suspense
+                fallback={
+                  <div className="flex flex-1 items-center justify-center text-lg">
+                    Initializing
+                    <Loader />
+                  </div>
+                }
+              >
+                <Canvas />
+              </Suspense>
+            </div>
+            <DockWrapper />
+            <Walkthrough />
+            {/* <QueryDevPanel /> */}
           </div>
         </SidebarInset>
       </div>

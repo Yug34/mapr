@@ -10,7 +10,9 @@ export type StoreName =
   | "media"
   | "meta"
   | "tabs"
-  | "node_text";
+  | "node_text"
+  | "chat_threads"
+  | "chat_messages";
 
 export type TxMode = "readonly" | "readwrite";
 
@@ -47,6 +49,23 @@ export type NodeTextRecord = {
   nodeId: string;
   plainText: string;
   updatedAt: number;
+};
+
+export type ChatThreadRecord = {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type ChatMessageRecord = {
+  id: string;
+  threadId: string;
+  role: string;
+  content: string;
+  sourceNodeId?: string | null;
+  sourceTitle?: string | null;
+  createdAt: number;
 };
 
 const OPFS_DB_PREFIX = "canvas";
@@ -219,7 +238,25 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
       nodeId TEXT PRIMARY KEY,
       plainText TEXT NOT NULL,
       updatedAt INTEGER NOT NULL
-    );`,
+    );
+
+    CREATE TABLE IF NOT EXISTS chat_threads (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id TEXT PRIMARY KEY,
+      threadId TEXT NOT NULL,
+      role TEXT NOT NULL,
+      content TEXT NOT NULL,
+      sourceNodeId TEXT,
+      sourceTitle TEXT,
+      createdAt INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_chat_messages_threadId ON chat_messages(threadId);`,
   );
 
   return { promiser: promiser!, dbId: id };
@@ -424,6 +461,8 @@ const keyColumn: Record<StoreName, string> = {
   meta: "k",
   tabs: "id",
   node_text: "nodeId",
+  chat_threads: "id",
+  chat_messages: "id",
 };
 
 export async function get<T = unknown>(
@@ -473,6 +512,25 @@ export async function get<T = unknown>(
       updatedAt: Number(row.updatedAt),
     } as T;
   }
+  if (store === "chat_threads") {
+    return {
+      id: row.id,
+      title: (row.title as string) ?? "",
+      createdAt: Number(row.createdAt),
+      updatedAt: Number(row.updatedAt),
+    } as T;
+  }
+  if (store === "chat_messages") {
+    return {
+      id: row.id,
+      threadId: (row.threadId as string) ?? "",
+      role: (row.role as string) ?? "",
+      content: (row.content as string) ?? "",
+      sourceNodeId: (row.sourceNodeId as string) ?? undefined,
+      sourceTitle: (row.sourceTitle as string) ?? undefined,
+      createdAt: Number(row.createdAt),
+    } as T;
+  }
   const data = row.data as string;
   return (data ? JSON.parse(data) : row) as T;
 }
@@ -514,6 +572,25 @@ export async function getAll<T = unknown>(store: StoreName): Promise<T[]> {
       nodeId: r.nodeId,
       plainText: (r.plainText as string) ?? "",
       updatedAt: Number(r.updatedAt),
+    })) as T[];
+  }
+  if (store === "chat_threads") {
+    return rows.map((r) => ({
+      id: r.id,
+      title: (r.title as string) ?? "",
+      createdAt: Number(r.createdAt),
+      updatedAt: Number(r.updatedAt),
+    })) as T[];
+  }
+  if (store === "chat_messages") {
+    return rows.map((r) => ({
+      id: r.id,
+      threadId: (r.threadId as string) ?? "",
+      role: (r.role as string) ?? "",
+      content: (r.content as string) ?? "",
+      sourceNodeId: (r.sourceNodeId as string) ?? undefined,
+      sourceTitle: (r.sourceTitle as string) ?? undefined,
+      createdAt: Number(r.createdAt),
     })) as T[];
   }
   return rows.map((r) => JSON.parse((r.data as string) ?? "{}")) as T[];
@@ -587,6 +664,32 @@ export async function put<T = unknown>(
     );
     return v.nodeId;
   }
+  if (store === "chat_threads") {
+    const v = value as unknown as ChatThreadRecord;
+    await exec(
+      `INSERT OR REPLACE INTO chat_threads (id, title, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?)`,
+      [v.id, v.title, String(v.createdAt), String(v.updatedAt)],
+    );
+    return v.id;
+  }
+  if (store === "chat_messages") {
+    const v = value as unknown as ChatMessageRecord;
+    await exec(
+      `INSERT OR REPLACE INTO chat_messages (id, threadId, role, content, sourceNodeId, sourceTitle, createdAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        v.id,
+        v.threadId,
+        v.role,
+        v.content,
+        v.sourceNodeId ?? null,
+        v.sourceTitle ?? null,
+        String(v.createdAt),
+      ],
+    );
+    return v.id;
+  }
   const record = value as unknown as {
     id: string;
     tabId: string;
@@ -654,6 +757,30 @@ export async function add<T = unknown>(
     );
     return v.nodeId;
   }
+  if (store === "chat_threads") {
+    const v = value as unknown as ChatThreadRecord;
+    await exec(
+      `INSERT INTO chat_threads (id, title, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
+      [v.id, v.title, String(v.createdAt), String(v.updatedAt)],
+    );
+    return v.id;
+  }
+  if (store === "chat_messages") {
+    const v = value as unknown as ChatMessageRecord;
+    await exec(
+      `INSERT INTO chat_messages (id, threadId, role, content, sourceNodeId, sourceTitle, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        v.id,
+        v.threadId,
+        v.role,
+        v.content,
+        v.sourceNodeId ?? null,
+        v.sourceTitle ?? null,
+        String(v.createdAt),
+      ],
+    );
+    return v.id;
+  }
   const record = value as unknown as {
     id: string;
     tabId: string;
@@ -715,6 +842,40 @@ export async function bulkPut<T = unknown>(
     );
     return;
   }
+  if (store === "chat_threads") {
+    const placeholders = values.map(() => "(?, ?, ?, ?)").join(", ");
+    const bind: (string | number | null)[] = [];
+    for (const v of values as unknown as ChatThreadRecord[]) {
+      bind.push(v.id, v.title, v.createdAt, v.updatedAt);
+    }
+    await exec(
+      `INSERT OR REPLACE INTO chat_threads (id, title, createdAt, updatedAt) VALUES ${placeholders}`,
+      bind,
+    );
+    return;
+  }
+  if (store === "chat_messages") {
+    const placeholders = values
+      .map(() => "(?, ?, ?, ?, ?, ?, ?)")
+      .join(", ");
+    const bind: (string | number | null)[] = [];
+    for (const v of values as unknown as ChatMessageRecord[]) {
+      bind.push(
+        v.id,
+        v.threadId,
+        v.role,
+        v.content,
+        v.sourceNodeId ?? null,
+        v.sourceTitle ?? null,
+        v.createdAt,
+      );
+    }
+    await exec(
+      `INSERT OR REPLACE INTO chat_messages (id, threadId, role, content, sourceNodeId, sourceTitle, createdAt) VALUES ${placeholders}`,
+      bind,
+    );
+    return;
+  }
 
   const placeholders = values.map(() => "(?, ?, ?)").join(", ");
   const bind: (string | number | null)[] = [];
@@ -756,6 +917,8 @@ export const Stores = {
   meta: "meta" as StoreName,
   tabs: "tabs" as StoreName,
   node_text: "node_text" as StoreName,
+  chat_threads: "chat_threads" as StoreName,
+  chat_messages: "chat_messages" as StoreName,
 };
 
 /** True when OPFS was unavailable and we fell back to :memory: (no persistence). */

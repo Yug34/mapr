@@ -182,7 +182,7 @@ export function QueryDevPanel() {
       style={{
         position: "fixed",
         top: 20,
-        right: 20,
+        left: 20,
         width: 500,
         maxHeight: "90vh",
         backgroundColor: "white",

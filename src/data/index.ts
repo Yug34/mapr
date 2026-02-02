@@ -17,7 +17,7 @@ import whiteNights from "/WhiteNights.pdf?url";
 export const initialNodes: CustomNode[] = [
   {
     id: "n1",
-    position: { x: -120, y: -195 },
+    position: { x: -120, y: -105 },
     type: "NoteNode",
     data: {
       title: "About mapr",
@@ -30,7 +30,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   },
   {
     id: "n2",
-    position: { x: 250, y: 130 },
+    position: { x: 250, y: 230 },
     type: "NoteNode",
     data: {
       title: "'lil Tutorial",
@@ -101,19 +101,6 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
     id: "n7",
     type: "PDFNode",
     position: { x: -650, y: -150 },
-    data: {
-      fileName: "Metamorphosis.pdf",
-      title: "Metamorphosis",
-      pdfBlobUrl: metamorphosis,
-      pdf: metamorphosis as unknown as File,
-      pdfBase64: "",
-      mediaId: "metamorphosis",
-    } as PDFNodeData,
-  },
-    {
-    id: "whiteNights",
-    type: "PDFNode",
-    position: { x: -950, y: -150 },
     data: {
       fileName: "WhiteNights.pdf",
       title: "White Nights",

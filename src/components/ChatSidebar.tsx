@@ -59,8 +59,10 @@ export function ChatSidebar() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadFromStorage();
-    ensureDefaultThread();
+    (async () => {
+      await loadFromStorage();
+      await ensureDefaultThread();
+    })();
   }, [loadFromStorage, ensureDefaultThread]);
 
   const messages = activeThreadId
@@ -71,14 +73,14 @@ export function ChatSidebar() {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  const handleNewThread = () => {
-    addThread();
+  const handleNewThread = async () => {
+    await addThread();
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const text = input.trim();
     if (!text || !activeThreadId) return;
-    addMessage(activeThreadId, { role: "user", content: text });
+    await addMessage(activeThreadId, { role: "user", content: text });
     setInput("");
   };
 

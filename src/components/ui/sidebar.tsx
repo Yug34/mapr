@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 interface SidebarContextValue {
@@ -43,10 +43,11 @@ const Sidebar = ({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent
-        side="left"
+        side="right"
         className={cn("w-[320px] sm:max-w-[320px] p-0 gap-0", className)}
         {...props}
       >
+        <SheetTitle className="sr-only">Chat</SheetTitle>
         {children}
       </SheetContent>
     </Sheet>
