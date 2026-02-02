@@ -12,6 +12,8 @@ export function ImageNode(props: NodeProps) {
   const nodeData = data as ImageNodeData;
   const status = useExtractionStore((s) => s.statusByNodeId[id]);
   const errorMsg = useExtractionStore((s) => s.errorByNodeId[id]);
+  const extractedFromDb = useExtractionStore((s) => s.extractedFromDb[id]);
+  const isExtracted = extractedFromDb || status === "done";
   const { updateNodeData } = useCanvas();
 
   return (
@@ -36,7 +38,7 @@ export function ImageNode(props: NodeProps) {
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           </span>
         )}
-        {status === "done" && (
+        {isExtracted && (
           <span className="shrink-0 text-green-600" title="Text extracted">
             <Check className="h-3.5 w-3.5" />
           </span>

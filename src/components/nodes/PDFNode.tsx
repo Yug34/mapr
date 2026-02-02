@@ -23,7 +23,7 @@ import { blobManager } from "../../utils/blobManager";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url,
+  import.meta.url
 ).toString();
 
 export function PDFNode(props: NodeProps) {
@@ -34,6 +34,8 @@ export function PDFNode(props: NodeProps) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const status = useExtractionStore((s) => s.statusByNodeId[id]);
   const errorMsg = useExtractionStore((s) => s.errorByNodeId[id]);
+  const extractedFromDb = useExtractionStore((s) => s.extractedFromDb[id]);
+  const isExtracted = extractedFromDb || status === "done";
   const { updateNodeData } = useCanvas();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -102,7 +104,7 @@ export function PDFNode(props: NodeProps) {
             <Loader2 className="h-4 w-4 animate-spin" />
           </span>
         )}
-        {status === "done" && (
+        {isExtracted && (
           <span className="shrink-0 text-green-600" title="Text extracted">
             <Check className="h-4 w-4" />
           </span>

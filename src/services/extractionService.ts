@@ -14,7 +14,7 @@ type MediaNodeType = "ImageNode" | "PDFNode";
 export async function extractAndStoreNodeText(
   nodeId: string,
   nodeType: MediaNodeType,
-  source: Blob | string,
+  source: Blob | string
 ): Promise<void> {
   const { setStatus, setError } = useExtractionStore.getState();
   setStatus(nodeId, "extracting");
@@ -25,7 +25,7 @@ export async function extractAndStoreNodeText(
       plainText = await extractTextFromImage(source);
     } else if (nodeType === "PDFNode") {
       plainText = await extractTextFromPDF(
-        source instanceof Blob ? source : source,
+        source instanceof Blob ? source : source
       );
     } else {
       setStatus(nodeId, "error");
@@ -37,9 +37,11 @@ export async function extractAndStoreNodeText(
       nodeId,
       plainText: plainText?.trim() ? plainText.trim() : "N/A",
       updatedAt: Date.now(),
+      extracted: 1,
     };
     await put(Stores.node_text, record);
     setStatus(nodeId, "done");
+    useExtractionStore.getState().hydrateExtractedFromDb([nodeId]);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[extractionService] Extraction failed for", nodeId, err);

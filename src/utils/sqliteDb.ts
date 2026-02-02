@@ -49,6 +49,7 @@ export type NodeTextRecord = {
   nodeId: string;
   plainText: string;
   updatedAt: number;
+  extracted: number; // 1 = true, 0 = false (SQLite boolean)
 };
 
 export type ChatThreadRecord = {
@@ -81,7 +82,7 @@ function getOpfsFilename(): string {
 
 type Promiser = (
   type: string,
-  args?: Record<string, unknown>,
+  args?: Record<string, unknown>
 ) => Promise<{ type: string; result?: unknown; dbId?: string }>;
 
 let promiser: Promiser | null = null;
@@ -90,7 +91,7 @@ let usingMemoryFallback = false;
 
 function isAccessHandleError(msg: string): boolean {
   return /Access Handles cannot be created|NoModificationAllowedError|GetSyncHandleError/i.test(
-    msg,
+    msg
   );
 }
 
@@ -103,8 +104,9 @@ function resetInit(): void {
 async function init(): Promise<{ promiser: Promiser; dbId: string }> {
   if (promiser && dbId) return { promiser, dbId };
 
-  const wasm =
-    (await import("@sqlite.org/sqlite-wasm")) as unknown as SqliteWasm;
+  const wasm = (await import(
+    "@sqlite.org/sqlite-wasm"
+  )) as unknown as SqliteWasm;
   const factory = await wasm.sqlite3Worker1Promiser();
 
   type OpenRes = { type: string; result?: { dbId?: string }; dbId?: string };
@@ -136,7 +138,7 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
           const msg = msgFromErr(e);
           const isBusy =
             /SQLITE_BUSY|database is locked|Access Handles cannot be created/i.test(
-              msg,
+              msg
             );
           if (isBusy && attempt < 4) {
             await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
@@ -155,18 +157,18 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
         /SharedArrayBuffer|Atomics|COOP|COEP/i.test(msg);
       const isAccessHandleConflict =
         /Access Handles cannot be created|NoModificationAllowedError/i.test(
-          msg,
+          msg
         );
       if (isAccessHandleConflict) {
         console.warn(
-          "[sqliteDb] OPFS file locked by another tab/instance. Using in-memory DB for this session.",
+          "[sqliteDb] OPFS file locked by another tab/instance. Using in-memory DB for this session."
         );
         usingMemoryFallback = true;
         try {
           openRes = await tryOpen(DB_FILENAME_MEMORY);
         } catch (memErr) {
           throw new Error(
-            msgFromErr(memErr) || "Failed to open SQLite (memory fallback)",
+            msgFromErr(memErr) || "Failed to open SQLite (memory fallback)"
           );
         }
       } else if (!opfsUnavailable) {
@@ -175,14 +177,14 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
         console.warn(
           "[sqliteDb] OPFS unavailable (",
           msg,
-          "). Using in-memory DB; data will not persist.",
+          "). Using in-memory DB; data will not persist."
         );
         usingMemoryFallback = true;
         try {
           openRes = await tryOpen(DB_FILENAME_MEMORY);
         } catch (memErr) {
           throw new Error(
-            msgFromErr(memErr) || "Failed to open SQLite (memory fallback)",
+            msgFromErr(memErr) || "Failed to open SQLite (memory fallback)"
           );
         }
       }
@@ -237,7 +239,8 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
     CREATE TABLE IF NOT EXISTS node_text (
       nodeId TEXT PRIMARY KEY,
       plainText TEXT NOT NULL,
-      updatedAt INTEGER NOT NULL
+      updatedAt INTEGER NOT NULL,
+      extracted INTEGER NOT NULL DEFAULT 1
     );
 
     CREATE TABLE IF NOT EXISTS chat_threads (
@@ -256,8 +259,17 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
       sourceTitle TEXT,
       createdAt INTEGER NOT NULL
     );
-    CREATE INDEX IF NOT EXISTS idx_chat_messages_threadId ON chat_messages(threadId);`,
+    CREATE INDEX IF NOT EXISTS idx_chat_messages_threadId ON chat_messages(threadId);`
   );
+
+  // Migration: add extracted column to node_text for existing DBs
+  try {
+    await exec(
+      "ALTER TABLE node_text ADD COLUMN extracted INTEGER NOT NULL DEFAULT 1"
+    );
+  } catch {
+    // Column already exists (new DB) — ignore
+  }
 
   return { promiser: promiser!, dbId: id };
 }
@@ -271,7 +283,7 @@ async function exec(
   sql: string,
   bind?: (string | number | null)[],
   retries = 3,
-  accessHandleRetried = false,
+  accessHandleRetried = false
 ): Promise<void> {
   const { promiser: p, dbId: id } = await init();
   const opts: Record<string, unknown> = {
@@ -301,7 +313,7 @@ async function exec(
           !usingMemoryFallback
         ) {
           console.warn(
-            "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session.",
+            "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
           );
           resetInit();
           return exec(sql, bind, retries, true);
@@ -322,7 +334,7 @@ async function exec(
         !usingMemoryFallback
       ) {
         console.warn(
-          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session.",
+          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
         );
         resetInit();
         return exec(sql, bind, retries, true);
@@ -336,7 +348,7 @@ export async function execQuery<T extends Record<string, unknown>>(
   sql: string,
   bind?: (string | number | null)[],
   retries = 3,
-  accessHandleRetried = false,
+  accessHandleRetried = false
 ): Promise<T[]> {
   const { promiser: p, dbId: id } = await init();
   const opts: Record<string, unknown> = {
@@ -366,7 +378,7 @@ export async function execQuery<T extends Record<string, unknown>>(
           !usingMemoryFallback
         ) {
           console.warn(
-            "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session.",
+            "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
           );
           resetInit();
           return execQuery<T>(sql, bind, retries, true);
@@ -387,7 +399,7 @@ export async function execQuery<T extends Record<string, unknown>>(
         !usingMemoryFallback
       ) {
         console.warn(
-          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session.",
+          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
         );
         resetInit();
         return execQuery<T>(sql, bind, retries, true);
@@ -449,7 +461,7 @@ export async function closeDb(): Promise<void> {
 export async function withTransaction<T>(
   _storeNames: StoreName[] | StoreName,
   _mode: TxMode,
-  handler: (_tx: IDBTransaction) => Promise<T>,
+  handler: (_tx: IDBTransaction) => Promise<T>
 ): Promise<T> {
   return handler({} as IDBTransaction);
 }
@@ -467,20 +479,20 @@ const keyColumn: Record<StoreName, string> = {
 
 export async function get<T = unknown>(
   store: StoreName,
-  key: string,
+  key: string
 ): Promise<T | undefined> {
   const col = keyColumn[store];
   const table = store;
   const rows = await execQuery<Record<string, unknown>>(
     `SELECT * FROM ${table} WHERE ${col} = ?`,
-    [key],
+    [key]
   );
   if (rows.length === 0) return undefined;
   const row = rows[0];
   if (store === "media") {
     const blob = base64ToBlob(
       (row.blobBase64 as string) ?? "",
-      (row.mime as string) ?? "application/octet-stream",
+      (row.mime as string) ?? "application/octet-stream"
     );
     return {
       id: row.id,
@@ -510,6 +522,7 @@ export async function get<T = unknown>(
       nodeId: row.nodeId,
       plainText: (row.plainText as string) ?? "",
       updatedAt: Number(row.updatedAt),
+      extracted: row.extracted != null ? Number(row.extracted) : 1,
     } as T;
   }
   if (store === "chat_threads") {
@@ -538,14 +551,14 @@ export async function get<T = unknown>(
 export async function getAll<T = unknown>(store: StoreName): Promise<T[]> {
   const table = store;
   const rows = await execQuery<Record<string, unknown>>(
-    `SELECT * FROM ${table}`,
+    `SELECT * FROM ${table}`
   );
   if (store === "media") {
     return rows.map((r) => ({
       id: r.id,
       blob: base64ToBlob(
         (r.blobBase64 as string) ?? "",
-        (r.mime as string) ?? "application/octet-stream",
+        (r.mime as string) ?? "application/octet-stream"
       ),
       mime: r.mime,
       size: Number(r.size),
@@ -572,6 +585,7 @@ export async function getAll<T = unknown>(store: StoreName): Promise<T[]> {
       nodeId: r.nodeId,
       plainText: (r.plainText as string) ?? "",
       updatedAt: Number(r.updatedAt),
+      extracted: r.extracted != null ? Number(r.extracted) : 1,
     })) as T[];
   }
   if (store === "chat_threads") {
@@ -599,20 +613,20 @@ export async function getAll<T = unknown>(store: StoreName): Promise<T[]> {
 export async function getAllFromIndex<T = unknown>(
   store: StoreName,
   index: string,
-  query?: string,
+  query?: string
 ): Promise<T[]> {
   if (index !== "tabId" || (store !== "nodes" && store !== "edges"))
     throw new Error("getAllFromIndex only supports tabId on nodes/edges");
   const rows = await execQuery<Record<string, unknown>>(
     `SELECT * FROM ${store} WHERE tabId = ?`,
-    [query ?? ""],
+    [query ?? ""]
   );
   return rows.map((r) => JSON.parse((r.data as string) ?? "{}")) as T[];
 }
 
 export async function put<T = unknown>(
   store: StoreName,
-  value: T & { id?: string; k?: string },
+  value: T & { id?: string; k?: string }
 ): Promise<string> {
   const table = store;
   if (store === "media") {
@@ -628,7 +642,7 @@ export async function put<T = unknown>(
         String(v.size),
         String(v.createdAt),
         v.fileName ?? null,
-      ],
+      ]
     );
     return v.id;
   }
@@ -651,16 +665,16 @@ export async function put<T = unknown>(
         v.iconKey ?? null,
         String(v.createdAt),
         String(v.updatedAt),
-      ],
+      ]
     );
     return v.id;
   }
   if (store === "node_text") {
     const v = value as unknown as NodeTextRecord;
     await exec(
-      `INSERT OR REPLACE INTO node_text (nodeId, plainText, updatedAt)
-       VALUES (?, ?, ?)`,
-      [v.nodeId, v.plainText, String(v.updatedAt)],
+      `INSERT OR REPLACE INTO node_text (nodeId, plainText, updatedAt, extracted)
+       VALUES (?, ?, ?, ?)`,
+      [v.nodeId, v.plainText, String(v.updatedAt), v.extracted ?? 1]
     );
     return v.nodeId;
   }
@@ -669,7 +683,7 @@ export async function put<T = unknown>(
     await exec(
       `INSERT OR REPLACE INTO chat_threads (id, title, createdAt, updatedAt)
        VALUES (?, ?, ?, ?)`,
-      [v.id, v.title, String(v.createdAt), String(v.updatedAt)],
+      [v.id, v.title, String(v.createdAt), String(v.updatedAt)]
     );
     return v.id;
   }
@@ -686,7 +700,7 @@ export async function put<T = unknown>(
         v.sourceNodeId ?? null,
         v.sourceTitle ?? null,
         String(v.createdAt),
-      ],
+      ]
     );
     return v.id;
   }
@@ -699,14 +713,14 @@ export async function put<T = unknown>(
   const tabId = record.tabId;
   await exec(
     `INSERT OR REPLACE INTO ${table} (id, tabId, data) VALUES (?, ?, ?)`,
-    [id, tabId, JSON.stringify(record)],
+    [id, tabId, JSON.stringify(record)]
   );
   return id;
 }
 
 export async function add<T = unknown>(
   store: StoreName,
-  value: T & { id?: string; k?: string },
+  value: T & { id?: string; k?: string }
 ): Promise<string> {
   const table = store;
   if (store === "media") {
@@ -722,7 +736,7 @@ export async function add<T = unknown>(
         String(v.size),
         String(v.createdAt),
         v.fileName ?? null,
-      ],
+      ]
     );
     return v.id;
   }
@@ -745,15 +759,15 @@ export async function add<T = unknown>(
         v.iconKey ?? null,
         String(v.createdAt),
         String(v.updatedAt),
-      ],
+      ]
     );
     return v.id;
   }
   if (store === "node_text") {
     const v = value as unknown as NodeTextRecord;
     await exec(
-      `INSERT INTO node_text (nodeId, plainText, updatedAt) VALUES (?, ?, ?)`,
-      [v.nodeId, v.plainText, String(v.updatedAt)],
+      `INSERT INTO node_text (nodeId, plainText, updatedAt, extracted) VALUES (?, ?, ?, ?)`,
+      [v.nodeId, v.plainText, String(v.updatedAt), v.extracted ?? 1]
     );
     return v.nodeId;
   }
@@ -761,7 +775,7 @@ export async function add<T = unknown>(
     const v = value as unknown as ChatThreadRecord;
     await exec(
       `INSERT INTO chat_threads (id, title, createdAt, updatedAt) VALUES (?, ?, ?, ?)`,
-      [v.id, v.title, String(v.createdAt), String(v.updatedAt)],
+      [v.id, v.title, String(v.createdAt), String(v.updatedAt)]
     );
     return v.id;
   }
@@ -777,7 +791,7 @@ export async function add<T = unknown>(
         v.sourceNodeId ?? null,
         v.sourceTitle ?? null,
         String(v.createdAt),
-      ],
+      ]
     );
     return v.id;
   }
@@ -802,7 +816,7 @@ export async function deleteKey(store: StoreName, key: string): Promise<void> {
 
 export async function bulkPut<T = unknown>(
   store: StoreName,
-  values: (T & { id?: string; k?: string })[],
+  values: (T & { id?: string; k?: string })[]
 ): Promise<void> {
   if (values.length === 0) return;
 
@@ -826,19 +840,19 @@ export async function bulkPut<T = unknown>(
     }
     await exec(
       `INSERT OR REPLACE INTO tabs (id, title, iconKey, createdAt, updatedAt) VALUES ${placeholders}`,
-      bind,
+      bind
     );
     return;
   }
   if (store === "node_text") {
-    const placeholders = values.map(() => "(?, ?, ?)").join(", ");
+    const placeholders = values.map(() => "(?, ?, ?, ?)").join(", ");
     const bind: (string | number | null)[] = [];
     for (const v of values as unknown as NodeTextRecord[]) {
-      bind.push(v.nodeId, v.plainText, v.updatedAt);
+      bind.push(v.nodeId, v.plainText, v.updatedAt, v.extracted ?? 1);
     }
     await exec(
-      `INSERT OR REPLACE INTO node_text (nodeId, plainText, updatedAt) VALUES ${placeholders}`,
-      bind,
+      `INSERT OR REPLACE INTO node_text (nodeId, plainText, updatedAt, extracted) VALUES ${placeholders}`,
+      bind
     );
     return;
   }
@@ -850,14 +864,12 @@ export async function bulkPut<T = unknown>(
     }
     await exec(
       `INSERT OR REPLACE INTO chat_threads (id, title, createdAt, updatedAt) VALUES ${placeholders}`,
-      bind,
+      bind
     );
     return;
   }
   if (store === "chat_messages") {
-    const placeholders = values
-      .map(() => "(?, ?, ?, ?, ?, ?, ?)")
-      .join(", ");
+    const placeholders = values.map(() => "(?, ?, ?, ?, ?, ?, ?)").join(", ");
     const bind: (string | number | null)[] = [];
     for (const v of values as unknown as ChatMessageRecord[]) {
       bind.push(
@@ -867,12 +879,12 @@ export async function bulkPut<T = unknown>(
         v.content,
         v.sourceNodeId ?? null,
         v.sourceTitle ?? null,
-        v.createdAt,
+        v.createdAt
       );
     }
     await exec(
       `INSERT OR REPLACE INTO chat_messages (id, threadId, role, content, sourceNodeId, sourceTitle, createdAt) VALUES ${placeholders}`,
-      bind,
+      bind
     );
     return;
   }
@@ -888,13 +900,13 @@ export async function bulkPut<T = unknown>(
   }
   await exec(
     `INSERT OR REPLACE INTO ${store} (id, tabId, data) VALUES ${placeholders}`,
-    bind,
+    bind
   );
 }
 
 export async function bulkDelete(
   store: StoreName,
-  keys: (string | number)[],
+  keys: (string | number)[]
 ): Promise<void> {
   if (keys.length === 0) return;
   const col = keyColumn[store];
@@ -902,7 +914,7 @@ export async function bulkDelete(
   const placeholders = keys.map(() => "?").join(", ");
   await exec(
     `DELETE FROM ${table} WHERE ${col} IN (${placeholders})`,
-    keys.map(String),
+    keys.map(String)
   );
 }
 

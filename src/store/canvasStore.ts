@@ -38,7 +38,7 @@ interface CanvasStore {
   tabs: TabRecord[];
   activeTabId: string;
   setNodes: (
-    nodes: CustomNode[] | ((prev: CustomNode[]) => CustomNode[]),
+    nodes: CustomNode[] | ((prev: CustomNode[]) => CustomNode[])
   ) => void;
   setEdges: (edges: Edge[] | ((prev: Edge[]) => Edge[])) => void;
   addNode: (node: CustomNode) => void;
@@ -60,7 +60,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
   const persistGraph = async () => {
     const state = get();
     const persistedNodes: PersistedNode[] = state.nodes.map((node) =>
-      serializeNode(node, state.activeTabId),
+      serializeNode(node, state.activeTabId)
     );
     const persistedEdges: PersistedEdge[] = state.edges.map((edge) => ({
       ...edge,
@@ -69,32 +69,32 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
 
     // Only persist nodes and edges for the current tab
     const currentTabNodes = persistedNodes.filter(
-      (node) => node.tabId === state.activeTabId,
+      (node) => node.tabId === state.activeTabId
     );
     const currentTabEdges = persistedEdges.filter(
-      (edge) => edge.tabId === state.activeTabId,
+      (edge) => edge.tabId === state.activeTabId
     );
 
     // Delete existing nodes/edges for this tab and add new ones
     const existingNodes = await getAllFromIndex<PersistedNode>(
       Stores.nodes,
       "tabId",
-      state.activeTabId,
+      state.activeTabId
     );
     const existingEdges = await getAllFromIndex<PersistedEdge>(
       Stores.edges,
       "tabId",
-      state.activeTabId,
+      state.activeTabId
     );
 
     await Promise.all([
       bulkDelete(
         Stores.nodes,
-        existingNodes.map((n) => n.id),
+        existingNodes.map((n) => n.id)
       ),
       bulkDelete(
         Stores.edges,
-        existingEdges.map((e) => e.id),
+        existingEdges.map((e) => e.id)
       ),
     ]);
 
@@ -146,7 +146,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
 
     // Filter out media that already exists
     const mediaToSeed = initialMediaConfig.filter(
-      (config) => !existingMediaIds.has(config.mediaId),
+      (config) => !existingMediaIds.has(config.mediaId)
     );
 
     if (mediaToSeed.length === 0) return;
@@ -164,15 +164,28 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
           size: blob.size,
           createdAt: Date.now(),
         } as MediaRecord;
-      }),
+      })
     );
 
     await bulkPut(Stores.media, mediaRecords);
   };
 
+  /** Hydrate extractedFromDb from node_text where extracted=1 (for checkmark persistence). */
+  const hydrateExtractedFromDb = async (): Promise<void> => {
+    const records = await getAll<{ nodeId: string; extracted: number }>(
+      Stores.node_text
+    );
+    const nodeIds = records
+      .filter((r) => r.extracted === 1)
+      .map((r) => r.nodeId);
+    if (nodeIds.length > 0) {
+      useExtractionStore.getState().hydrateExtractedFromDb(nodeIds);
+    }
+  };
+
   /** Run text extraction for PDF/Image nodes that don't have a node_text row yet (e.g. seeded or loaded from DB). */
   const triggerExtractionForNodesWithoutText = async (
-    nodes: CustomNode[],
+    nodes: CustomNode[]
   ): Promise<void> => {
     const existing = await getAll<{ nodeId: string }>(Stores.node_text);
     const existingIds = new Set(existing.map((r) => r.nodeId));
@@ -221,7 +234,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       if (persistedNodes.length === 0 && persistedEdges.length === 0) {
         // seed current defaults into DB for the default tab
         const persistedNodes: PersistedNode[] = initialNodes.map((node) =>
-          serializeNode(node, activeTabId),
+          serializeNode(node, activeTabId)
         );
         const persistedEdges: PersistedEdge[] = initialEdges.map((edge) => ({
           ...edge,
@@ -245,6 +258,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
           nodeId: "n3",
           plainText: "N/A",
           updatedAt: Date.now(),
+          extracted: 1,
         });
 
         set(() => ({
@@ -254,6 +268,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
           activeTabId,
           initialized: true,
         }));
+        await hydrateExtractedFromDb();
         void triggerExtractionForNodesWithoutText(initialNodes);
         return;
       }
@@ -265,21 +280,21 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       const mediaRecords = await getAll<MediaRecord>(Stores.media);
       blobManager.setMediaBlobsFromRecords(mediaRecords);
       const mediaUrlById = new Map<string, string>(
-        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)]),
+        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
       );
 
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
       // Load data for the active tab
       const activeTabNodes = persistedNodes.filter(
-        (n) => n.tabId === activeTabId,
+        (n) => n.tabId === activeTabId
       );
       const activeTabEdges = persistedEdges.filter(
-        (e) => e.tabId === activeTabId,
+        (e) => e.tabId === activeTabId
       );
 
       const nodes = activeTabNodes.map((n) =>
-        deserializeNode(n, resolveBlobUrl),
+        deserializeNode(n, resolveBlobUrl)
       );
       const edges = activeTabEdges.map((e) => deserializeEdge(e));
 
@@ -290,6 +305,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         activeTabId,
         initialized: true,
       }));
+      await hydrateExtractedFromDb();
       void triggerExtractionForNodesWithoutText(nodes);
     } catch (err) {
       // fallback to defaults on any failure
@@ -308,6 +324,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         activeTabId: "default-tab",
         initialized: true,
       }));
+      await hydrateExtractedFromDb();
       void triggerExtractionForNodesWithoutText(initialNodes);
     }
   };
@@ -323,17 +340,18 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       const mediaRecords = await getAll<MediaRecord>(Stores.media);
       blobManager.setMediaBlobsFromRecords(mediaRecords);
       const mediaUrlById = new Map<string, string>(
-        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)]),
+        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
       );
 
       const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
 
       const nodes = persistedNodes.map((n) =>
-        deserializeNode(n, resolveBlobUrl),
+        deserializeNode(n, resolveBlobUrl)
       );
       const edges = persistedEdges.map((e) => deserializeEdge(e));
 
       set(() => ({ nodes, edges }));
+      await hydrateExtractedFromDb();
       void triggerExtractionForNodesWithoutText(nodes);
     } catch (err) {
       console.error("Failed to load tab data", err);
@@ -405,11 +423,11 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
     await Promise.all([
       bulkDelete(
         Stores.nodes,
-        tabNodes.map((n) => n.id),
+        tabNodes.map((n) => n.id)
       ),
       bulkDelete(
         Stores.edges,
-        tabEdges.map((e) => e.id),
+        tabEdges.map((e) => e.id)
       ),
       bulkDelete(Stores.tabs, [tabId]),
     ]);
@@ -430,7 +448,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
 
   const updateTabTitle = async (
     tabId: string,
-    title: string,
+    title: string
   ): Promise<void> => {
     const state = get();
     const tab = state.tabs.find((t) => t.id === tabId);
