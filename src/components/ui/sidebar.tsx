@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 type SidebarContextProps = {
@@ -44,22 +43,23 @@ const Sidebar = ({
   children,
   className,
   ...props
-}: React.ComponentProps<typeof SheetContent> & {
+}: React.ComponentProps<"aside"> & {
   children: React.ReactNode;
 }) => {
-  const { open, setOpen } = useSidebar();
+  const { open } = useSidebar();
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent
-        side="right"
-        hideOverlay
-        className={cn("w-[320px] sm:max-w-[320px] p-0 gap-0", className)}
-        {...props}
-      >
-        <SheetTitle className="sr-only">Chat</SheetTitle>
+    <aside
+      className={cn(
+        "flex h-full flex-shrink-0 flex-col border-l bg-background transition-[width] duration-300 ease-in-out overflow-hidden",
+        open ? "w-[320px]" : "w-0",
+        className
+      )}
+      {...props}
+    >
+      <div className={cn("w-[320px] min-h-full", !open && "invisible")}>
         {children}
-      </SheetContent>
-    </Sheet>
+      </div>
+    </aside>
   );
 };
 

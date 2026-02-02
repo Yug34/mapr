@@ -58,9 +58,6 @@ function App() {
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex h-screen w-screen flex-row overflow-hidden">
-        <Sidebar>
-          <ChatSidebar />
-        </Sidebar>
         <SidebarInset className="flex-1 min-w-0 overflow-hidden">
           <div className="flex h-full flex-col min-h-0 w-full">
             {initialized && (
@@ -91,6 +88,9 @@ function App() {
             {/* <QueryDevPanel /> */}
           </div>
         </SidebarInset>
+        <Sidebar>
+          <ChatSidebar />
+        </Sidebar>
       </div>
     </SidebarProvider>
   );
