@@ -53,11 +53,11 @@ const Sidebar = ({
     <div
       className={cn(
         "relative flex-shrink-0 h-full overflow-visible transition-[width] duration-300 ease-in-out",
-        open ? "w-[320px]" : "w-0"
+        open ? "w-[400px]" : "w-0"
       )}
     >
       {trigger && (
-        <div className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 z-[1002] pointer-events-auto">
+        <div className="absolute left-[1px] top-1/2 -translate-x-full -translate-y-1/2 z-[1002] pointer-events-auto">
           {trigger}
         </div>
       )}

@@ -13,7 +13,7 @@ export const ChatSidebarTrigger = () => {
 
   return (
     <Button
-      className="w-8 h-14 cursor-pointer shrink-0 rounded-r-none"
+      className="w-8 h-14 cursor-pointer rounded-r-none border-2 border-r-0 border-gray-300"
       onClick={toggleSidebar}
     >
       {state === "expanded" ? (
