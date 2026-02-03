@@ -62,7 +62,6 @@ export function ChatSidebar() {
     messagesByThreadId,
     activeThreadId,
     setActiveThread,
-    addThread,
     addMessage,
     loadFromStorage,
     ensureDefaultThread,
@@ -111,10 +110,6 @@ export function ChatSidebar() {
     });
   }, [messagesContentKey, messages.length]);
 
-  const handleNewThread = async () => {
-    await addThread();
-  };
-
   const handleSend = async () => {
     const text = input.trim();
     if (!text || !activeThreadId) return;
@@ -123,7 +118,7 @@ export function ChatSidebar() {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Thread tabs header */}
       <div className="flex shrink-0 items-center gap-1 border-b p-2">
         <ScrollArea className="flex-1 overflow-x-auto">

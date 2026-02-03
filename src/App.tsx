@@ -5,14 +5,13 @@ import { useCanvas } from "./hooks/useCanvas";
 import { Badge } from "./components/ui/badge";
 import { Loader } from "./components/ui/loader";
 import { Walkthrough } from "./components/Walkthrough";
-import { QueryDevPanel } from "./components/QueryDevPanel";
 import { getAll, Stores } from "./utils/sqliteDb";
 import {
   SidebarProvider,
   Sidebar,
   SidebarInset,
 } from "./components/ui/sidebar";
-import { ChatSidebar } from "./components/ChatSidebar";
+import { SidebarContent } from "./components/SidebarContent";
 import { useChatStore } from "./store/chatStore";
 
 function App() {
@@ -100,11 +99,10 @@ function App() {
             </div>
             <DockWrapper />
             <Walkthrough />
-            <QueryDevPanel />
           </div>
         </SidebarInset>
         <Sidebar>
-          <ChatSidebar />
+          <SidebarContent />
         </Sidebar>
       </div>
     </SidebarProvider>

@@ -3,6 +3,12 @@ import { queryService } from "../services/queryService";
 import { interpretQuery } from "../services/interpretQueryService";
 import type { StructuredQuerySpec, QueryResult, Scope } from "../types/query";
 import { useCanvasStore } from "../store/canvasStore";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { ScrollArea } from "./ui/scroll-area";
+import { Separator } from "./ui/separator";
+import { cn } from "@/lib/utils";
 
 export function QueryDevPanel() {
   const [queryJson, setQueryJson] = useState<string>(
@@ -128,274 +134,192 @@ export function QueryDevPanel() {
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        top: 20,
-        left: 20,
-        width: 500,
-        maxHeight: "90vh",
-        backgroundColor: "white",
-        border: "1px solid #ccc",
-        borderRadius: 8,
-        padding: 16,
-        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-        zIndex: 1000,
-        overflow: "auto",
-        fontFamily: "monospace",
-        fontSize: 12,
-      }}
-    >
-      <h3 style={{ marginTop: 0 }}>Query Dev Panel</h3>
-
-      {/* Natural Language Query Section */}
-      <div
-        style={{
-          marginBottom: 12,
-          borderTop: "1px solid #eee",
-          paddingTop: 12,
-        }}
-      >
-        <label style={{ display: "block", marginBottom: 4 }}>
-          <strong>Natural Language Query:</strong>
-        </label>
-        <div style={{ marginBottom: 8 }}>
-          <strong>Scope:</strong>
-          <label style={{ marginLeft: 8, marginRight: 8 }}>
-            <input
-              type="radio"
-              checked={scope.type === "global"}
-              onChange={() => setScope({ type: "global" })}
-              style={{ marginRight: 4 }}
+    <div className="flex h-full flex-col min-h-0 font-mono text-xs">
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="p-4 flex flex-col gap-4">
+          {/* Natural Language Query Section */}
+          <div className="space-y-2">
+            <Label className="block font-semibold">
+              Natural Language Query:
+            </Label>
+            <div className="flex items-center gap-4 mb-2">
+              <span className="font-semibold">Scope:</span>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={scope.type === "global"}
+                  onChange={() => setScope({ type: "global" })}
+                  className="rounded"
+                />
+                Global
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={scope.type === "tab"}
+                  onChange={() => setScope({ type: "tab", tabId: activeTabId })}
+                  className="rounded"
+                />
+                Current Tab
+              </label>
+            </div>
+            <Input
+              value={nlQuery}
+              onChange={(e) => setNlQuery(e.target.value)}
+              placeholder="e.g., 'show all todos due this week'"
+              className="font-mono text-xs"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleExecuteNL();
+                }
+              }}
             />
-            Global
-          </label>
-          <label>
-            <input
-              type="radio"
-              checked={scope.type === "tab"}
-              onChange={() => setScope({ type: "tab", tabId: activeTabId })}
-              style={{ marginRight: 4 }}
-            />
-            Current Tab
-          </label>
-        </div>
-        <input
-          type="text"
-          value={nlQuery}
-          onChange={(e) => setNlQuery(e.target.value)}
-          placeholder="e.g., 'show all todos due this week'"
-          style={{
-            width: "100%",
-            padding: 8,
-            fontSize: 12,
-            border: "1px solid #ccc",
-            borderRadius: 4,
-            marginBottom: 8,
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleExecuteNL();
-            }
-          }}
-        />
-        <div style={{ marginBottom: 8 }}>
-          <strong>NL Examples:</strong>
-          <div
-            style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}
-          >
-            {exampleNLQueries.map((example) => (
-              <button
-                key={example}
-                onClick={() => loadNLExample(example)}
-                style={{
-                  padding: "2px 6px",
-                  fontSize: 10,
-                  cursor: "pointer",
-                  border: "1px solid #ccc",
-                  borderRadius: 4,
-                  backgroundColor: "#f5f5f5",
-                }}
-              >
-                {example}
-              </button>
-            ))}
-          </div>
-        </div>
-        <button
-          onClick={handleExecuteNL}
-          disabled={loading}
-          style={{
-            padding: "6px 12px",
-            fontSize: 11,
-            cursor: loading ? "not-allowed" : "pointer",
-            backgroundColor: loading ? "#ccc" : "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: 4,
-            marginRight: 8,
-          }}
-        >
-          {loading ? "Processing..." : "Execute NL Query"}
-        </button>
-      </div>
-
-      {/* JSON Query Section */}
-      <div
-        style={{
-          marginBottom: 12,
-          borderTop: "1px solid #eee",
-          paddingTop: 12,
-        }}
-      >
-        <div style={{ marginBottom: 12 }}>
-          <strong>Examples:</strong>
-          <div
-            style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}
-          >
-            {Object.entries(exampleQueries).map(([label, query]) => (
-              <button
-                key={label}
-                onClick={() => loadExample(query)}
-                style={{
-                  padding: "4px 8px",
-                  fontSize: 11,
-                  cursor: "pointer",
-                  border: "1px solid #ccc",
-                  borderRadius: 4,
-                  backgroundColor: "#f5f5f5",
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: "block", marginBottom: 4 }}>
-            <strong>StructuredQuerySpec (JSON):</strong>
-          </label>
-          <textarea
-            value={queryJson}
-            onChange={(e) => setQueryJson(e.target.value)}
-            style={{
-              width: "100%",
-              height: 200,
-              fontFamily: "monospace",
-              fontSize: 11,
-              padding: 8,
-              border: "1px solid #ccc",
-              borderRadius: 4,
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: 12 }}>
-          <button
-            onClick={handleExecuteJson}
-            disabled={loading}
-            style={{
-              padding: "6px 12px",
-              fontSize: 11,
-              cursor: loading ? "not-allowed" : "pointer",
-              backgroundColor: loading ? "#ccc" : "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: 4,
-            }}
-          >
-            {loading ? "Executing..." : "Execute JSON Query"}
-          </button>
-        </div>
-      </div>
-
-      {error && (
-        <div
-          style={{
-            padding: 8,
-            backgroundColor: "#fee",
-            border: "1px solid #fcc",
-            borderRadius: 4,
-            marginBottom: 12,
-            color: "#c00",
-          }}
-        >
-          <strong>Error:</strong> {error}
-        </div>
-      )}
-
-      {results.length > 0 && (
-        <div>
-          <strong>Results ({results.length}):</strong>
-          <ul style={{ marginTop: 8, paddingLeft: 20 }}>
-            {results.map((result) => (
-              <li key={result.nodeId} style={{ marginBottom: 8 }}>
-                <div>
-                  <strong>ID:</strong> {result.nodeId}
-                </div>
-                <div>
-                  <strong>Type:</strong> {result.type}
-                </div>
-                {result.title && (
-                  <div>
-                    <strong>Title:</strong> {result.title}
-                  </div>
-                )}
-                {result.createdAt && (
-                  <div>
-                    <strong>Created:</strong>{" "}
-                    {new Date(result.createdAt).toLocaleString()}
-                  </div>
-                )}
-                {result.tags && result.tags.length > 0 && (
-                  <div>
-                    <strong>Tags:</strong> {result.tags.join(", ")}
-                  </div>
-                )}
-                {(result.type === "image" || result.type === "pdf") && (
-                  <details
-                    style={{ marginTop: 4 }}
-                    open={!!(result.plainText && result.plainText.length > 0)}
+            <div>
+              <span className="font-semibold block mb-2">NL Examples:</span>
+              <div className="flex flex-wrap gap-1">
+                {exampleNLQueries.map((example) => (
+                  <Button
+                    key={example}
+                    variant="outline"
+                    size="sm"
+                    className="h-6 text-[10px] px-1.5"
+                    onClick={() => loadNLExample(example)}
                   >
-                    <summary style={{ cursor: "pointer", fontSize: 11 }}>
-                      <strong>plainText</strong>
-                      {result.plainText != null && result.plainText !== "" ? (
-                        <> ({result.plainText.length} chars)</>
-                      ) : (
-                        <> (no text extracted yet)</>
-                      )}
-                    </summary>
-                    <pre
-                      style={{
-                        marginTop: 4,
-                        padding: 6,
-                        fontSize: 10,
-                        overflow: "auto",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        backgroundColor: "#f5f5f5",
-                        borderRadius: 4,
-                      }}
-                    >
-                      {result.plainText != null && result.plainText !== ""
-                        ? result.plainText
-                        : "(No text extracted yet. OCR/PDF extraction may still be running or may have failed.)"}
-                    </pre>
-                  </details>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                    {example}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <Button
+              onClick={handleExecuteNL}
+              disabled={loading}
+              size="sm"
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {loading ? "Processing..." : "Execute NL Query"}
+            </Button>
+          </div>
 
-      {results.length === 0 && !error && !loading && (
-        <div style={{ color: "#666", fontStyle: "italic" }}>
-          No results yet. Execute a query to see results.
+          <Separator />
+
+          {/* JSON Query Section */}
+          <div className="space-y-2">
+            <span className="font-semibold block">Examples:</span>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(exampleQueries).map(([label, query]) => (
+                <Button
+                  key={label}
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-[11px]"
+                  onClick={() => loadExample(query)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+
+            <div>
+              <Label className="block font-semibold mb-1">
+                StructuredQuerySpec (JSON):
+              </Label>
+              <textarea
+                value={queryJson}
+                onChange={(e) => setQueryJson(e.target.value)}
+                className={cn(
+                  "w-full h-[200px] font-mono text-[11px] p-2 rounded-md border bg-background",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                )}
+              />
+            </div>
+
+            <Button
+              onClick={handleExecuteJson}
+              disabled={loading}
+              size="sm"
+              variant="secondary"
+            >
+              {loading ? "Executing..." : "Execute JSON Query"}
+            </Button>
+          </div>
+
+          {error && (
+            <div className="p-2 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-xs">
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+
+          {results.length > 0 && (
+            <div>
+              <strong>Results ({results.length}):</strong>
+              <ul className="mt-2 pl-5 space-y-2 list-disc">
+                {results.map((result) => (
+                  <li key={result.nodeId} className="space-y-1">
+                    <div>
+                      <strong>ID:</strong> {result.nodeId}
+                    </div>
+                    <div>
+                      <strong>Type:</strong> {result.type}
+                    </div>
+                    {result.title && (
+                      <div>
+                        <strong>Title:</strong> {result.title}
+                      </div>
+                    )}
+                    {result.createdAt && (
+                      <div>
+                        <strong>Created:</strong>{" "}
+                        {new Date(result.createdAt).toLocaleString()}
+                      </div>
+                    )}
+                    {result.tags && result.tags.length > 0 && (
+                      <div>
+                        <strong>Tags:</strong> {result.tags.join(", ")}
+                      </div>
+                    )}
+                    {(result.type === "image" || result.type === "pdf") && (
+                      <details
+                        className="mt-1"
+                        open={
+                          !!(result.plainText && result.plainText.length > 0)
+                        }
+                      >
+                        <summary className="cursor-pointer text-[11px]">
+                          <strong>plainText</strong>
+                          {result.plainText != null &&
+                          result.plainText !== "" ? (
+                            <> ({result.plainText.length} chars)</>
+                          ) : (
+                            <> (no text extracted yet)</>
+                          )}
+                        </summary>
+                        <pre
+                          className={cn(
+                            "mt-1 p-1.5 text-[10px] overflow-auto",
+                            "whitespace-pre-wrap break-words",
+                            "bg-muted rounded"
+                          )}
+                        >
+                          {result.plainText != null && result.plainText !== ""
+                            ? result.plainText
+                            : "(No text extracted yet. OCR/PDF extraction may still be running or may have failed.)"}
+                        </pre>
+                      </details>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {results.length === 0 && !error && !loading && (
+            <div className="text-muted-foreground italic">
+              No results yet. Execute a query to see results.
+            </div>
+          )}
         </div>
-      )}
+      </ScrollArea>
     </div>
   );
 }
