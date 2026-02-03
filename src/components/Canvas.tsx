@@ -466,12 +466,21 @@ const Canvas = () => {
                       width: 180,
                     }}
                     nodeColor={(node) => {
-                      // TODO:
                       switch (node.type) {
-                        case "input":
-                          return "#0041d0";
-                        case "output":
+                        case "LinkNode":
+                          return "#e0e0e0";
+                        case "NoteNode":
+                          return "#FFFFa5";
+                        case "ImageNode":
                           return "#ff0072";
+                        case "VideoNode":
+                          return "#0072ff";
+                        case "AudioNode":
+                          return "#0072ff";
+                        case "PDFNode":
+                          return "#000000";
+                        case "TODONode":
+                          return "#e91923";
                         default:
                           return "#1a192b";
                       }

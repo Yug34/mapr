@@ -1,18 +1,10 @@
 import { SUMMARIZE_MAX_INPUT_CHARS } from "@/constants";
 
 /**
- * Get the API endpoint URL - works in both dev and production
+ * API endpoint URL - relative path so Vite proxy (dev) or same-origin (prod) handles it.
+ * Vite proxy in vite.config.ts forwards /api to the Vercel dev server.
  */
-function getApiUrl(): string {
-  // In development, use local Vercel dev server or proxy
-  if (import.meta.env.DEV) {
-    // If using Vercel CLI: vercel dev
-    return "http://localhost:3000/api/summarize";
-    // Or use a proxy in vite.config.ts (see Step 4)
-  }
-  // In production, use relative URL (same domain)
-  return "/api/summarize";
-}
+const API_URL = "/api/summarize";
 
 /**
  * Stream a summary of the given text using the OpenAI API via serverless proxy.
@@ -35,7 +27,7 @@ export async function streamSummarizeWithOpenAI(
     input = input.slice(0, SUMMARIZE_MAX_INPUT_CHARS) + "\n[... truncated]";
   }
 
-  const apiUrl = getApiUrl();
+  const apiUrl = API_URL;
   let fullContent = "";
 
   try {
@@ -48,12 +40,15 @@ export async function streamSummarizeWithOpenAI(
     });
 
     if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ error: "Unknown error" }));
-      throw new Error(
-        error.error || `API request failed: ${response.statusText}`
-      );
+      const errorBody = await response.text();
+      let errorMessage: string;
+      try {
+        const parsed = JSON.parse(errorBody) as { error?: string };
+        errorMessage = parsed.error ?? (errorBody || response.statusText);
+      } catch {
+        errorMessage = errorBody || response.statusText;
+      }
+      throw new Error(errorMessage);
     }
 
     if (!response.body) {

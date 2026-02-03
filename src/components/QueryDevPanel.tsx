@@ -8,6 +8,14 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
 import { cn } from "@/lib/utils";
 
 export function QueryDevPanel() {
@@ -205,21 +213,22 @@ export function QueryDevPanel() {
 
           {/* JSON Query Section */}
           <div className="space-y-2">
-            <span className="font-semibold block">Examples:</span>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(exampleQueries).map(([label, query]) => (
-                <Button
-                  key={label}
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-[11px]"
-                  onClick={() => loadExample(query)}
-                >
-                  {label}
-                </Button>
-              ))}
+            <div>
+              <span className="font-semibold block mb-2">Examples:</span>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {Object.entries(exampleQueries).map(([label, query]) => (
+                  <Button
+                    key={label}
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-[11px]"
+                    onClick={() => loadExample(query)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
             </div>
-
             <div>
               <Label className="block font-semibold mb-1">
                 StructuredQuerySpec (JSON):
@@ -252,64 +261,84 @@ export function QueryDevPanel() {
 
           {results.length > 0 && (
             <div>
-              <strong>Results ({results.length}):</strong>
-              <ul className="mt-2 pl-5 space-y-2 list-disc">
-                {results.map((result) => (
-                  <li key={result.nodeId} className="space-y-1">
-                    <div>
-                      <strong>ID:</strong> {result.nodeId}
-                    </div>
-                    <div>
-                      <strong>Type:</strong> {result.type}
-                    </div>
-                    {result.title && (
-                      <div>
-                        <strong>Title:</strong> {result.title}
-                      </div>
-                    )}
-                    {result.createdAt && (
-                      <div>
-                        <strong>Created:</strong>{" "}
-                        {new Date(result.createdAt).toLocaleString()}
-                      </div>
-                    )}
-                    {result.tags && result.tags.length > 0 && (
-                      <div>
-                        <strong>Tags:</strong> {result.tags.join(", ")}
-                      </div>
-                    )}
-                    {(result.type === "image" || result.type === "pdf") && (
-                      <details
-                        className="mt-1"
-                        open={
-                          !!(result.plainText && result.plainText.length > 0)
+              <strong className="block mb-2">
+                Results ({results.length}):
+              </strong>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">Title</TableHead>
+                    <TableHead className="text-xs">Type</TableHead>
+                    <TableHead className="text-xs">Created</TableHead>
+                    <TableHead className="text-xs">Tags</TableHead>
+                    <TableHead className="text-xs">Extracted</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {results.map((result) => (
+                    <TableRow key={result.nodeId}>
+                      <TableCell
+                        className={cn(
+                          "text-[11px] py-1.5 max-w-[120px]",
+                          "truncate"
+                        )}
+                        title={result.title}
+                      >
+                        {result.title ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-[11px] py-1.5">
+                        {result.type}
+                      </TableCell>
+                      <TableCell className="text-[11px] py-1.5 whitespace-nowrap">
+                        {result.createdAt
+                          ? new Date(result.createdAt).toLocaleDateString()
+                          : "—"}
+                      </TableCell>
+                      <TableCell
+                        className="text-[11px] py-1.5 max-w-[100px] truncate"
+                        title={
+                          result.tags && result.tags.length > 0
+                            ? result.tags.join(", ")
+                            : undefined
                         }
                       >
-                        <summary className="cursor-pointer text-[11px]">
-                          <strong>plainText</strong>
-                          {result.plainText != null &&
-                          result.plainText !== "" ? (
-                            <> ({result.plainText.length} chars)</>
-                          ) : (
-                            <> (no text extracted yet)</>
-                          )}
-                        </summary>
-                        <pre
-                          className={cn(
-                            "mt-1 p-1.5 text-[10px] overflow-auto",
-                            "whitespace-pre-wrap break-words",
-                            "bg-muted rounded"
-                          )}
-                        >
-                          {result.plainText != null && result.plainText !== ""
-                            ? result.plainText
-                            : "(No text extracted yet. OCR/PDF extraction may still be running or may have failed.)"}
-                        </pre>
-                      </details>
-                    )}
-                  </li>
-                ))}
-              </ul>
+                        {result.tags && result.tags.length > 0
+                          ? result.tags.join(", ")
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-[11px] py-1.5">
+                        {(result.type === "image" || result.type === "pdf") && (
+                          <details className="inline">
+                            <summary className="cursor-pointer hover:underline">
+                              {result.plainText != null &&
+                              result.plainText !== "" ? (
+                                <>{result.plainText.length} chars</>
+                              ) : (
+                                <>—</>
+                              )}
+                            </summary>
+                            <pre
+                              className={cn(
+                                "mt-1 p-1.5 text-[10px] overflow-auto max-h-24",
+                                "whitespace-pre-wrap break-words",
+                                "bg-muted rounded border"
+                              )}
+                            >
+                              {result.plainText != null &&
+                              result.plainText !== ""
+                                ? result.plainText
+                                : "(No text extracted yet.)"}
+                            </pre>
+                          </details>
+                        )}
+                        {result.type !== "image" && result.type !== "pdf" && (
+                          <>—</>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
 

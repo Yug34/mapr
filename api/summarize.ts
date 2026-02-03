@@ -49,14 +49,7 @@ export default async function handler(req: Request) {
       temperature: 0.2,
     });
 
-    // Return streaming response
-    return new Response(result.textStream, {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    });
+    return result.toTextStreamResponse();
   } catch (error) {
     console.error("[Summarize API] Error:", error);
     const errorMessage =
