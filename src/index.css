@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -140,16 +141,22 @@
 }
 
 .note-tape::after {
-  background-image:
-    linear-gradient(45deg, transparent 50%, hsla(0, 0%, 100%, 0.3) 50%),
+  background-image: linear-gradient(
+      45deg,
+      transparent 50%,
+      hsla(0, 0%, 100%, 0.3) 50%
+    ),
     linear-gradient(-45deg, transparent 50%, hsla(0, 0%, 100%, 0.3) 50%);
   background-position: 0 100%;
   left: -0.2em;
 }
 
 .note-tape::before {
-  background-image:
-    linear-gradient(135deg, transparent 50%, hsla(0, 0%, 100%, 0.3) 50%),
+  background-image: linear-gradient(
+      135deg,
+      transparent 50%,
+      hsla(0, 0%, 100%, 0.3) 50%
+    ),
     linear-gradient(-135deg, transparent 50%, hsla(0, 0%, 100%, 0.3) 50%);
   background-position: 100% 100%;
   right: -0.2em;

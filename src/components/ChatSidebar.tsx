@@ -45,7 +45,17 @@ function MessageBubble({
             <span className="text-xs italic">Thinking...</span>
           </div>
         ) : isSummary || message.role === "assistant" ? (
-          <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1">
+          <div
+            className={cn(
+              "prose prose-sm dark:prose-invert max-w-none",
+              "prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-foreground prose-h2:text-base prose-h2:mt-3 prose-h2:mb-2 prose-h2:border-none prose-h2:pb-0",
+              "prose-p:my-1.5 prose-p:leading-relaxed",
+              "prose-ul:my-0 prose-ol:my-2 prose-li:my-0 prose-li:leading-relaxed",
+              "prose-strong:font-semibold prose-strong:text-foreground",
+              "prose-a:text-primary prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-primary/90",
+              !isUser && "prose-p:text-foreground prose-li:text-foreground"
+            )}
+          >
             <ReactMarkdown>{message.content}</ReactMarkdown>
           </div>
         ) : (
