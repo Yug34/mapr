@@ -4,7 +4,7 @@ import type { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Send } from "lucide-react";
+import { Send, SquareArrowOutUpRight } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Loader } from "./ui/loader";
 
@@ -50,13 +50,24 @@ function MessageBubble({
               "prose prose-sm dark:prose-invert max-w-none",
               "prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-foreground prose-h2:text-base prose-h2:mt-3 prose-h2:mb-2 prose-h2:border-none prose-h2:pb-0",
               "prose-p:my-1.5 prose-p:leading-relaxed",
-              "prose-ul:my-0 prose-ol:my-2 prose-li:my-0 prose-li:leading-relaxed",
+              "prose-ul:my-0 prose-ul:px-4 prose-li:px-0 prose-ol:my-2 prose-li:my-0 prose-li:leading-relaxed",
               "prose-strong:font-semibold prose-strong:text-foreground",
               "prose-a:text-primary prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-primary/90",
               !isUser && "prose-p:text-foreground prose-li:text-foreground"
             )}
           >
-            <ReactMarkdown>{message.content}</ReactMarkdown>
+            <ReactMarkdown
+              components={{
+                a: ({ href, children }) => (
+                  <a href={href} target="_blank" rel="noopener noreferrer">
+                    {children}
+                    <SquareArrowOutUpRight className="size-4 inline-block ml-1" />
+                  </a>
+                ),
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
           </div>
         ) : (
           <p className="whitespace-pre-wrap break-words">{message.content}</p>
