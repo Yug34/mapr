@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { queryService } from "../services/queryService";
-import { llmService } from "../services/llmService";
-import { AVAILABLE_MODELS } from "../constants";
-import type { ModelKey } from "../constants";
+import { interpretQuery } from "../services/interpretQueryService";
 import type { StructuredQuerySpec, QueryResult, Scope } from "../types/query";
 import { useCanvasStore } from "../store/canvasStore";
 
@@ -14,54 +12,15 @@ export function QueryDevPanel() {
         nodeTypes: ["note"],
       } as StructuredQuerySpec,
       null,
-      2,
-    ),
+      2
+    )
   );
   const [nlQuery, setNlQuery] = useState<string>("");
   const [results, setResults] = useState<QueryResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [llmLoading, setLlmLoading] = useState(false);
-  const [llmProgress, setLlmProgress] = useState<{
-    progress: number;
-    text: string;
-  } | null>(null);
-  const [llmReady, setLlmReady] = useState(false);
   const [scope, setScope] = useState<Scope>({ type: "global" });
-  const [selectedModel, setSelectedModel] = useState<ModelKey>("llama1b");
   const { activeTabId } = useCanvasStore();
-
-  // Initialize LLM on mount or when model changes
-  useEffect(() => {
-    const initLLM = async () => {
-      // Set model before initializing
-      try {
-        llmService.setModel(selectedModel);
-      } catch (err) {
-        // Model already set, dispose first
-        llmService.dispose();
-        llmService.setModel(selectedModel);
-      }
-
-      try {
-        setLlmLoading(true);
-        setLlmReady(false);
-        await llmService.initialize((progress, text) => {
-          setLlmProgress({ progress, text });
-        });
-        setLlmReady(true);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        console.error("[QueryDevPanel] LLM init error:", err);
-        setError(`Failed to initialize LLM: ${errorMessage}`);
-      } finally {
-        setLlmLoading(false);
-        setLlmProgress(null);
-      }
-    };
-
-    initLLM();
-  }, [selectedModel]);
 
   const handleExecuteJson = async () => {
     setError(null);
@@ -96,17 +55,11 @@ export function QueryDevPanel() {
       return;
     }
 
-    if (!llmReady) {
-      setError("LLM is not ready yet. Please wait for initialization.");
-      return;
-    }
-
     setError(null);
     setResults([]);
     setLoading(true);
 
     try {
-      // Determine scope
       const queryScope: Scope =
         scope.type === "tab"
           ? { type: "tab", tabId: activeTabId }
@@ -115,8 +68,7 @@ export function QueryDevPanel() {
       console.log("[QueryDevPanel] Interpreting NL query:", nlQuery);
       console.log("[QueryDevPanel] Scope:", queryScope);
 
-      // Interpret NL query to StructuredQuerySpec
-      const spec = await llmService.interpretQuery(nlQuery, queryScope);
+      const spec = await interpretQuery(nlQuery, queryScope);
 
       console.log("[QueryDevPanel] Interpreted spec:", spec);
 
@@ -175,8 +127,6 @@ export function QueryDevPanel() {
     setNlQuery(example);
   };
 
-  const currentModelInfo = AVAILABLE_MODELS[selectedModel];
-
   return (
     <div
       style={{
@@ -197,86 +147,6 @@ export function QueryDevPanel() {
       }}
     >
       <h3 style={{ marginTop: 0 }}>Query Dev Panel</h3>
-
-      {/* Model Selection */}
-      {!llmReady && !llmLoading && (
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: "block", marginBottom: 4 }}>
-            <strong>Select Model:</strong>
-          </label>
-          <select
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value as ModelKey)}
-            disabled={llmLoading}
-            style={{
-              width: "100%",
-              padding: 6,
-              fontSize: 11,
-              border: "1px solid #ccc",
-              borderRadius: 4,
-            }}
-          >
-            {Object.entries(AVAILABLE_MODELS).map(([key, model]) => (
-              <option key={key} value={key}>
-                {model.name} ({model.size}) - {model.description}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* LLM Status */}
-      {llmLoading && llmProgress && (
-        <div
-          style={{
-            padding: 8,
-            backgroundColor: "#e3f2fd",
-            border: "1px solid #90caf9",
-            borderRadius: 4,
-            marginBottom: 12,
-          }}
-        >
-          <div style={{ marginBottom: 4 }}>
-            <strong>Loading {currentModelInfo.name}:</strong> {llmProgress.text}
-          </div>
-          <div style={{ fontSize: 10, color: "#666", marginBottom: 4 }}>
-            Size: {currentModelInfo.size} • {currentModelInfo.description}
-          </div>
-          <div
-            style={{
-              width: "100%",
-              height: 8,
-              backgroundColor: "#ccc",
-              borderRadius: 4,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                width: `${llmProgress.progress * 100}%`,
-                height: "100%",
-                backgroundColor: "#2196f3",
-                transition: "width 0.3s",
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {llmReady && (
-        <div
-          style={{
-            padding: 8,
-            backgroundColor: "#e8f5e9",
-            border: "1px solid #81c784",
-            borderRadius: 4,
-            marginBottom: 12,
-            color: "#2e7d32",
-          }}
-        >
-          ✓ LLM Ready ({currentModelInfo.name})
-        </div>
-      )}
 
       {/* Natural Language Query Section */}
       <div
@@ -355,12 +225,12 @@ export function QueryDevPanel() {
         </div>
         <button
           onClick={handleExecuteNL}
-          disabled={loading || !llmReady}
+          disabled={loading}
           style={{
             padding: "6px 12px",
             fontSize: 11,
-            cursor: loading || !llmReady ? "not-allowed" : "pointer",
-            backgroundColor: loading || !llmReady ? "#ccc" : "#28a745",
+            cursor: loading ? "not-allowed" : "pointer",
+            backgroundColor: loading ? "#ccc" : "#28a745",
             color: "white",
             border: "none",
             borderRadius: 4,

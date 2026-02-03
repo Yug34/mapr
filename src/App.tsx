@@ -100,7 +100,7 @@ function App() {
             </div>
             <DockWrapper />
             <Walkthrough />
-            {/* <QueryDevPanel /> */}
+            <QueryDevPanel />
           </div>
         </SidebarInset>
         <Sidebar>
