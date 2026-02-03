@@ -12,7 +12,7 @@ import {
   Sidebar,
   SidebarInset,
 } from "./components/ui/sidebar";
-import { ChatSidebar, ChatSidebarTrigger } from "./components/ChatSidebar";
+import { ChatSidebar } from "./components/ChatSidebar";
 import { useChatStore } from "./store/chatStore";
 
 function App() {
@@ -103,7 +103,7 @@ function App() {
             {/* <QueryDevPanel /> */}
           </div>
         </SidebarInset>
-        <Sidebar trigger={<ChatSidebarTrigger />}>
+        <Sidebar>
           <ChatSidebar />
         </Sidebar>
       </div>

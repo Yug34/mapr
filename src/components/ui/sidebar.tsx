@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "./button";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
@@ -39,14 +41,29 @@ const SidebarProvider = ({
   );
 };
 
+const ChatSidebarTrigger = () => {
+  const { toggleSidebar, state } = useSidebar();
+
+  return (
+    <Button
+      className="w-8 h-14 cursor-pointer rounded-r-none border-2 border-r-0 border-gray-300"
+      onClick={toggleSidebar}
+    >
+      {state === "expanded" ? (
+        <ChevronRightIcon className="w-8 h-8" />
+      ) : (
+        <ChevronLeftIcon className="w-8 h-8" />
+      )}
+    </Button>
+  );
+};
+
 const Sidebar = ({
   children,
-  trigger,
   className,
   ...props
 }: React.ComponentProps<"aside"> & {
   children: React.ReactNode;
-  trigger?: React.ReactNode;
 }) => {
   const { open } = useSidebar();
   return (
@@ -56,11 +73,9 @@ const Sidebar = ({
         open ? "w-[400px]" : "w-0"
       )}
     >
-      {trigger && (
-        <div className="absolute left-[1px] top-1/2 -translate-x-full -translate-y-1/2 z-[1002] pointer-events-auto">
-          {trigger}
-        </div>
-      )}
+      <div className="absolute left-[1px] top-1/2 -translate-x-full -translate-y-1/2 z-[1002] pointer-events-auto">
+        <ChatSidebarTrigger />
+      </div>
       <aside
         className={cn(
           "flex h-full w-full flex-col border-l bg-background overflow-hidden",

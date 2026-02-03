@@ -4,33 +4,9 @@ import type { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import {
-  Send,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  TrashIcon,
-  PencilIcon,
-} from "lucide-react";
+import { Send } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { useSidebar } from "./ui/sidebar";
 import { Loader } from "./ui/loader";
-
-export const ChatSidebarTrigger = () => {
-  const { toggleSidebar, state } = useSidebar();
-
-  return (
-    <Button
-      className="w-8 h-14 cursor-pointer rounded-r-none border-2 border-r-0 border-gray-300"
-      onClick={toggleSidebar}
-    >
-      {state === "expanded" ? (
-        <ChevronRightIcon className="w-8 h-8" />
-      ) : (
-        <ChevronLeftIcon className="w-8 h-8" />
-      )}
-    </Button>
-  );
-};
 
 function MessageBubble({
   message,
