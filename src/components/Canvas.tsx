@@ -386,7 +386,7 @@ const Canvas = () => {
                   <Button
                     type="button"
                     size="icon"
-                    className="cursor-pointer absolute left-2 top-2 z-[1000] size-9 shadow-sm"
+                    className="cursor-pointer absolute left-2 top-2 z-[9999] size-9 shadow-sm"
                     aria-label="Reset to initial state"
                     title="Reset to initial state"
                     variant="destructive"
@@ -394,7 +394,7 @@ const Canvas = () => {
                     <Trash2 className="size-4" />
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="z-[1000]">
+                <AlertDialogContent className="z-[9999]">
                   <AlertDialogHeader>
                     <AlertDialogTitle>
                       Are you absolutely sure?

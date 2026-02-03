@@ -222,22 +222,35 @@ const CanvasContextMenu = ({
               <ContextMenuSeparator />
               {showSummarize && (
                 <>
-                  <ContextMenuItem onClick={handleSummarize}>
+                  <ContextMenuItem
+                    className="cursor-pointer"
+                    onClick={handleSummarize}
+                  >
                     <FileText className="size-4" />
                     Summarize
                   </ContextMenuItem>
                   <ContextMenuSeparator />
                 </>
               )}
-              <ContextMenuItem onClick={handleCopyId}>
+              <ContextMenuItem
+                className="cursor-pointer"
+                onClick={handleCopyId}
+              >
                 <Copy className="size-4" />
                 Copy ID
               </ContextMenuItem>
-              <ContextMenuItem onClick={duplicateNode}>
+              <ContextMenuItem
+                className="cursor-pointer"
+                onClick={duplicateNode}
+              >
                 <CopyPlus className="size-4" />
                 Duplicate
               </ContextMenuItem>
-              <ContextMenuItem variant="destructive" onClick={deleteNode}>
+              <ContextMenuItem
+                className="cursor-pointer"
+                variant="destructive"
+                onClick={deleteNode}
+              >
                 <Trash2 className="size-4" />
                 Delete
               </ContextMenuItem>

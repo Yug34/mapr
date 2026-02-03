@@ -21,6 +21,7 @@ import { extractAndStoreNodeText } from "../services/extractionService";
 import type { PersistedEdge, PersistedNode } from "../utils/serialization";
 import { debounce, blobManager } from "../utils";
 import { useExtractionStore } from "./extractionStore";
+import { useChatStore } from "./chatStore";
 import type { MediaRecord } from "../utils/sqliteDb";
 import skyscraperImage from "/skyscraper.png?url";
 import comfortablyNumb from "/Comfortably Numb.mp4?url";
@@ -470,9 +471,16 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       clearStore(Stores.meta),
       clearStore(Stores.tabs),
       clearStore(Stores.node_text),
+      clearStore(Stores.chat_threads),
+      clearStore(Stores.chat_messages),
     ]);
     blobManager.revokeAllBlobUrls();
     useExtractionStore.getState().clearAll();
+    useChatStore.setState({
+      threads: [],
+      messagesByThreadId: {},
+      activeThreadId: null,
+    });
     set({ initialized: false });
     await get().initFromDb();
   };
