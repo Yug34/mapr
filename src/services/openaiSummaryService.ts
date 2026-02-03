@@ -1,21 +1,22 @@
-import { generateText, streamText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
-import {
-  OPENAI_SUMMARY_MODEL,
-  SUMMARIZE_MAX_INPUT_CHARS,
-  SUMMARIZE_MAX_OUTPUT_TOKENS,
-} from "@/constants";
-
-const apiKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined;
-
-const openai = createOpenAI({ apiKey });
-
-const SYSTEM_PROMPT =
-  "I want you to summarize the piece of text that the user provides. Keep the summary under 200 words. Use markdown to format the summary and highlight the most important points:";
+import { SUMMARIZE_MAX_INPUT_CHARS } from "@/constants";
 
 /**
- * Stream a summary of the given text using the OpenAI API (Vercel AI SDK).
- * Requires VITE_OPENAI_API_KEY in .env.
+ * Get the API endpoint URL - works in both dev and production
+ */
+function getApiUrl(): string {
+  // In development, use local Vercel dev server or proxy
+  if (import.meta.env.DEV) {
+    // If using Vercel CLI: vercel dev
+    return "http://localhost:3000/api/summarize";
+    // Or use a proxy in vite.config.ts (see Step 4)
+  }
+  // In production, use relative URL (same domain)
+  return "/api/summarize";
+}
+
+/**
+ * Stream a summary of the given text using the OpenAI API via serverless proxy.
+ * The API key is kept secure on the server-side.
  * @param text The text to summarize
  * @param onChunk Callback function called with each chunk of text as it arrives
  * @returns Promise that resolves when streaming is complete
@@ -29,33 +30,56 @@ export async function streamSummarizeWithOpenAI(
     throw new Error("Text to summarize cannot be empty.");
   }
 
-  if (!apiKey) {
-    throw new Error("OpenAI API key not set. Add VITE_OPENAI_API_KEY to .env.");
-  }
-
   let input = trimmed;
   if (input.length > SUMMARIZE_MAX_INPUT_CHARS) {
     input = input.slice(0, SUMMARIZE_MAX_INPUT_CHARS) + "\n[... truncated]";
   }
 
+  const apiUrl = getApiUrl();
   let fullContent = "";
 
-  const result = await streamText({
-    model: openai(OPENAI_SUMMARY_MODEL),
-    system: SYSTEM_PROMPT,
-    prompt: input,
-    maxOutputTokens: SUMMARIZE_MAX_OUTPUT_TOKENS,
-    temperature: 0.2,
-  });
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: input }),
+    });
 
-  for await (const chunk of result.textStream) {
-    fullContent += chunk;
-    onChunk(chunk);
-  }
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(
+        error.error || `API request failed: ${response.statusText}`
+      );
+    }
 
-  const content = fullContent.trim();
-  if (!content) {
-    throw new Error("Empty summary response from OpenAI");
+    if (!response.body) {
+      throw new Error("No response body from API");
+    }
+
+    // Stream the response
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      fullContent += chunk;
+      onChunk(chunk);
+    }
+
+    const content = fullContent.trim();
+    if (!content) {
+      throw new Error("Empty summary response from API");
+    }
+    return content;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to summarize: ${errorMessage}`);
   }
-  return content;
 }

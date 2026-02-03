@@ -4,7 +4,13 @@ import type { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Send, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import {
+  Send,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  TrashIcon,
+  PencilIcon,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useSidebar } from "./ui/sidebar";
 import { Loader } from "./ui/loader";
