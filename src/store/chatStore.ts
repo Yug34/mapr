@@ -17,8 +17,11 @@ interface ChatStore {
   updateMessage: (messageId: string, content: string) => Promise<void>;
   updateThreadTitle: (threadId: string, title: string) => Promise<void>;
   closeThread: (threadId: string) => Promise<void>;
+  reopenThread: (threadId: string) => Promise<void>;
+  ensureThreadVisible: (threadId: string) => Promise<void>;
   ensureDefaultThread: () => Promise<string>;
   loadFromStorage: () => Promise<void>;
+  getAllThreads: () => Promise<Thread[]>;
 }
 
 export const useChatStore = create<ChatStore>()((set, get) => ({
@@ -216,6 +219,88 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     });
   },
 
+  reopenThread: async (threadId) => {
+    const state = get();
+    // Get all threads from DB (including hidden ones) to find the thread
+    const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
+    const thread = allThreads.find((t) => t.id === threadId);
+    if (!thread) {
+      throw new Error(`Thread ${threadId} not found`);
+    }
+
+    const updatedThread: Thread = {
+      ...thread,
+      toShowInSidebar: true,
+      updatedAt: Date.now(),
+    };
+
+    await put(Stores.chat_threads, updatedThread);
+
+    // Add to visible threads if not already there
+    const threadExists = state.threads.some((t) => t.id === threadId);
+    const newThreads = threadExists
+      ? state.threads.map((t) => (t.id === threadId ? updatedThread : t))
+      : [updatedThread, ...state.threads];
+
+    // Sort threads by updatedAt (or createdAt if updatedAt is missing), newest first
+    newThreads.sort((a, b) => {
+      const aDate = a.updatedAt ?? a.createdAt;
+      const bDate = b.updatedAt ?? b.createdAt;
+      return bDate - aDate; // Descending order (newest first)
+    });
+
+    set({
+      threads: newThreads,
+    });
+  },
+
+  ensureThreadVisible: async (threadId) => {
+    const state = get();
+    // Get all threads from DB (including hidden ones) to find the thread
+    const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
+    const thread = allThreads.find((t) => t.id === threadId);
+    if (!thread) {
+      throw new Error(`Thread ${threadId} not found`);
+    }
+
+    const now = Date.now();
+    let updatedThread: Thread;
+
+    // If thread is not visible, make it visible
+    if (thread.toShowInSidebar === false) {
+      updatedThread = {
+        ...thread,
+        toShowInSidebar: true,
+        updatedAt: now,
+      };
+      await put(Stores.chat_threads, updatedThread);
+    } else {
+      // Even if visible, update the timestamp so it appears at the top
+      updatedThread = {
+        ...thread,
+        updatedAt: now,
+      };
+      await put(Stores.chat_threads, updatedThread);
+    }
+
+    // Update store state directly - only add/update this specific thread
+    const threadExists = state.threads.some((t) => t.id === threadId);
+    const newThreads = threadExists
+      ? state.threads.map((t) => (t.id === threadId ? updatedThread : t))
+      : [updatedThread, ...state.threads];
+
+    // Sort threads by updatedAt (or createdAt if updatedAt is missing), newest first
+    newThreads.sort((a, b) => {
+      const aDate = a.updatedAt ?? a.createdAt;
+      const bDate = b.updatedAt ?? b.createdAt;
+      return bDate - aDate; // Descending order (newest first)
+    });
+
+    set({
+      threads: newThreads,
+    });
+  },
+
   ensureDefaultThread: async () => {
     const { threads, addThread } = get();
     if (threads.length === 0) return addThread();
@@ -236,5 +321,16 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     }
     set({ activeThreadId: id });
     return id;
+  },
+
+  getAllThreads: async () => {
+    const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
+    // Sort threads by updatedAt (or createdAt if updatedAt is missing), newest first
+    allThreads.sort((a, b) => {
+      const aDate = a.updatedAt ?? a.createdAt;
+      const bDate = b.updatedAt ?? b.createdAt;
+      return bDate - aDate; // Descending order (newest first)
+    });
+    return allThreads;
   },
 }));

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Send, SquareArrowOutUpRight, X, History, Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Loader } from "./ui/loader";
+import { ThreadHistoryDialog } from "./ThreadHistoryDialog";
 
 function MessageBubble({
   message,
@@ -92,6 +93,7 @@ export function ChatSidebar() {
   } = useChatStore();
 
   const [input, setInput] = useState("");
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -170,7 +172,7 @@ export function ChatSidebar() {
             });
           }}
         >
-          <div className="flex w-max gap-1 overflow-y-hidden">
+          <div className="flex w-max pl-2 gap-1 overflow-y-hidden">
             {threads.map((t) => (
               <Button
                 key={t.id}
@@ -225,11 +227,16 @@ export function ChatSidebar() {
           variant="ghost"
           size="icon"
           className="h-[40px] shrink-0 border-0 border-l-1 border-gray-300 rounded-none bg-neutral-100"
-          onClick={() => {}}
+          onClick={() => setHistoryDialogOpen(true)}
         >
           <History className="size-4 shrink-0" />
         </Button>
       </div>
+
+      <ThreadHistoryDialog
+        open={historyDialogOpen}
+        onOpenChange={setHistoryDialogOpen}
+      />
 
       {/* Message list */}
       <ScrollArea className="flex-1 p-3">
