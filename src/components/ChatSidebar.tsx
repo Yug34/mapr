@@ -238,41 +238,66 @@ export function ChatSidebar() {
         onOpenChange={setHistoryDialogOpen}
       />
 
-      {/* Message list */}
-      <ScrollArea className="flex-1 p-3">
-        <div className="flex flex-col gap-5">
-          {messages.map((m) => {
-            const isLastMessage = m.id === messages[messages.length - 1]?.id;
-            const isThinkingBubble =
-              showThinking &&
-              isLastMessage &&
-              (m.role === "assistant" || m.role === "summary") &&
-              (!m.content || m.content.trim() === "");
-            return (
-              <MessageBubble
-                key={m.id}
-                message={m}
-                isThinking={isThinkingBubble}
-              />
-            );
-          })}
-          {showThinking &&
-            messages.length > 0 &&
-            messages[messages.length - 1]?.role === "user" && (
-              <MessageBubble
-                message={{
-                  id: "thinking",
-                  threadId: activeThreadId || "",
-                  role: "assistant",
-                  content: "",
-                  createdAt: Date.now(),
-                }}
-                isThinking={true}
-              />
+      {activeThreadId ? (
+        <ScrollArea className="flex-1 p-3">
+          <div
+            className={cn(
+              "flex flex-col gap-5",
+              !activeThreadId &&
+                "flex flex-col h-full min-h-[300px] items-center justify-center"
             )}
-          <div ref={scrollRef} />
+          >
+            <>
+              {messages.map((m) => {
+                const isLastMessage =
+                  m.id === messages[messages.length - 1]?.id;
+                const isThinkingBubble =
+                  showThinking &&
+                  isLastMessage &&
+                  (m.role === "assistant" || m.role === "summary") &&
+                  (!m.content || m.content.trim() === "");
+                return (
+                  <MessageBubble
+                    key={m.id}
+                    message={m}
+                    isThinking={isThinkingBubble}
+                  />
+                );
+              })}
+              {showThinking &&
+                messages.length > 0 &&
+                messages[messages.length - 1]?.role === "user" && (
+                  <MessageBubble
+                    message={{
+                      id: "thinking",
+                      threadId: activeThreadId || "",
+                      role: "assistant",
+                      content: "",
+                      createdAt: Date.now(),
+                    }}
+                    isThinking={true}
+                  />
+                )}
+              <div ref={scrollRef} />
+            </>
+          </div>
+        </ScrollArea>
+      ) : (
+        <div className="flex flex-col text-sm text-center h-full flex items-center justify-center gap-y-4">
+          <p>Create a thread by summarizing a node.</p>
+          <div>
+            <Button
+              className="hover:opacity-70 transition-opacity"
+              onClick={async () => {
+                const newThreadId = await addThread();
+                setActiveThread(newThreadId);
+              }}
+            >
+              Or click here <Plus className="size-4" />
+            </Button>
+          </div>
         </div>
-      </ScrollArea>
+      )}
 
       {/* Input + Send */}
       <div className="shrink-0 border-t p-2">
