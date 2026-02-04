@@ -141,9 +141,9 @@ export function ChatSidebar() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Thread tabs header */}
-      <div className="flex shrink-0 items-center gap-1 border-b p-2">
-        <ScrollArea className="flex-1 overflow-x-auto">
-          <div className="flex gap-1">
+      <div className="flex shrink-0 items-center gap-1 border-b p-2 min-w-0">
+        <div className="flex-1 min-w-0 overflow-x-auto">
+          <div className="flex w-max gap-1">
             {threads.map((t) => (
               <Button
                 key={t.id}
@@ -156,7 +156,7 @@ export function ChatSidebar() {
               </Button>
             ))}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Message list */}
