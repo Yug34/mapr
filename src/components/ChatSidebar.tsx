@@ -248,6 +248,11 @@ export function ChatSidebar() {
             )}
           >
             <>
+              {messages.length === 0 && (
+                <div className="text-center text-muted-foreground height-full flex flex-col items-center justify-center">
+                  <p>No messages yet.</p>
+                </div>
+              )}
               {messages.map((m) => {
                 const isLastMessage =
                   m.id === messages[messages.length - 1]?.id;
@@ -284,10 +289,11 @@ export function ChatSidebar() {
         </ScrollArea>
       ) : (
         <div className="flex flex-col text-sm text-center h-full flex items-center justify-center gap-y-4">
-          <p>Create a thread by summarizing a node.</p>
+          <p className="text-md">Create a thread by summarizing a node.</p>
           <div>
             <Button
-              className="hover:opacity-70 transition-opacity"
+              variant="outline"
+              className="border border-1 border-gray-400 rounded-md"
               onClick={async () => {
                 const newThreadId = await addThread();
                 setActiveThread(newThreadId);

@@ -3,10 +3,10 @@ import type { Todo, TODONodeData } from "../../types/common";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { Card } from "../ui/card";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { EditIcon, TrashIcon } from "lucide-react";
+import { CalendarIcon, EditIcon, TrashIcon, XIcon } from "lucide-react";
 import { EditableNodeTitle } from "@/components/ui/editable-node-title";
 import { HandlesArray } from "../../utils/components";
 import { useCanvas } from "../../hooks/useCanvas";
@@ -25,7 +25,13 @@ export function TODONode(props: NodeProps) {
 
   const [title, setTitle] = useState(nodeData.title ?? "TODO");
   const [todos, setTodos] = useState<Todo[]>(nodeData.todos);
+  const [dueDate, setDueDate] = useState<number | undefined>(nodeData.dueDate);
+  const [isEditingDueDate, setIsEditingDueDate] = useState(false);
   const { updateNodeData } = useCanvas();
+
+  useEffect(() => {
+    setDueDate(nodeData.dueDate);
+  }, [nodeData.dueDate]);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
@@ -35,7 +41,7 @@ export function TODONode(props: NodeProps) {
       setTodos(nextTodos);
       updateNodeData(id, { todos: nextTodos } as TODONodeData);
     },
-    [id, updateNodeData],
+    [id, updateNodeData]
   );
 
   const updateNodeTitle = useCallback(
@@ -43,7 +49,16 @@ export function TODONode(props: NodeProps) {
       setTitle(newTitle);
       updateNodeData(id, { title: newTitle, todos } as TODONodeData);
     },
-    [id, todos, updateNodeData],
+    [id, todos, updateNodeData]
+  );
+
+  const updateNodeDueDate = useCallback(
+    (newDueDate: number | undefined) => {
+      setDueDate(newDueDate);
+      updateNodeData(id, { dueDate: newDueDate } as TODONodeData);
+      setIsEditingDueDate(false);
+    },
+    [id, updateNodeData]
   );
 
   const addTodo = useCallback(() => {
@@ -57,20 +72,20 @@ export function TODONode(props: NodeProps) {
 
   const handleTodoClick = (
     e: React.MouseEvent<HTMLDivElement>,
-    todoNode: Todo,
+    todoNode: Todo
   ) => {
     e.preventDefault();
     e.stopPropagation();
     updateNodeTodos(
       todos.map((t: Todo) =>
-        t.id === todoNode.id ? { ...t, completed: !t.completed } : t,
-      ),
+        t.id === todoNode.id ? { ...t, completed: !t.completed } : t
+      )
     );
   };
 
   const handleTodoEdit = (
     e: React.MouseEvent<HTMLButtonElement>,
-    todoNode: Todo,
+    todoNode: Todo
   ) => {
     e.preventDefault();
     e.stopPropagation();
@@ -81,7 +96,7 @@ export function TODONode(props: NodeProps) {
 
   const handleTodoDelete = (
     e: React.MouseEvent<HTMLButtonElement>,
-    todoNode: Todo,
+    todoNode: Todo
   ) => {
     e.preventDefault();
     e.stopPropagation();
@@ -98,6 +113,61 @@ export function TODONode(props: NodeProps) {
             title={title}
           />
         </div>
+        <div
+          className="px-3 py-1.5 border-b bg-muted/20 flex w-full text-xs items-center gap-2 min-h-[2rem]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span className="text-muted-foreground shrink-0">Due:</span>
+          {isEditingDueDate ? (
+            <div className="flex items-center gap-1 flex-1 min-w-0">
+              <Input
+                type="date"
+                className="h-7 text-xs flex-1 min-w-0"
+                autoFocus
+                value={
+                  dueDate ? new Date(dueDate).toISOString().slice(0, 10) : ""
+                }
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v) updateNodeDueDate(new Date(v).getTime());
+                }}
+                onBlur={() => setIsEditingDueDate(false)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") setIsEditingDueDate(false);
+                  if (e.key === "Escape") setIsEditingDueDate(false);
+                }}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 shrink-0"
+                onClick={() => updateNodeDueDate(undefined)}
+                title="Clear due date"
+              >
+                <XIcon className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              className={cn(
+                "flex items-center gap-1.5 flex-1 min-w-0 text-left rounded border border-1 border-gray-400 hover:bg-accent/50 px-1 py-0.5 -mx-1",
+                !dueDate && "text-muted-foreground italic"
+              )}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsEditingDueDate(true);
+              }}
+            >
+              <CalendarIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              {dueDate
+                ? new Date(dueDate).toLocaleDateString()
+                : "Set due date"}
+            </Button>
+          )}
+        </div>
         {todos.map((todo: Todo) => (
           <div
             key={todo.id}
@@ -111,7 +181,7 @@ export function TODONode(props: NodeProps) {
               className={cn(
                 "flex items-center cursor-pointer w-full gap-3 border p-3 rounded-none hover:bg-accent/50",
                 "has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50",
-                "dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950",
+                "dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950"
               )}
             >
               <Checkbox
@@ -174,8 +244,8 @@ export function TODONode(props: NodeProps) {
                 const title = editingTitle.trim();
                 updateNodeTodos(
                   todos.map((t) =>
-                    t.id === editingTodoId ? { ...t, title } : t,
-                  ),
+                    t.id === editingTodoId ? { ...t, title } : t
+                  )
                 );
                 setEditDialogOpen(false);
               }
@@ -196,8 +266,8 @@ export function TODONode(props: NodeProps) {
                 const title = editingTitle.trim();
                 updateNodeTodos(
                   todos.map((t) =>
-                    t.id === editingTodoId ? { ...t, title } : t,
-                  ),
+                    t.id === editingTodoId ? { ...t, title } : t
+                  )
                 );
                 setEditDialogOpen(false);
               }}

@@ -1,6 +1,7 @@
 import { execQuery } from "../utils/sqliteDb";
 import type { StructuredQuerySpec, QueryResult } from "../types/query";
 import type { PersistedNode } from "../utils/serialization";
+import { TodoStatus, type Todo, type TODONodeData } from "../types/common";
 
 /**
  * Maps ReactFlow node types to the query spec node types
@@ -57,13 +58,21 @@ function extractCreatedAt(data: unknown): number | undefined {
  */
 function extractStatus(data: unknown): string | undefined {
   if (!data || typeof data !== "object") return undefined;
-  const obj = data as Record<string, unknown>;
+  const obj: TODONodeData = data as TODONodeData;
+  const dueDate = obj.dueDate;
   // For TODOs, check if there are todos with status
   if (obj.todos && Array.isArray(obj.todos)) {
     // Return the first incomplete todo's status, or "completed" if all are done
-    const todos = obj.todos as Array<{ completed?: boolean }>;
+    const todos = obj.todos as Todo[];
     const hasIncomplete = todos.some((t) => !t.completed);
-    return hasIncomplete ? "incomplete" : "completed";
+    const hasOverdue = todos.some(
+      (t) => !t.completed && dueDate !== undefined && dueDate < Date.now()
+    );
+    return hasIncomplete
+      ? TodoStatus.Incomplete
+      : hasOverdue
+      ? TodoStatus.Overdue
+      : TodoStatus.Complete;
   }
   return undefined;
 }
@@ -149,7 +158,7 @@ export class QueryService {
 
       if (spec.mustNotHaveTags && spec.mustNotHaveTags.length > 0) {
         const hasExcludedTag = spec.mustNotHaveTags.some((tag) =>
-          tags.includes(tag),
+          tags.includes(tag)
         );
         if (hasExcludedTag) continue;
       }

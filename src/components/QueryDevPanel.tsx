@@ -214,25 +214,6 @@ export function QueryDevPanel() {
           {/* JSON Query Section */}
           <div className="space-y-2">
             <div>
-              <span className="font-semibold block mb-2">Examples:</span>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {Object.entries(exampleQueries).map(([label, query]) => (
-                  <Button
-                    key={label}
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-[11px]"
-                    onClick={() => loadExample(query)}
-                  >
-                    {label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label className="block font-semibold mb-1">
-                StructuredQuerySpec (JSON):
-              </Label>
               <textarea
                 value={queryJson}
                 onChange={(e) => setQueryJson(e.target.value)}

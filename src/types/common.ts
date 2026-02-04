@@ -64,9 +64,19 @@ export type Todo = {
   completed: boolean;
 };
 
+export const TodoStatus = {
+  Incomplete: "incomplete",
+  Complete: "complete",
+  Overdue: "overdue",
+} as const;
+
+export type TodoStatus = (typeof TodoStatus)[keyof typeof TodoStatus];
+
 export type TODONodeData = {
   title: string;
   todos: Todo[];
+  dueDate?: number;
+  status?: TodoStatus;
 };
 
 export type NoteNodeData = {
