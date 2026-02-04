@@ -84,6 +84,7 @@ export function ChatSidebar() {
     activeThreadId,
     setActiveThread,
     addMessage,
+    updateThreadTitle,
     loadFromStorage,
     ensureDefaultThread,
   } = useChatStore();
@@ -134,6 +135,20 @@ export function ChatSidebar() {
   const handleSend = async () => {
     const text = input.trim();
     if (!text || !activeThreadId) return;
+
+    // Check if this is the first user message in the thread
+    const currentMessages = messagesByThreadId[activeThreadId] ?? [];
+    const userMessages = currentMessages.filter((m) => m.role === "user");
+    const isFirstUserMessage = userMessages.length === 0;
+
+    // If it's the first user message, update the thread title to first 10 chars
+    if (isFirstUserMessage) {
+      const truncatedTitle = text.slice(0, 10).trim();
+      if (truncatedTitle) {
+        await updateThreadTitle(activeThreadId, truncatedTitle);
+      }
+    }
+
     await addMessage(activeThreadId, { role: "user", content: text });
     setInput("");
   };
@@ -141,7 +156,7 @@ export function ChatSidebar() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Thread tabs header */}
-      <div className="flex shrink-0 items-center gap-1 border-b p-2 min-w-0">
+      <div className="flex shrink-0 items-center gap-1 border-b min-w-0">
         <div
           className="flex-1 min-w-0 overflow-x-auto"
           onWheel={(e) => {

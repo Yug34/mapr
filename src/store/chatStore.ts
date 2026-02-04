@@ -15,6 +15,7 @@ interface ChatStore {
     message: Omit<Message, "id" | "threadId" | "createdAt">
   ) => Promise<string>;
   updateMessage: (messageId: string, content: string) => Promise<void>;
+  updateThreadTitle: (threadId: string, title: string) => Promise<void>;
   ensureDefaultThread: () => Promise<string>;
   loadFromStorage: () => Promise<void>;
 }
@@ -26,6 +27,12 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
 
   loadFromStorage: async () => {
     const threads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
+    // Sort threads by updatedAt (or createdAt if updatedAt is missing), newest first
+    threads.sort((a, b) => {
+      const aDate = a.updatedAt ?? a.createdAt;
+      const bDate = b.updatedAt ?? b.createdAt;
+      return bDate - aDate; // Descending order (newest first)
+    });
     const messages = (await getAll<Message>(Stores.chat_messages)) ?? [];
     const messagesByThreadId = messages.reduce<Record<string, Message[]>>(
       (acc, m) => {
@@ -68,7 +75,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     await put(Stores.chat_threads, thread);
     await put(Stores.meta, { k: META_KEY_ACTIVE_THREAD, v: id });
     set((state) => ({
-      threads: [...state.threads, thread],
+      threads: [thread, ...state.threads],
       messagesByThreadId: { ...state.messagesByThreadId, [id]: [] },
       activeThreadId: id,
     }));
@@ -144,6 +151,27 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
         },
       };
     });
+  },
+
+  updateThreadTitle: async (threadId, title) => {
+    const state = get();
+    const thread = state.threads.find((t) => t.id === threadId);
+    if (!thread) {
+      throw new Error(`Thread ${threadId} not found`);
+    }
+
+    const updatedThread: Thread = {
+      ...thread,
+      title,
+      updatedAt: Date.now(),
+    };
+
+    await put(Stores.chat_threads, updatedThread);
+    set((state) => ({
+      threads: state.threads.map((t) =>
+        t.id === threadId ? updatedThread : t
+      ),
+    }));
   },
 
   ensureDefaultThread: async () => {
