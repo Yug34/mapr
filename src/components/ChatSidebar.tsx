@@ -44,16 +44,18 @@ function MessageBubble({
             <Loader className="ml-0" size={16} />
             <span className="text-xs italic">Thinking...</span>
           </div>
-        ) : isSummary || message.role === "assistant" ? (
+        ) : (
           <div
             className={cn(
               "prose prose-sm dark:prose-invert max-w-none",
-              "prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-foreground prose-h2:text-base prose-h2:mt-3 prose-h2:mb-2 prose-h2:border-none prose-h2:pb-0",
+              "prose-headings:font-semibold prose-headings:tracking-tight prose-h2:text-base prose-h2:mt-3 prose-h2:mb-2 prose-h2:border-none prose-h2:pb-0",
               "prose-p:my-1.5 prose-p:leading-relaxed",
               "prose-ul:my-0 prose-ul:px-4 prose-li:px-0 prose-ol:my-2 prose-li:my-0 prose-li:leading-relaxed",
-              "prose-strong:font-semibold prose-strong:text-foreground",
-              "prose-a:text-primary prose-a:underline prose-a:underline-offset-2 hover:prose-a:text-primary/90",
-              !isUser && "prose-p:text-foreground prose-li:text-foreground"
+              "prose-strong:font-semibold",
+              "prose-a:underline prose-a:underline-offset-2",
+              isUser
+                ? "prose-headings:text-primary-foreground prose-p:text-primary-foreground prose-li:text-primary-foreground prose-strong:text-primary-foreground prose-a:text-primary-foreground hover:prose-a:text-primary-foreground/80"
+                : "prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-a:text-primary hover:prose-a:text-primary/90"
             )}
           >
             <ReactMarkdown
@@ -69,8 +71,6 @@ function MessageBubble({
               {message.content}
             </ReactMarkdown>
           </div>
-        ) : (
-          <p className="whitespace-pre-wrap break-words">{message.content}</p>
         )}
       </div>
     </div>
