@@ -73,7 +73,7 @@ const Sidebar = ({
         open ? "w-[400px]" : "w-0"
       )}
     >
-      <div className="absolute left-[1px] top-1/2 -translate-x-full -translate-y-1/2 z-[1002] pointer-events-auto">
+      <div className="absolute left-[1px] top-1/2 -translate-x-full -translate-y-1/2 z-[49] pointer-events-auto">
         <ChatSidebarTrigger />
       </div>
       <aside

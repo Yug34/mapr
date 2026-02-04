@@ -78,7 +78,7 @@ function App() {
               <div className="px-4 py-2 absolute top-0 left-0 flex w-full items-center justify-center bg-transparent pointer-events-none">
                 <Badge
                   variant="secondary"
-                  className="z-[1001] bg-blue-500 text-white dark:bg-blue-600 p-2"
+                  className="z-[49] bg-blue-500 text-white dark:bg-blue-600 p-2"
                 >
                   {currentTabTitle}
                 </Badge>
