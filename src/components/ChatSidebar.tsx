@@ -4,7 +4,7 @@ import type { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Send, SquareArrowOutUpRight } from "lucide-react";
+import { Send, SquareArrowOutUpRight, X, History } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Loader } from "./ui/loader";
 
@@ -156,7 +156,7 @@ export function ChatSidebar() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Thread tabs header */}
-      <div className="flex shrink-0 items-center gap-1 border-b min-w-0">
+      <div className="flex shrink-0 items-center border-b min-w-0">
         <div
           className="flex-1 min-w-0 overflow-x-auto"
           onWheel={(e) => {
@@ -174,14 +174,31 @@ export function ChatSidebar() {
                 key={t.id}
                 variant={activeThreadId === t.id ? "secondary" : "ghost"}
                 size="sm"
-                className="shrink-0"
+                className="shrink-0 gap-1.5"
                 onClick={() => setActiveThread(t.id)}
               >
                 {t.title}
+                <X
+                  className="size-3 shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Dummy handler - closing logic to be implemented later
+                  }}
+                />
               </Button>
             ))}
           </div>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-[40px] shrink-0 border-0 border-l-1 border-gray-300 rounded-none bg-neutral-200"
+          onClick={() => {
+            // Dummy handler - closing logic to be implemented later
+          }}
+        >
+          <History className="size-4 shrink-0" />
+        </Button>
       </div>
 
       {/* Message list */}
