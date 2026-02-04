@@ -8,7 +8,7 @@ interface ChatStore {
   threads: Thread[];
   messagesByThreadId: Record<string, Message[]>;
   activeThreadId: string | null;
-  addThread: () => Promise<string>;
+  addThread: (initialTitle?: string) => Promise<string>;
   setActiveThread: (id: string | null) => Promise<void>;
   addMessage: (
     threadId: string,
@@ -63,12 +63,12 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     set({ threads, messagesByThreadId, activeThreadId });
   },
 
-  addThread: async () => {
+  addThread: async (initialTitle) => {
     const id = crypto.randomUUID();
     const now = Date.now();
     const thread: Thread = {
       id,
-      title: "New chat",
+      title: initialTitle ?? "New chat",
       createdAt: now,
       updatedAt: now,
     };

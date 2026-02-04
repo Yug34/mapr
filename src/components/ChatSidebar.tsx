@@ -141,11 +141,11 @@ export function ChatSidebar() {
     const userMessages = currentMessages.filter((m) => m.role === "user");
     const isFirstUserMessage = userMessages.length === 0;
 
-    // If it's the first user message, update the thread title to first 10 chars
+    // If it's the first user message, update the thread title to the first two words
     if (isFirstUserMessage) {
-      const truncatedTitle = text.slice(0, 10).trim();
-      if (truncatedTitle) {
-        await updateThreadTitle(activeThreadId, truncatedTitle);
+      const firstTwoWords = text.trim().split(/\s+/).slice(0, 2).join(" ");
+      if (firstTwoWords) {
+        await updateThreadTitle(activeThreadId, firstTwoWords);
       }
     }
 

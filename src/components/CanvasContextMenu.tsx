@@ -158,8 +158,9 @@ const CanvasContextMenu = ({
     const sourceTitle = (node.data as { title?: string })?.title ?? "Node";
 
     try {
-      // Create a new thread
-      const threadId = await addThread();
+      // Create a new thread, using the first two words of the text as the title
+      const initialTitle = text.trim().split(/\s+/).slice(0, 2).join(" ");
+      const threadId = await addThread(initialTitle || "New chat");
       setSidebarOpen(true);
 
       // Add the extracted text as a user message
