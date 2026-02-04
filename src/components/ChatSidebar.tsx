@@ -4,7 +4,7 @@ import type { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Send, SquareArrowOutUpRight, X, History } from "lucide-react";
+import { Send, SquareArrowOutUpRight, X, History, Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Loader } from "./ui/loader";
 
@@ -85,6 +85,8 @@ export function ChatSidebar() {
     setActiveThread,
     addMessage,
     updateThreadTitle,
+    closeThread,
+    addThread,
     loadFromStorage,
     ensureDefaultThread,
   } = useChatStore();
@@ -168,23 +170,42 @@ export function ChatSidebar() {
             });
           }}
         >
-          <div className="flex w-max gap-1">
+          <div className="flex w-max gap-1 overflow-y-hidden">
             {threads.map((t) => (
               <Button
                 key={t.id}
                 variant={activeThreadId === t.id ? "secondary" : "ghost"}
                 size="sm"
-                className="shrink-0 gap-1.5"
-                onClick={() => setActiveThread(t.id)}
+                className="shrink-0 gap-1.5 relative"
+                onClick={(e) => {
+                  // Check if the click was on the X icon or its parent
+                  const target = e.target as HTMLElement;
+                  if (
+                    target.closest("svg") ||
+                    target.classList.contains("close-thread-icon")
+                  ) {
+                    return;
+                  }
+                  setActiveThread(t.id);
+                }}
               >
                 {t.title}
-                <X
-                  className="size-3 shrink-0"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 w-3 h-3 gap-0"
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    // Dummy handler - closing logic to be implemented later
+                    closeThread(t.id);
                   }}
-                />
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  <X className="close-thread-icon size-3 z-[49] shrink-0 hover:opacity-70 transition-opacity border border-gray-300 rounded-full bg-neutral-200 hover:bg-accent" />
+                </Button>
               </Button>
             ))}
           </div>
@@ -192,10 +213,19 @@ export function ChatSidebar() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-[40px] shrink-0 border-0 border-l-1 border-gray-300 rounded-none bg-neutral-200"
-          onClick={() => {
-            // Dummy handler - closing logic to be implemented later
+          className="h-[40px] shrink-0 border-0 border-l-1 border-gray-300 rounded-none bg-neutral-100"
+          onClick={async () => {
+            const newThreadId = await addThread();
+            setActiveThread(newThreadId);
           }}
+        >
+          <Plus className="size-4 shrink-0" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-[40px] shrink-0 border-0 border-l-1 border-gray-300 rounded-none bg-neutral-100"
+          onClick={() => {}}
         >
           <History className="size-4 shrink-0" />
         </Button>

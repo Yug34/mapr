@@ -16,6 +16,7 @@ interface ChatStore {
   ) => Promise<string>;
   updateMessage: (messageId: string, content: string) => Promise<void>;
   updateThreadTitle: (threadId: string, title: string) => Promise<void>;
+  closeThread: (threadId: string) => Promise<void>;
   ensureDefaultThread: () => Promise<string>;
   loadFromStorage: () => Promise<void>;
 }
@@ -26,7 +27,9 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
   activeThreadId: null,
 
   loadFromStorage: async () => {
-    const threads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
+    const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
+    // Filter threads to only show those with toShowInSidebar === true
+    const threads = allThreads.filter((t) => t.toShowInSidebar !== false);
     // Sort threads by updatedAt (or createdAt if updatedAt is missing), newest first
     threads.sort((a, b) => {
       const aDate = a.updatedAt ?? a.createdAt;
@@ -71,6 +74,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
       title: initialTitle ?? "New chat",
       createdAt: now,
       updatedAt: now,
+      toShowInSidebar: true,
     };
     await put(Stores.chat_threads, thread);
     await put(Stores.meta, { k: META_KEY_ACTIVE_THREAD, v: id });
@@ -172,6 +176,44 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
         t.id === threadId ? updatedThread : t
       ),
     }));
+  },
+
+  closeThread: async (threadId) => {
+    const state = get();
+    // Get all threads from DB (including hidden ones) to find the thread
+    const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
+    const thread = allThreads.find((t) => t.id === threadId);
+    if (!thread) {
+      throw new Error(`Thread ${threadId} not found`);
+    }
+
+    const updatedThread: Thread = {
+      ...thread,
+      toShowInSidebar: false,
+      updatedAt: Date.now(),
+    };
+
+    await put(Stores.chat_threads, updatedThread);
+
+    // Remove from visible threads
+    const newThreads = state.threads.filter((t) => t.id !== threadId);
+
+    // If the closed thread was active, switch to another thread
+    let newActiveThreadId = state.activeThreadId;
+    if (state.activeThreadId === threadId) {
+      newActiveThreadId = newThreads.length > 0 ? newThreads[0].id : null;
+      if (newActiveThreadId) {
+        await put(Stores.meta, {
+          k: META_KEY_ACTIVE_THREAD,
+          v: newActiveThreadId,
+        });
+      }
+    }
+
+    set({
+      threads: newThreads,
+      activeThreadId: newActiveThreadId,
+    });
   },
 
   ensureDefaultThread: async () => {

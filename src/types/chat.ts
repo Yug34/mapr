@@ -5,6 +5,7 @@ export interface Thread {
   title: string;
   createdAt: number;
   updatedAt?: number;
+  toShowInSidebar?: boolean;
 }
 
 export interface Message {
