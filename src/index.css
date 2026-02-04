@@ -161,3 +161,20 @@
   background-position: 100% 100%;
   right: -0.2em;
 }
+
+::-webkit-scrollbar {
+  height: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  -webkit-border-radius: 8px;
+  border-radius: 8px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 8px;
+  border-radius: 8px;
+  background-color: #e0e0e0;
+}
