@@ -128,10 +128,10 @@ export function TODONode(props: NodeProps) {
         </div>
         <div
           className={cn(
-            "px-3 py-1.5 border-b bg-muted/20 flex w-full text-xs items-center gap-2 min-h-[2rem] text-white",
+            "px-3 py-1.5 border-b bg-muted/20 flex w-full text-xs items-center gap-2 min-h-[2rem] text-black",
             allTodosCompleted && "bg-green-500",
-            isOverdue && !allTodosCompleted && "bg-red-500",
-            isDueToday && !allTodosCompleted && "bg-amber-500"
+            isOverdue && !allTodosCompleted && "bg-red-500 text-white",
+            isDueToday && !allTodosCompleted && "bg-amber-500 text-white"
           )}
           onClick={(e) => e.stopPropagation()}
         >

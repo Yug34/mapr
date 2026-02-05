@@ -68,6 +68,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
           completed: false,
         },
       ],
+      dueDate: Date.now(),
     } as TODONodeData,
   },
   {

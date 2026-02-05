@@ -107,7 +107,8 @@ export function QueryDevPanel() {
     "show all todos",
     "find notes with tag important",
     "todos due this week",
-    "incomplete todos",
+    "incomplete todos due in less than 7 days",
+    "show all todos that are due this week",
     "all PDFs created last month",
   ];
 
