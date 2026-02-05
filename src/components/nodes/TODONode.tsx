@@ -17,6 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Calendar } from "../ui/calendar";
+import { format } from "date-fns";
 import { Input } from "../ui/input";
 
 export function TODONode(props: NodeProps) {
@@ -26,7 +29,7 @@ export function TODONode(props: NodeProps) {
   const [title, setTitle] = useState(nodeData.title ?? "TODO");
   const [todos, setTodos] = useState<Todo[]>(nodeData.todos);
   const [dueDate, setDueDate] = useState<number | undefined>(nodeData.dueDate);
-  const [isEditingDueDate, setIsEditingDueDate] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const { updateNodeData } = useCanvas();
 
   useEffect(() => {
@@ -56,7 +59,7 @@ export function TODONode(props: NodeProps) {
     (newDueDate: number | undefined) => {
       setDueDate(newDueDate);
       updateNodeData(id, { dueDate: newDueDate } as TODONodeData);
-      setIsEditingDueDate(false);
+      setIsDatePickerOpen(false);
     },
     [id, updateNodeData]
   );
@@ -118,55 +121,49 @@ export function TODONode(props: NodeProps) {
           onClick={(e) => e.stopPropagation()}
         >
           <span className="text-muted-foreground shrink-0">Due:</span>
-          {isEditingDueDate ? (
-            <div className="flex items-center gap-1 flex-1 min-w-0">
-              <Input
-                type="date"
-                className="h-7 text-xs flex-1 min-w-0"
-                autoFocus
-                value={
-                  dueDate ? new Date(dueDate).toISOString().slice(0, 10) : ""
-                }
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v) updateNodeDueDate(new Date(v).getTime());
-                }}
-                onBlur={() => setIsEditingDueDate(false)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") setIsEditingDueDate(false);
-                  if (e.key === "Escape") setIsEditingDueDate(false);
-                }}
-              />
+          <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+            <PopoverTrigger asChild>
               <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 shrink-0"
-                onClick={() => updateNodeDueDate(undefined)}
-                title="Clear due date"
+                variant="outline"
+                className={cn(
+                  "flex items-center gap-1.5 flex-1 min-w-0 text-left rounded border border-1 border-gray-400 hover:bg-accent/50 px-1 py-0.5 -mx-1",
+                  !dueDate && "text-muted-foreground italic"
+                )}
               >
-                <XIcon className="h-3.5 w-3.5" />
+                <CalendarIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                {dueDate
+                  ? format(new Date(dueDate), "MMM d, yyyy")
+                  : "Set due date"}
               </Button>
-            </div>
-          ) : (
-            <Button
-              variant="outline"
-              className={cn(
-                "flex items-center gap-1.5 flex-1 min-w-0 text-left rounded border border-1 border-gray-400 hover:bg-accent/50 px-1 py-0.5 -mx-1",
-                !dueDate && "text-muted-foreground italic"
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={dueDate ? new Date(dueDate) : undefined}
+                onSelect={(date) => {
+                  if (date) {
+                    updateNodeDueDate(date.getTime());
+                  } else {
+                    updateNodeDueDate(undefined);
+                  }
+                }}
+                initialFocus
+              />
+              {dueDate && (
+                <div className="p-2 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => updateNodeDueDate(undefined)}
+                  >
+                    <XIcon className="h-3.5 w-3.5 mr-1" />
+                    Clear due date
+                  </Button>
+                </div>
               )}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsEditingDueDate(true);
-              }}
-            >
-              <CalendarIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              {dueDate
-                ? new Date(dueDate).toLocaleDateString()
-                : "Set due date"}
-            </Button>
-          )}
+            </PopoverContent>
+          </Popover>
         </div>
         {todos.map((todo: Todo) => (
           <div
