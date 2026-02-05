@@ -26,7 +26,7 @@ import {
 } from "../ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
-import { format, isToday } from "date-fns";
+import { format, isToday, isBefore } from "date-fns";
 import { Input } from "../ui/input";
 
 export function TODONode(props: NodeProps) {
@@ -38,7 +38,10 @@ export function TODONode(props: NodeProps) {
   const [dueDate, setDueDate] = useState<number | undefined>(nodeData.dueDate);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const { updateNodeData } = useCanvas();
-  const isDueToday = dueDate ? isToday(new Date(dueDate)) : false;
+  const isDue = dueDate
+    ? isToday(new Date(dueDate)) || isBefore(new Date(dueDate), new Date())
+    : false;
+  const allTodosCompleted = todos.length > 0 && todos.every((t) => t.completed);
 
   useEffect(() => {
     setDueDate(nodeData.dueDate);
@@ -127,7 +130,8 @@ export function TODONode(props: NodeProps) {
         <div
           className={cn(
             "px-3 py-1.5 border-b bg-muted/20 flex w-full text-xs items-center gap-2 min-h-[2rem]",
-            isDueToday && "bg-red-500 text-white"
+            allTodosCompleted && "bg-green-500 text-white",
+            isDue && !allTodosCompleted && "bg-red-500 text-white"
           )}
           onClick={(e) => e.stopPropagation()}
         >
@@ -146,7 +150,7 @@ export function TODONode(props: NodeProps) {
               <div className={"w-full flex items-center justify-between gap-2"}>
                 <span className="flex items-center gap-1.5">
                   Due by <b>{format(new Date(dueDate), "MMM d, yyyy")}</b>
-                  {isDueToday && <AlertTriangle />}
+                  {isDue && !allTodosCompleted && <AlertTriangle />}
                 </span>
                 <PopoverTrigger asChild>
                   <div className="flex items-center gap-0">
