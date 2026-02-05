@@ -103,28 +103,6 @@ export function QueryDevPanel() {
     }
   };
 
-  const exampleQueries: Record<string, StructuredQuerySpec> = {
-    "All notes": {
-      scope: { type: "global" },
-      nodeTypes: ["note"],
-    },
-    "All TODOs": {
-      scope: { type: "global" },
-      nodeTypes: ["todo"],
-    },
-    "Current tab notes": {
-      scope: { type: "tab", tabId: "current-tab" },
-      nodeTypes: ["note"],
-    },
-    "Text search": {
-      scope: { type: "global" },
-      textSearch: {
-        query: "mapr",
-        mode: "full-text",
-      },
-    },
-  };
-
   const exampleNLQueries = [
     "show all todos",
     "find notes with tag important",
@@ -132,10 +110,6 @@ export function QueryDevPanel() {
     "incomplete todos",
     "all PDFs created last month",
   ];
-
-  const loadExample = (example: StructuredQuerySpec) => {
-    setQueryJson(JSON.stringify(example, null, 2));
-  };
 
   const loadNLExample = (example: string) => {
     setNlQuery(example);

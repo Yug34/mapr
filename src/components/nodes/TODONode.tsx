@@ -147,7 +147,7 @@ export function TODONode(props: NodeProps) {
                     updateNodeDueDate(undefined);
                   }
                 }}
-                initialFocus
+                autoFocus
               />
               {dueDate && (
                 <div className="p-2 border-t">

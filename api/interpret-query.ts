@@ -36,7 +36,7 @@ You convert Natural Langauge to a structured JSON query spec.
 
 CRITICAL: Return ONLY valid JSON. No other text or explanation.
 
-Always include "scope" ({"type": "global"} or {"type": "tab", "tabId": "..."}).
+ALWAYS include "scope" ({"type": "global"} or {"type": "tab", "tabId": "..."}).
 
 Omit dateFilters, statusFilter, textSearch, mustHaveTags, mustNotHaveTags, limit, sort unless the user explicitly asks in natural language.
 
@@ -51,6 +51,8 @@ Examples:
 "todos due this week" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <start>, "to": <end>}}]}
 "incomplete todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}}
 `.trim();
+
+// TODO: the TODO node has the status field that can either be "incomplete" or "complete" or "overdue"
 
 function buildUserPrompt(nlQuery: string, scope: Scope): string {
   const scopeDescription =
@@ -173,7 +175,7 @@ export default async function handler(req: Request) {
       system: SYSTEM_PROMPT,
       prompt: userPrompt,
       temperature: 0,
-      maxTokens: 300,
+      maxOutputTokens: 300,
     });
 
     if (!text) {
@@ -192,7 +194,7 @@ export default async function handler(req: Request) {
         system: SYSTEM_PROMPT,
         prompt: retryPrompt,
         temperature: 0,
-        maxTokens: 300,
+        maxOutputTokens: 300,
       });
 
       spec = parseAndValidateResponse(retry.text, scope);
