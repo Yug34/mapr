@@ -129,9 +129,10 @@ export function TODONode(props: NodeProps) {
         <div
           className={cn(
             "px-3 py-1.5 border-b bg-muted/20 flex w-full text-xs items-center gap-2 min-h-[2rem] text-black",
-            allTodosCompleted && "bg-green-500",
+            allTodosCompleted && "bg-green-500 text-white",
             isOverdue && !allTodosCompleted && "bg-red-500 text-white",
-            isDueToday && !allTodosCompleted && "bg-amber-500 text-white"
+            isDueToday && !allTodosCompleted && "bg-amber-500 text-white",
+            allTodosCompleted && "text-white"
           )}
           onClick={(e) => e.stopPropagation()}
         >
@@ -140,7 +141,11 @@ export function TODONode(props: NodeProps) {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="flex items-center gap-1.5 flex-1 min-w-0 text-left rounded border border-gray-400 hover:bg-accent/50 px-1 py-0.5 -mx-1 text-muted-foreground italic"
+                  className={cn(
+                    "flex items-center gap-1.5 flex-1 min-w-0 text-left rounded border border-gray-400 hover:bg-accent/50 px-1 py-0.5 -mx-1 text-muted-foreground italic border-2",
+                    allTodosCompleted &&
+                      "bg-green-500 text-white border-white hover:text-white"
+                  )}
                 >
                   <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
                   Set due date
