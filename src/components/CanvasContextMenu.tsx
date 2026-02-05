@@ -108,7 +108,7 @@ const CanvasContextMenu = ({
       type: "NoteNode",
       data: {
         title: "New note",
-        content: "Lorem ipsum dolor sit sybau ts pmo icl 🥀",
+        content: "Click here to edit",
       },
     });
     onClose?.();

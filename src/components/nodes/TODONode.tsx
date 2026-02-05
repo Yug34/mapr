@@ -6,7 +6,14 @@ import { Card } from "../ui/card";
 import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { CalendarIcon, EditIcon, Pencil, TrashIcon, XIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  EditIcon,
+  Pencil,
+  TrashIcon,
+  XIcon,
+  AlertTriangle,
+} from "lucide-react";
 import { EditableNodeTitle } from "@/components/ui/editable-node-title";
 import { HandlesArray } from "../../utils/components";
 import { useCanvas } from "../../hooks/useCanvas";
@@ -19,7 +26,7 @@ import {
 } from "../ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { Input } from "../ui/input";
 
 export function TODONode(props: NodeProps) {
@@ -31,6 +38,7 @@ export function TODONode(props: NodeProps) {
   const [dueDate, setDueDate] = useState<number | undefined>(nodeData.dueDate);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const { updateNodeData } = useCanvas();
+  const isDueToday = dueDate ? isToday(new Date(dueDate)) : false;
 
   useEffect(() => {
     setDueDate(nodeData.dueDate);
@@ -117,7 +125,10 @@ export function TODONode(props: NodeProps) {
           />
         </div>
         <div
-          className="px-3 py-1.5 border-b bg-muted/20 flex w-full text-xs items-center gap-2 min-h-[2rem]"
+          className={cn(
+            "px-3 py-1.5 border-b bg-muted/20 flex w-full text-xs items-center gap-2 min-h-[2rem]",
+            isDueToday && "bg-red-500 text-white"
+          )}
           onClick={(e) => e.stopPropagation()}
         >
           <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
@@ -132,14 +143,33 @@ export function TODONode(props: NodeProps) {
                 </Button>
               </PopoverTrigger>
             ) : (
-              <div className="w-full flex items-center justify-between gap-2">
-                <span>
+              <div className={"w-full flex items-center justify-between gap-2"}>
+                <span className="flex items-center gap-1.5">
                   Due by <b>{format(new Date(dueDate), "MMM d, yyyy")}</b>
+                  {isDueToday && <AlertTriangle />}
                 </span>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    Edit <Pencil className="h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center gap-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-black rounded-r-none"
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-500 rounded-l-none"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        updateNodeDueDate(undefined);
+                      }}
+                    >
+                      <TrashIcon className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </PopoverTrigger>
               </div>
             )}
