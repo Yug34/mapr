@@ -1,11 +1,12 @@
 import { get, Stores } from "../utils/sqliteDb";
 import type { NodeTextRecord } from "../utils/sqliteDb";
-import type { NoteNodeData } from "../types/common";
+import type { NoteNodeData, LinkNodeData } from "../types/common";
 
 /**
  * Resolve the summarisable plain text for a node.
  * - NoteNode: title + content from node data.
  * - ImageNode / PDFNode: plainText from node_text table (extracted text).
+ * - LinkNode: title or url.
  * - Other types: null.
  */
 export async function resolveNodeText(
@@ -13,6 +14,12 @@ export async function resolveNodeText(
   nodeType: string,
   nodeData: unknown
 ): Promise<string | null> {
+  if (nodeType === "LinkNode") {
+    const data = nodeData as LinkNodeData;
+    const text = (data?.title ?? data?.url ?? "").trim();
+    return text || null;
+  }
+
   if (nodeType === "NoteNode") {
     const data = nodeData as NoteNodeData;
     const parts = [data?.title, data?.content].filter(
@@ -24,7 +31,11 @@ export async function resolveNodeText(
 
   if (nodeType === "ImageNode" || nodeType === "PDFNode") {
     const record = await get<NodeTextRecord>(Stores.node_text, nodeId);
-    if (!record?.plainText || record.plainText.trim() === "" || record.plainText === "N/A") {
+    if (
+      !record?.plainText ||
+      record.plainText.trim() === "" ||
+      record.plainText === "N/A"
+    ) {
       return null;
     }
     return record.plainText.trim();

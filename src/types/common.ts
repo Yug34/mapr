@@ -19,6 +19,8 @@ export const nodeTypes = {
 
 export type LinkNodeData = {
   url: string;
+  /** User-defined label; when set, shown instead of URL */
+  title?: string;
 };
 
 export type ImageNodeData = {

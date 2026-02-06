@@ -2,7 +2,12 @@ import { useCallback, useMemo, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Edge } from "@xyflow/react";
 import { useCanvas } from "@/hooks/useCanvas";
-import type { CustomNode, CustomNodeData, TODONodeData } from "@/types/common";
+import type {
+  CustomNode,
+  CustomNodeData,
+  TODONodeData,
+  LinkNodeData,
+} from "@/types/common";
 import {
   ContextMenuContent,
   ContextMenuItem,
@@ -10,13 +15,13 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
 import {
-  Copy,
   CopyPlus,
   Trash2,
   ListChecks,
   File,
   Notebook,
   FileText,
+  Link2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -24,9 +29,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogFooter,
 } from "./ui/dialog";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Button } from "./ui/button";
 import FileUpload from "./FileUpload";
+import { isLink } from "@/utils";
 import { resolveNodeText } from "@/services/nodeTextResolver";
 import { streamSummarizeWithOpenAI } from "@/services/openaiSummaryService";
 import { useChatStore } from "@/store/chatStore";
@@ -54,16 +63,11 @@ const CanvasContextMenu = ({
   const { addNode, deleteNode: deleteNodeFromStore } = useCanvas();
   const { addMessage, updateMessage, addThread } = useChatStore();
   const { setOpen: setSidebarOpen } = useSidebar();
-  const [addNodeType, setAddNodeType] = useState<CustomNode["type"] | null>(
+  const [addDialogMode, setAddDialogMode] = useState<"file" | "link" | null>(
     null
   );
-
-  const handleCopyId = useCallback(() => {
-    if (!targetId) return;
-    navigator.clipboard.writeText(targetId);
-    toast.success("Copied Node ID to clipboard!");
-    onClose?.();
-  }, [targetId, onClose]);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkTitle, setLinkTitle] = useState("");
 
   const duplicateNode = useCallback(() => {
     if (!targetId) return;
@@ -138,6 +142,39 @@ const CanvasContextMenu = ({
     onClose?.();
   }, [addNode, flowPoint, onClose]);
 
+  const handleAddLinkSubmit = useCallback(() => {
+    const url = linkUrl.trim();
+    if (!url) {
+      toast.error("URL is required");
+      return;
+    }
+    if (!isLink(url)) {
+      toast.error("Please enter a valid URL");
+      return;
+    }
+    addNode({
+      id: crypto.randomUUID(),
+      position: { x: flowPoint.x, y: flowPoint.y },
+      type: "LinkNode",
+      data: {
+        url,
+        ...(linkTitle.trim() ? { title: linkTitle.trim() } : {}),
+      } as LinkNodeData,
+    });
+    setLinkUrl("");
+    setLinkTitle("");
+    setAddDialogMode(null);
+    onClose?.();
+  }, [addNode, flowPoint, linkUrl, linkTitle, onClose]);
+
+  const handleAddLinkDialogClose = useCallback((open: boolean) => {
+    if (!open) {
+      setAddDialogMode(null);
+      setLinkUrl("");
+      setLinkTitle("");
+    }
+  }, []);
+
   const handleSummarize = useCallback(async () => {
     if (!targetId) return;
     const node = getNode(targetId);
@@ -211,11 +248,15 @@ const CanvasContextMenu = ({
     node &&
     (node.type === "NoteNode" ||
       node.type === "ImageNode" ||
-      node.type === "PDFNode");
+      node.type === "PDFNode" ||
+      node.type === "LinkNode");
 
   return (
     <>
-      <Dialog>
+      <Dialog
+        open={addDialogMode !== null}
+        onOpenChange={handleAddLinkDialogClose}
+      >
         <ContextMenuContent>
           {type === "node" ? (
             <>
@@ -233,13 +274,6 @@ const CanvasContextMenu = ({
                   <ContextMenuSeparator />
                 </>
               )}
-              <ContextMenuItem
-                className="cursor-pointer"
-                onClick={handleCopyId}
-              >
-                <Copy className="size-4" />
-                Copy ID
-              </ContextMenuItem>
               <ContextMenuItem
                 className="cursor-pointer"
                 onClick={duplicateNode}
@@ -267,15 +301,26 @@ const CanvasContextMenu = ({
                 <Notebook className="size-4" />
                 Note
               </ContextMenuItem>
-              <DialogTrigger className="w-full">
-                <ContextMenuItem
-                  onClick={() => setAddNodeType("FileNode")}
-                  className="cursor-pointer w-full"
-                >
-                  <File className="size-4" />
-                  Image / Audio / Video / PDF
-                </ContextMenuItem>
-              </DialogTrigger>
+              <ContextMenuItem
+                onClick={() => {
+                  onClose?.();
+                  setAddDialogMode("file");
+                }}
+                className="cursor-pointer w-full"
+              >
+                <File className="size-4" />
+                Image / Audio / Video / PDF
+              </ContextMenuItem>
+              <ContextMenuItem
+                onClick={() => {
+                  onClose?.();
+                  setAddDialogMode("link");
+                }}
+                className="cursor-pointer w-full"
+              >
+                <Link2 className="size-4" />
+                Link
+              </ContextMenuItem>
               <ContextMenuItem
                 onClick={addTODONode}
                 className="cursor-pointer w-full"
@@ -288,9 +333,53 @@ const CanvasContextMenu = ({
         </ContextMenuContent>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add {addNodeType}</DialogTitle>
+            <DialogTitle>
+              {addDialogMode === "link" ? "Add Link" : "Add file"}
+            </DialogTitle>
           </DialogHeader>
-          <FileUpload />
+          {addDialogMode === "link" ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAddLinkSubmit();
+              }}
+              className="flex flex-col gap-4"
+            >
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="link-url">URL</Label>
+                <Input
+                  id="link-url"
+                  type="url"
+                  placeholder="https://example.com"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="link-title">Title (optional)</Label>
+                <Input
+                  id="link-title"
+                  type="text"
+                  placeholder="Display label"
+                  value={linkTitle}
+                  onChange={(e) => setLinkTitle(e.target.value)}
+                />
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleAddLinkDialogClose(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Add Link</Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <FileUpload />
+          )}
         </DialogContent>
       </Dialog>
     </>

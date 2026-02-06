@@ -468,7 +468,7 @@ const Canvas = () => {
                     nodeColor={(node) => {
                       switch (node.type) {
                         case "LinkNode":
-                          return "#e0e0e0";
+                          return "#25ffa0";
                         case "NoteNode":
                           return "#FFFFa5";
                         case "ImageNode":
