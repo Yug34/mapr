@@ -188,9 +188,15 @@ export function TODONode(props: NodeProps) {
               <Calendar
                 mode="single"
                 selected={dueDate ? new Date(dueDate) : undefined}
-                onSelect={(date) =>
-                  updateNodeDueDate(date ? date.getTime() : undefined)
-                }
+                onSelect={(date) => {
+                  if (!date) {
+                    updateNodeDueDate(undefined);
+                    return;
+                  }
+                  const endOfDay = new Date(date);
+                  endOfDay.setHours(23, 59, 59, 999);
+                  updateNodeDueDate(endOfDay.getTime());
+                }}
                 autoFocus
               />
               {dueDate && (

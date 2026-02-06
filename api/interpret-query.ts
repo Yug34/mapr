@@ -32,7 +32,7 @@ interface StructuredQuerySpec {
 }
 
 const SYSTEM_PROMPT = `
-You convert Natural Langauge to a structured JSON query spec.
+You convert Natural Language to a structured JSON query spec.
 
 CRITICAL: Return ONLY valid JSON. No other text or explanation.
 
@@ -42,14 +42,25 @@ Omit dateFilters, statusFilter, textSearch, mustHaveTags, mustNotHaveTags, limit
 
 Do NOT add dateFilters when the user doesn't mention dates—e.g. "show all todos" = scope + nodeTypes only. Use Unix timestamps (ms) only when the user asks for date filtering in natural language.
 
-Include optional fields only when asked: nodeTypes (type mentioned); mustHaveTags/mustNotHaveTags (tags); textSearch ("containing"/"about"/"search"); dateFilters ("this week"/"due today"); statusFilter ("incomplete"/"completed"); limit ("first N"); sort ("sort by"/"newest").
+Include optional fields only when asked: nodeTypes (type mentioned); mustHaveTags/mustNotHaveTags (tags); textSearch ("containing"/"about"/"search"); dateFilters ("this week"/"due today"/"due in 7 days"); statusFilter ("incomplete"/"completed"/"overdue"); limit ("first N"); sort ("sort by"/"newest").
+
+IMPORTANT: When the user asks about "todos due" or "todos that are due", they typically mean incomplete todos unless they explicitly say "all todos" or "completed todos". If they say "todos due this week" without specifying status, include statusFilter for incomplete todos.
+
+For date ranges:
+- "this week" = from start of current week (Monday 00:00:00) to end of current week (Sunday 23:59:59)
+- "next 7 days" or "due in less than 7 days" or "due in the next 7 days" = from now to 7 days from now (includes today and future dates up to 7 days)
+- "due today" = from start of today to end of today
+- "due within 7 days" = same as "next 7 days" (includes overdue items if they're within 7 days)
+- Use Unix timestamps in milliseconds
 
 Examples:
 "show all todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"]}
 "show todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"]}
 "notes with tag important" → {"scope": {"type": "global"}, "nodeTypes": ["note"], "mustHaveTags": ["important"]}
-"todos due this week" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <start>, "to": <end>}}]}
+"todos due this week" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}, "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <start_of_week_ms>, "to": <end_of_week_ms>}}]}
 "incomplete todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}}
+"incomplete todos due in less than 7 days" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}, "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <now_ms>, "to": <now_plus_7_days_ms>}}]}
+"show all todos that are due this week" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}, "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <start_of_week_ms>, "to": <end_of_week_ms>}}]}
 `.trim();
 
 // TODO: the TODO node has the status field that can either be "incomplete" or "complete" or "overdue"
@@ -60,10 +71,37 @@ function buildUserPrompt(nlQuery: string, scope: Scope): string {
       ? `Scope: tab ID "${scope.tabId}"`
       : "Scope: global (all tabs)";
 
+  // Get current date/time for accurate timestamp calculation
+  const now = Date.now();
+  const today = new Date(now);
+  const startOfToday = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  ).getTime();
+  const endOfToday = startOfToday + 24 * 60 * 60 * 1000 - 1;
+
+  // Calculate start of week (Monday)
+  const dayOfWeek = today.getDay();
+  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const startOfWeek = startOfToday - daysFromMonday * 24 * 60 * 60 * 1000;
+  const endOfWeek = startOfWeek + 7 * 24 * 60 * 60 * 1000 - 1;
+
+  // 7 days from now
+  const sevenDaysFromNow = now + 7 * 24 * 60 * 60 * 1000;
+
   return `Query: "${nlQuery}"
 ${scopeDescription}
 
-Convert to JSON query spec. Include ONLY fields that the query explicitly asks for. Do not add dateFilters, statusFilter, or other optional fields unless the user asked for them. Return ONLY the JSON object.`;
+Current date/time context (Unix timestamps in milliseconds):
+- Now: ${now}
+- Start of today: ${startOfToday}
+- End of today: ${endOfToday}
+- Start of this week (Monday 00:00:00): ${startOfWeek}
+- End of this week (Sunday 23:59:59): ${endOfWeek}
+- 7 days from now: ${sevenDaysFromNow}
+
+Convert to JSON query spec. Include ONLY fields that the query explicitly asks for. Use the date/time context above to calculate accurate timestamps. Return ONLY the JSON object.`;
 }
 
 function parseAndValidateResponse(

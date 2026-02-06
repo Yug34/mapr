@@ -13,6 +13,9 @@ import haloOST from "/Halo OST.mp3?url";
 import comfortablyNumb from "/Comfortably Numb.mp4?url";
 import whiteNights from "/WhiteNights.pdf?url";
 
+const endOfDay = new Date(Date.now());
+endOfDay.setHours(23, 59, 59, 999);
+
 export const initialNodes: CustomNode[] = [
   {
     id: "n1",
@@ -68,7 +71,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
           completed: false,
         },
       ],
-      dueDate: Date.now(),
+      dueDate: endOfDay.getTime(),
     } as TODONodeData,
   },
   {

@@ -103,14 +103,7 @@ export function QueryDevPanel() {
     }
   };
 
-  const exampleNLQueries = [
-    "show all todos",
-    "find notes with tag important",
-    "todos due this week",
-    "incomplete todos due in less than 7 days",
-    "show all todos that are due this week",
-    "all PDFs created last month",
-  ];
+  const exampleNLQueries = ["Show all todos", "Incomplete TODOs due this week"];
 
   const loadNLExample = (example: string) => {
     setNlQuery(example);
@@ -225,7 +218,6 @@ export function QueryDevPanel() {
                   <TableRow>
                     <TableHead className="text-xs">Title</TableHead>
                     <TableHead className="text-xs">Type</TableHead>
-                    <TableHead className="text-xs">Created</TableHead>
                     <TableHead className="text-xs">Tags</TableHead>
                     <TableHead className="text-xs">Extracted</TableHead>
                   </TableRow>
@@ -244,11 +236,6 @@ export function QueryDevPanel() {
                       </TableCell>
                       <TableCell className="text-[11px] py-1.5">
                         {result.type}
-                      </TableCell>
-                      <TableCell className="text-[11px] py-1.5 whitespace-nowrap">
-                        {result.createdAt
-                          ? new Date(result.createdAt).toLocaleDateString()
-                          : "—"}
                       </TableCell>
                       <TableCell
                         className="text-[11px] py-1.5 max-w-[100px] truncate"
