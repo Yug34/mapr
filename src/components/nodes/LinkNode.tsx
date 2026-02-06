@@ -5,9 +5,9 @@ import { Card } from "../ui/card";
 import { Button } from "../ui/button";
 import { EditableNodeTitle } from "@/components/ui/editable-node-title";
 import { useCanvas } from "../../hooks/useCanvas";
-import { Copy, AlertCircle, ExternalLink } from "lucide-react";
+import { Copy, AlertCircle, ExternalLink, Globe } from "lucide-react";
 import { toast } from "sonner";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 function truncateUrl(url: string, maxLen = 40): string {
   if (url.length <= maxLen) return url;
@@ -36,12 +36,17 @@ export function LinkNode(props: NodeProps) {
   const nodeData = data as LinkNodeData;
   const { updateNodeData } = useCanvas();
 
+  const [faviconError, setFaviconError] = useState(false);
   const valid = useMemo(() => isValidUrl(nodeData.url), [nodeData.url]);
   const hostname = useMemo(
     () => (valid ? getHostname(nodeData.url) : null),
     [nodeData.url, valid]
   );
   const displayLabel = nodeData.title ?? hostname ?? truncateUrl(nodeData.url);
+
+  useEffect(() => {
+    setFaviconError(false);
+  }, [nodeData.url]);
 
   const handleOpen = useCallback(
     (e: React.MouseEvent) => {
@@ -79,12 +84,19 @@ export function LinkNode(props: NodeProps) {
       <Card className="w-[320px] max-w-full p-0 gap-0 border bg-white overflow-hidden">
         <div className="flex items-center gap-2 px-3 py-2 border-b bg-muted/30 min-h-[2.5rem]">
           {valid && hostname && (
-            <img
-              src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=24`}
-              alt=""
-              className="w-5 h-5 shrink-0"
-              loading="lazy"
-            />
+            <>
+              {faviconError ? (
+                <Globe className="w-5 h-5 shrink-0" />
+              ) : (
+                <img
+                  src={`https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${hostname}&size=32`}
+                  alt=""
+                  className="w-5 h-5 shrink-0"
+                  loading="lazy"
+                  onError={() => setFaviconError(true)}
+                />
+              )}
+            </>
           )}
           <div className="flex min-w-0 flex-1 items-center gap-1">
             <EditableNodeTitle
