@@ -293,7 +293,7 @@ export function ChatSidebar() {
           <div>
             <Button
               variant="outline"
-              className="border border-1 border-gray-400 rounded-md"
+              className="rounded-md"
               onClick={async () => {
                 const newThreadId = await addThread();
                 setActiveThread(newThreadId);

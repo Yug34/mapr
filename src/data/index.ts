@@ -116,7 +116,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   {
     id: "n8",
     type: "LinkNode",
-    position: { x: 520, y: -125 },
+    position: { x: 540, y: -125 },
     data: {
       url: "https://www.linkedin.com/in/yug34",
       title: "LinkedIn",
@@ -125,7 +125,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   {
     id: "n9",
     type: "LinkNode",
-    position: { x: 500, y: -35 },
+    position: { x: 480, y: -20 },
     data: {
       url: "https://github.com/yug34",
       title: "GitHub",
@@ -134,10 +134,10 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
   {
     id: "n10",
     type: "LinkNode",
-    position: { x: 540, y: 55 },
+    position: { x: 540, y: 95 },
     data: {
       url: "https://megalith.blog",
-      title: "Blog",
+      title: "My Blog 🎀",
     } as LinkNodeData,
   },
 ];

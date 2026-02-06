@@ -245,11 +245,7 @@ const CanvasContextMenu = ({
 
   const node = type === "node" && targetId ? getNode(targetId) : null;
   const showSummarize =
-    node &&
-    (node.type === "NoteNode" ||
-      node.type === "ImageNode" ||
-      node.type === "PDFNode" ||
-      node.type === "LinkNode");
+    node && ["NoteNode", "ImageNode", "PDFNode"].includes(node.type ?? "");
 
   return (
     <>
