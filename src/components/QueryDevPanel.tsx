@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "./ui/table";
 import { cn } from "@/lib/utils";
-import { Star } from "lucide-react";
+import { Star, ChevronDown, ChevronRight, Check, X } from "lucide-react";
 
 export function QueryDevPanel() {
   const [queryJson, setQueryJson] = useState<string>(
@@ -35,6 +35,7 @@ export function QueryDevPanel() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [scope, setScope] = useState<Scope>({ type: "global" });
+  const [showJsonSection, setShowJsonSection] = useState(false);
   const { activeTabId } = useCanvasStore();
 
   const handleExecuteJson = async () => {
@@ -104,7 +105,12 @@ export function QueryDevPanel() {
     }
   };
 
-  const exampleNLQueries = ["Incomplete TODOs due this week", "Show all PDFs"];
+  const exampleNLQueries = [
+    "Incomplete TODOs due this week",
+    "Show all nodes marked important",
+    "All notes containing meeting",
+    "Show all notes containing budget",
+  ];
 
   const loadNLExample = (example: string) => {
     setNlQuery(example);
@@ -178,30 +184,46 @@ export function QueryDevPanel() {
             </Button>
           </div>
 
-          <Separator />
-
-          {/* JSON Query Section */}
+          {/* JSON Query Section (toggleable) */}
           <div className="space-y-2">
-            <div>
-              <textarea
-                value={queryJson}
-                onChange={(e) => setQueryJson(e.target.value)}
-                className={cn(
-                  "w-full h-[200px] font-mono text-[11px] p-2 rounded-md border bg-background",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                )}
-              />
-            </div>
-
             <Button
-              onClick={handleExecuteJson}
-              disabled={loading}
+              variant="ghost"
               size="sm"
-              variant="secondary"
+              className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
+              onClick={() => setShowJsonSection((v) => !v)}
             >
-              {loading ? "Executing..." : "Execute JSON Query"}
+              {showJsonSection ? (
+                <ChevronDown className="size-4" />
+              ) : (
+                <ChevronRight className="size-4" />
+              )}
+              <span className="text-xs">JSON query</span>
             </Button>
+            {showJsonSection && (
+              <>
+                <div>
+                  <textarea
+                    value={queryJson}
+                    onChange={(e) => setQueryJson(e.target.value)}
+                    className={cn(
+                      "w-full h-[200px] font-mono text-[11px] p-2 rounded-md border bg-background",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    )}
+                  />
+                </div>
+                <Button
+                  onClick={handleExecuteJson}
+                  disabled={loading}
+                  size="sm"
+                  variant="secondary"
+                >
+                  {loading ? "Executing..." : "Execute JSON Query"}
+                </Button>
+              </>
+            )}
           </div>
+
+          <Separator />
 
           {error && (
             <div className="p-2 bg-destructive/10 border border-destructive/30 rounded-md text-destructive text-xs">
@@ -219,7 +241,9 @@ export function QueryDevPanel() {
                   <TableRow>
                     <TableHead className="text-xs">Title</TableHead>
                     <TableHead className="text-xs">Type</TableHead>
-                    <TableHead className="text-xs">Important</TableHead>
+                    <TableHead className="text-xs">
+                      <Star className="size-4 inline fill-amber-500 text-amber-500" />
+                    </TableHead>
                     <TableHead className="text-xs">Extracted</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -243,9 +267,19 @@ export function QueryDevPanel() {
                         title={result.important ? "Important" : undefined}
                       >
                         {result.important ? (
-                          <Star className="size-4 inline fill-amber-500 text-amber-500" />
+                          <span className="flex w-4 h-4 items-center justify-center bg-green-500 rounded-xs">
+                            <Check
+                              className="size-4 inline text-white"
+                              strokeWidth={3}
+                            />
+                          </span>
                         ) : (
-                          "—"
+                          <span className="flex w-4 h-4 items-center justify-center bg-red-500 rounded-xs">
+                            <X
+                              className="size-4 inline text-white"
+                              strokeWidth={3}
+                            />
+                          </span>
                         )}
                       </TableCell>
                       <TableCell className="text-[11px] py-1.5">
