@@ -20,6 +20,7 @@ import { EditableNodeTitle } from "@/components/ui/editable-node-title";
 import { useExtractionStore } from "../../store/extractionStore";
 import { useCanvas } from "../../hooks/useCanvas";
 import { blobManager } from "../../utils/blobManager";
+import { ImportantStar } from "../ImportantStar";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   "pdfjs-dist/build/pdf.worker.min.mjs",
@@ -85,7 +86,11 @@ export function PDFNode(props: NodeProps) {
   };
 
   return (
-    <Card className="p-0 gap-0">
+    <Card className="relative p-0 gap-0">
+      <ImportantStar
+        important={nodeData.important}
+        className="-top-2 -right-2"
+      />
       <div className="pt-4 px-4 flex w-full text-sm font-medium justify-between items-center gap-2">
         <EditableNodeTitle
           displayValue={nodeData.title ?? nodeData.fileName}

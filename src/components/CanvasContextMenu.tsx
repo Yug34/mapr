@@ -22,6 +22,7 @@ import {
   Notebook,
   FileText,
   Link2,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -60,7 +61,11 @@ const CanvasContextMenu = ({
     CustomNode,
     Edge
   >();
-  const { addNode, deleteNode: deleteNodeFromStore } = useCanvas();
+  const {
+    addNode,
+    deleteNode: deleteNodeFromStore,
+    updateNodeData,
+  } = useCanvas();
   const { addMessage, updateMessage, addThread } = useChatStore();
   const { setOpen: setSidebarOpen } = useSidebar();
   const [addDialogMode, setAddDialogMode] = useState<"file" | "link" | null>(
@@ -99,6 +104,18 @@ const CanvasContextMenu = ({
     );
     onClose?.();
   }, [targetId, deleteNodeFromStore, setEdges, onClose]);
+
+  const toggleImportant = useCallback(() => {
+    if (!targetId) return;
+    const node = getNode(targetId);
+    if (!node) return;
+    const current = (node.data as { important?: boolean }).important === true;
+    updateNodeData(targetId, {
+      ...node.data,
+      important: !current,
+    } as CustomNodeData);
+    onClose?.();
+  }, [targetId, getNode, updateNodeData, onClose]);
 
   const flowPoint = useMemo(() => {
     if (!clientPoint) return { x: 0, y: 0 };
@@ -270,6 +287,18 @@ const CanvasContextMenu = ({
                   <ContextMenuSeparator />
                 </>
               )}
+              <ContextMenuItem
+                className="cursor-pointer"
+                onClick={toggleImportant}
+              >
+                <Star className="size-4" />
+                {targetId &&
+                (getNode(targetId)?.data as { important?: boolean })
+                  ?.important === true
+                  ? "Remove important"
+                  : "Mark as important"}
+              </ContextMenuItem>
+              <ContextMenuSeparator />
               <ContextMenuItem
                 className="cursor-pointer"
                 onClick={duplicateNode}

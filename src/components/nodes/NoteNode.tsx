@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { useCanvas } from "../../hooks/useCanvas";
 import { HandlesArray } from "../../utils/components";
+import { ImportantStar } from "../ImportantStar";
 
 export function NoteNode(props: NodeProps) {
   const { data, id } = props;
@@ -65,6 +66,10 @@ export function NoteNode(props: NodeProps) {
   return (
     <div ref={nodeRef} className="w-[380px] min-w-[380px]">
       <div className="relative w-[380px] min-w-[380px] max-w-[380px] p-5 bg-[#FFFFA5] -rotate-[1deg] shadow-[0_2px_4px_rgba(0,0,0,0.4)]">
+        <ImportantStar
+          important={noteNodeData.important}
+          className="top-2 right-2"
+        />
         <div
           className="note-tape absolute -top-[22px] left-1/2 -translate-x-1/2 h-12 w-[180px] min-w-[100px] max-w-[180px] rotate-[1deg] bg-white/30 shadow-[inset_0_0_1em_0.5em_rgba(255,255,255,0.1)] [filter:drop-shadow(0_1px_0.7px_hsla(0,0%,0%,0.3))]"
           aria-hidden

@@ -30,16 +30,12 @@ function extractTitle(data: unknown): string | undefined {
 }
 
 /**
- * Extracts tags from node data JSON
+ * Extracts important flag from node data JSON
  */
-function extractTags(data: unknown): string[] {
-  if (!data || typeof data !== "object") return [];
+function extractImportant(data: unknown): boolean {
+  if (!data || typeof data !== "object") return false;
   const obj = data as Record<string, unknown>;
-  const tags = obj.tags;
-  if (Array.isArray(tags)) {
-    return tags.filter((t): t is string => typeof t === "string");
-  }
-  return [];
+  return obj.important === true;
 }
 
 /**
@@ -145,23 +141,13 @@ export class QueryService {
 
       // Extract fields from the nested data
       const title = extractTitle(persistedNode.data);
-      const tags = extractTags(persistedNode.data);
+      const important = extractImportant(persistedNode.data);
       const createdAt = extractCreatedAt(persistedNode.data);
       const status = extractStatus(persistedNode.data);
       const dueDate = extractDueDate(persistedNode.data);
 
-      // Apply tag filters
-      if (spec.mustHaveTags && spec.mustHaveTags.length > 0) {
-        const hasAllTags = spec.mustHaveTags.every((tag) => tags.includes(tag));
-        if (!hasAllTags) continue;
-      }
-
-      if (spec.mustNotHaveTags && spec.mustNotHaveTags.length > 0) {
-        const hasExcludedTag = spec.mustNotHaveTags.some((tag) =>
-          tags.includes(tag)
-        );
-        if (hasExcludedTag) continue;
-      }
+      // Apply important filter
+      if (spec.importantOnly && !important) continue;
 
       // Apply status filter
       if (spec.statusFilter) {
@@ -247,7 +233,7 @@ export class QueryService {
         type: queryType,
         title,
         createdAt,
-        tags: tags.length > 0 ? tags : undefined,
+        important,
         plainText:
           row.plainText != null && row.plainText !== ""
             ? row.plainText
@@ -326,7 +312,7 @@ export class QueryService {
         conditions.map((c) => c.replace(/^tabId/, "n.tabId")).join(" AND ");
     }
 
-    // Note: We can't filter by nodeTypes, tags, dates, or text at the SQL level
+    // Note: We can't filter by nodeTypes, important, dates, or text at the SQL level
     // because they're stored in JSON. We'll filter in JavaScript after fetching.
     // This is acceptable for Phase 2 as a non-LLM query service.
 

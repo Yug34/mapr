@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import { EditableNodeTitle } from "@/components/ui/editable-node-title";
 import { useCanvas } from "../../hooks/useCanvas";
 import { Copy, AlertCircle, ExternalLink, Globe } from "lucide-react";
+import { ImportantStar } from "../ImportantStar";
 import { toast } from "sonner";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -80,7 +81,11 @@ export function LinkNode(props: NodeProps) {
   );
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="relative flex flex-col items-center justify-center">
+      <ImportantStar
+        important={nodeData.important}
+        className="-top-2 -right-2"
+      />
       <Card className="w-[320px] max-w-full p-0 gap-0 border bg-white overflow-hidden">
         <div className="flex items-center gap-2 px-3 py-2 border-b bg-muted/30 min-h-[2.5rem]">
           {valid && hostname && (

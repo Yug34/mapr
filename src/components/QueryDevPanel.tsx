@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "./ui/table";
 import { cn } from "@/lib/utils";
+import { Star } from "lucide-react";
 
 export function QueryDevPanel() {
   const [queryJson, setQueryJson] = useState<string>(
@@ -103,7 +104,7 @@ export function QueryDevPanel() {
     }
   };
 
-  const exampleNLQueries = ["Show all todos", "Incomplete TODOs due this week"];
+  const exampleNLQueries = ["Incomplete TODOs due this week", "Show all PDFs"];
 
   const loadNLExample = (example: string) => {
     setNlQuery(example);
@@ -218,7 +219,7 @@ export function QueryDevPanel() {
                   <TableRow>
                     <TableHead className="text-xs">Title</TableHead>
                     <TableHead className="text-xs">Type</TableHead>
-                    <TableHead className="text-xs">Tags</TableHead>
+                    <TableHead className="text-xs">Important</TableHead>
                     <TableHead className="text-xs">Extracted</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -238,16 +239,14 @@ export function QueryDevPanel() {
                         {result.type}
                       </TableCell>
                       <TableCell
-                        className="text-[11px] py-1.5 max-w-[100px] truncate"
-                        title={
-                          result.tags && result.tags.length > 0
-                            ? result.tags.join(", ")
-                            : undefined
-                        }
+                        className="text-[11px] py-1.5 max-w-[100px]"
+                        title={result.important ? "Important" : undefined}
                       >
-                        {result.tags && result.tags.length > 0
-                          ? result.tags.join(", ")
-                          : "—"}
+                        {result.important ? (
+                          <Star className="size-4 inline fill-amber-500 text-amber-500" />
+                        ) : (
+                          "—"
+                        )}
                       </TableCell>
                       <TableCell className="text-[11px] py-1.5">
                         {(result.type === "image" || result.type === "pdf") && (

@@ -9,8 +9,7 @@ type NodeType = "note" | "todo" | "pdf" | "image" | "audio" | "video" | "link";
 interface StructuredQuerySpec {
   scope: Scope;
   nodeTypes?: NodeType[];
-  mustHaveTags?: string[];
-  mustNotHaveTags?: string[];
+  importantOnly?: boolean;
   textSearch?: {
     query: string;
     mode: "full-text" | "fuzzy";
@@ -38,11 +37,11 @@ CRITICAL: Return ONLY valid JSON. No other text or explanation.
 
 ALWAYS include "scope" ({"type": "global"} or {"type": "tab", "tabId": "..."}).
 
-Omit dateFilters, statusFilter, textSearch, mustHaveTags, mustNotHaveTags, limit, sort unless the user explicitly asks in natural language.
+Omit dateFilters, statusFilter, textSearch, importantOnly, limit, sort unless the user explicitly asks in natural language.
 
 Do NOT add dateFilters when the user doesn't mention dates—e.g. "show all todos" = scope + nodeTypes only. Use Unix timestamps (ms) only when the user asks for date filtering in natural language.
 
-Include optional fields only when asked: nodeTypes (type mentioned); mustHaveTags/mustNotHaveTags (tags); textSearch ("containing"/"about"/"search"); dateFilters ("this week"/"due today"/"due in 7 days"); statusFilter ("incomplete"/"completed"/"overdue"); limit ("first N"); sort ("sort by"/"newest").
+Include optional fields only when asked: nodeTypes (type mentioned); importantOnly ("important" nodes only); textSearch ("containing"/"about"/"search"); dateFilters ("this week"/"due today"/"due in 7 days"); statusFilter ("incomplete"/"completed"/"overdue"); limit ("first N"); sort ("sort by"/"newest").
 
 IMPORTANT: When the user asks about "todos due" or "todos that are due", they typically mean incomplete todos unless they explicitly say "all todos" or "completed todos". If they say "todos due this week" without specifying status, include statusFilter for incomplete todos.
 
@@ -56,7 +55,7 @@ For date ranges:
 Examples:
 "show all todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"]}
 "show todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"]}
-"notes with tag important" → {"scope": {"type": "global"}, "nodeTypes": ["note"], "mustHaveTags": ["important"]}
+"important nodes" or "notes that are important" → {"scope": {"type": "global"}, "importantOnly": true} (add nodeTypes only if user specifies type)
 "todos due this week" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}, "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <start_of_week_ms>, "to": <end_of_week_ms>}}]}
 "incomplete todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}}
 "incomplete todos due in less than 7 days" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}, "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <now_ms>, "to": <now_plus_7_days_ms>}}]}
@@ -137,10 +136,7 @@ function parseAndValidateResponse(
     const spec: StructuredQuerySpec = {
       scope,
       ...(parsed.nodeTypes && { nodeTypes: parsed.nodeTypes }),
-      ...(parsed.mustHaveTags && { mustHaveTags: parsed.mustHaveTags }),
-      ...(parsed.mustNotHaveTags && {
-        mustNotHaveTags: parsed.mustNotHaveTags,
-      }),
+      ...(parsed.importantOnly && { importantOnly: true }),
       ...(parsed.textSearch && { textSearch: parsed.textSearch }),
       ...(parsed.dateFilters && { dateFilters: parsed.dateFilters }),
       ...(parsed.statusFilter && { statusFilter: parsed.statusFilter }),

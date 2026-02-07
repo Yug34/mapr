@@ -13,13 +13,18 @@ import {
 import { EditableNodeTitle } from "@/components/ui/editable-node-title";
 import { HandlesArray } from "../../utils/components";
 import { useCanvas } from "../../hooks/useCanvas";
+import { ImportantStar } from "../ImportantStar";
 
 export function AudioNode(props: NodeProps) {
   const { data, id } = props;
   const nodeData = data as AudioNodeData;
   const { updateNodeData } = useCanvas();
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="relative flex flex-col items-center justify-center">
+      <ImportantStar
+        important={nodeData.important}
+        className="-top-2 -right-2"
+      />
       <div className="mb-1 w-[360px] max-w-full rounded border bg-white px-2 py-1 text-center text-xs font-semibold">
         <EditableNodeTitle
           displayValue={nodeData.title ?? nodeData.fileName}

@@ -6,6 +6,7 @@ import { EditableNodeTitle } from "@/components/ui/editable-node-title";
 import { useExtractionStore } from "../../store/extractionStore";
 import { useCanvas } from "../../hooks/useCanvas";
 import { Loader2, Check, AlertCircle } from "lucide-react";
+import { ImportantStar } from "../ImportantStar";
 
 export function ImageNode(props: NodeProps) {
   const { data, id } = props;
@@ -17,7 +18,11 @@ export function ImageNode(props: NodeProps) {
   const { updateNodeData } = useCanvas();
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="relative flex flex-col items-center justify-center">
+      <ImportantStar
+        important={nodeData.important}
+        className="-top-2 -right-2"
+      />
       <div className="mb-1 flex w-[360px] max-w-full items-center justify-between gap-2 rounded border bg-white px-2 py-1 text-xs font-semibold">
         <EditableNodeTitle
           displayValue={nodeData.title ?? nodeData.fileName}

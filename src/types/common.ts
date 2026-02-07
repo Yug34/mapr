@@ -21,6 +21,7 @@ export type LinkNodeData = {
   url: string;
   /** User-defined label; when set, shown instead of URL */
   title?: string;
+  important?: boolean;
 };
 
 export type ImageNodeData = {
@@ -31,6 +32,7 @@ export type ImageNodeData = {
   image: File;
   imageBase64: string;
   mediaId?: string;
+  important?: boolean;
 };
 
 export type VideoNodeData = {
@@ -40,6 +42,7 @@ export type VideoNodeData = {
   video: File;
   videoBase64: string;
   mediaId?: string;
+  important?: boolean;
 };
 
 export type AudioNodeData = {
@@ -49,6 +52,7 @@ export type AudioNodeData = {
   audio: File;
   audioBase64: string;
   mediaId?: string;
+  important?: boolean;
 };
 
 export type PDFNodeData = {
@@ -58,6 +62,7 @@ export type PDFNodeData = {
   pdf: File;
   pdfBase64: string;
   mediaId?: string;
+  important?: boolean;
 };
 
 export type Todo = {
@@ -79,11 +84,13 @@ export type TODONodeData = {
   todos: Todo[];
   dueDate?: number;
   status?: TodoStatus;
+  important?: boolean;
 };
 
 export type NoteNodeData = {
   title: string;
   content: string;
+  important?: boolean;
 };
 
 export type CustomNodeData =

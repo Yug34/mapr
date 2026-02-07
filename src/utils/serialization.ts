@@ -47,6 +47,7 @@ export function serializeNode(node: CustomNode, tabId: string): PersistedNode {
           previewBase64: d.imageBase64,
           fileName: d.fileName,
           ...(d.title != null && d.title !== "" ? { title: d.title } : {}),
+          ...(d.important ? { important: true } : {}),
         },
         tabId,
       };
@@ -63,6 +64,7 @@ export function serializeNode(node: CustomNode, tabId: string): PersistedNode {
           previewBase64: d.videoBase64,
           fileName: d.fileName,
           ...(d.title != null && d.title !== "" ? { title: d.title } : {}),
+          ...(d.important ? { important: true } : {}),
         },
         tabId,
       };
@@ -79,6 +81,7 @@ export function serializeNode(node: CustomNode, tabId: string): PersistedNode {
           previewBase64: d.audioBase64,
           fileName: d.fileName,
           ...(d.title != null && d.title !== "" ? { title: d.title } : {}),
+          ...(d.important ? { important: true } : {}),
         },
         tabId,
       };
@@ -95,6 +98,7 @@ export function serializeNode(node: CustomNode, tabId: string): PersistedNode {
           previewBase64: d.pdfBase64,
           fileName: d.fileName,
           ...(d.title != null && d.title !== "" ? { title: d.title } : {}),
+          ...(d.important ? { important: true } : {}),
         },
         tabId,
       };
@@ -119,9 +123,11 @@ export function deserializeNode(
       const fileNameFromData = (
         persisted.data as { fileName?: string } | undefined
       )?.fileName;
-      const titleFromData = (
-        persisted.data as { title?: string } | undefined
-      )?.title;
+      const titleFromData = (persisted.data as { title?: string } | undefined)
+        ?.title;
+      const importantFromData = (
+        persisted.data as { important?: boolean } | undefined
+      )?.important;
       return {
         id,
         type,
@@ -136,6 +142,7 @@ export function deserializeNode(
             ? { title: titleFromData }
             : {}),
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
+          ...(importantFromData ? { important: true } : {}),
         } as ImageNodeData,
       } as CustomNode;
     }
@@ -145,9 +152,11 @@ export function deserializeNode(
       const fileNameFromData = (
         persisted.data as { fileName?: string } | undefined
       )?.fileName;
-      const titleFromData = (
-        persisted.data as { title?: string } | undefined
-      )?.title;
+      const titleFromData = (persisted.data as { title?: string } | undefined)
+        ?.title;
+      const importantFromData = (
+        persisted.data as { important?: boolean } | undefined
+      )?.important;
       return {
         id,
         type,
@@ -162,6 +171,7 @@ export function deserializeNode(
             ? { title: titleFromData }
             : {}),
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
+          ...(importantFromData ? { important: true } : {}),
         } as VideoNodeData,
       } as CustomNode;
     }
@@ -171,9 +181,11 @@ export function deserializeNode(
       const fileNameFromData = (
         persisted.data as { fileName?: string } | undefined
       )?.fileName;
-      const titleFromData = (
-        persisted.data as { title?: string } | undefined
-      )?.title;
+      const titleFromData = (persisted.data as { title?: string } | undefined)
+        ?.title;
+      const importantFromData = (
+        persisted.data as { important?: boolean } | undefined
+      )?.important;
       return {
         id,
         type,
@@ -188,6 +200,7 @@ export function deserializeNode(
             ? { title: titleFromData }
             : {}),
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
+          ...(importantFromData ? { important: true } : {}),
         } as AudioNodeData,
       } as CustomNode;
     }
@@ -198,9 +211,11 @@ export function deserializeNode(
       const fileNameFromData = (
         persisted.data as { fileName?: string } | undefined
       )?.fileName;
-      const titleFromData = (
-        persisted.data as { title?: string } | undefined
-      )?.title;
+      const titleFromData = (persisted.data as { title?: string } | undefined)
+        ?.title;
+      const importantFromData = (
+        persisted.data as { important?: boolean } | undefined
+      )?.important;
       return {
         id,
         type,
@@ -214,6 +229,7 @@ export function deserializeNode(
             ? { title: titleFromData }
             : {}),
           ...(data && "mediaId" in data ? { mediaId: data.mediaId } : {}),
+          ...(importantFromData ? { important: true } : {}),
         } as PDFNodeData,
       } as CustomNode;
     }

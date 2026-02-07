@@ -28,6 +28,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Calendar } from "../ui/calendar";
 import { format, isToday, isBefore } from "date-fns";
 import { Input } from "../ui/input";
+import { ImportantStar } from "../ImportantStar";
 
 export function TODONode(props: NodeProps) {
   const { data, id } = props;
@@ -117,7 +118,11 @@ export function TODONode(props: NodeProps) {
   };
 
   return (
-    <div className="max-w-[300px] w-[300px] min-w-[300px] flex flex-col items-center justify-center">
+    <div className="relative max-w-[300px] w-[300px] min-w-[300px] flex flex-col items-center justify-center">
+      <ImportantStar
+        important={nodeData.important}
+        className="-top-2 -right-2"
+      />
       <Card className="w-full p-0 border-none rounded-md gap-0">
         <div className="px-3 py-2 rounded-t-md border-b bg-muted/30 flex w-full text-sm font-medium items-center justify-center gap-2 min-h-[2.5rem]">
           <EditableNodeTitle

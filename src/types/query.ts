@@ -12,8 +12,7 @@ export type NodeType =
 export interface StructuredQuerySpec {
   scope: Scope;
   nodeTypes?: NodeType[];
-  mustHaveTags?: string[];
-  mustNotHaveTags?: string[];
+  importantOnly?: boolean;
   textSearch?: {
     query: string;
     mode: "full-text" | "fuzzy";
@@ -39,7 +38,7 @@ export interface QueryResult {
   type: string;
   title?: string;
   createdAt?: number;
-  tags?: string[];
+  important?: boolean;
   /** Extracted text from media (image OCR / PDF) when present in node_text */
   plainText?: string;
 }

@@ -293,7 +293,7 @@ export function ChatSidebar() {
           <div>
             <Button
               variant="outline"
-              className="rounded-md"
+              className="rounded-md shadow-md"
               onClick={async () => {
                 const newThreadId = await addThread();
                 setActiveThread(newThreadId);
