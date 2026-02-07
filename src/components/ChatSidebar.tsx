@@ -107,6 +107,12 @@ export function ChatSidebar() {
     ? messagesByThreadId[activeThreadId] ?? []
     : [];
 
+  // Only show threads that are open as tabs (isOpen !== false)
+  const openThreads = useMemo(
+    () => threads.filter((t) => t.isOpen !== false),
+    [threads]
+  );
+
   // Determine if we should show a thinking state
   const showThinking = useMemo(() => {
     if (messages.length === 0) return false;
@@ -173,17 +179,22 @@ export function ChatSidebar() {
           }}
         >
           <div className="flex w-max pl-2 gap-1 overflow-y-hidden">
-            {threads.map((t) => (
-              <Button
+            {openThreads.map((t) => (
+              <div
                 key={t.id}
-                variant={activeThreadId === t.id ? "secondary" : "ghost"}
-                size="sm"
-                className="shrink-0 gap-1.5 relative"
+                role="tab"
+                aria-selected={activeThreadId === t.id}
+                className={cn(
+                  "inline-flex items-center justify-center gap-1.5 shrink-0 relative rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 cursor-pointer",
+                  activeThreadId === t.id
+                    ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    : "hover:bg-accent hover:text-accent-foreground"
+                )}
                 onClick={(e) => {
-                  // Check if the click was on the X icon or its parent
                   const target = e.target as HTMLElement;
                   if (
                     target.closest("svg") ||
+                    target.closest("button") ||
                     target.classList.contains("close-thread-icon")
                   ) {
                     return;
@@ -208,7 +219,7 @@ export function ChatSidebar() {
                 >
                   <X className="close-thread-icon size-3 z-[49] shrink-0 hover:opacity-70 transition-opacity border border-gray-300 rounded-full bg-neutral-200 hover:bg-accent" />
                 </Button>
-              </Button>
+              </div>
             ))}
           </div>
         </div>

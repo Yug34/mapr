@@ -85,15 +85,12 @@ export function EditableNodeTitle({
     <div
       className={cn(
         "flex min-w-0 flex-1 items-center gap-1 overflow-hidden",
-        className,
+        className
       )}
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      <span
-        className="min-w-0 flex-1 truncate"
-        title={title ?? displayValue}
-      >
+      <span className="min-w-0 flex-1 truncate" title={title ?? displayValue}>
         {displayValue || "Untitled"}
       </span>
       <Button

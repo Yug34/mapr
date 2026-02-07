@@ -99,6 +99,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
       video: comfortablyNumb as unknown as File,
       videoBase64: "",
       mediaId: "comfortably-numb",
+      important: true,
     } as VideoNodeData,
   },
   {

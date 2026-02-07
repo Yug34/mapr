@@ -58,6 +58,7 @@ export type ChatThreadRecord = {
   createdAt: number;
   updatedAt: number;
   toShowInSidebar?: number; // 1 = true, 0 = false (SQLite boolean)
+  isOpen?: number; // 1 = true, 0 = false (SQLite boolean)
 };
 
 export type ChatMessageRecord = {
@@ -276,6 +277,15 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
   try {
     await exec(
       "ALTER TABLE chat_threads ADD COLUMN toShowInSidebar INTEGER NOT NULL DEFAULT 1"
+    );
+  } catch {
+    // Column already exists (new DB) — ignore
+  }
+
+  // Migration: add isOpen column to chat_threads for existing DBs
+  try {
+    await exec(
+      "ALTER TABLE chat_threads ADD COLUMN isOpen INTEGER NOT NULL DEFAULT 1"
     );
   } catch {
     // Column already exists (new DB) — ignore
@@ -543,6 +553,7 @@ export async function get<T = unknown>(
       updatedAt: Number(row.updatedAt),
       toShowInSidebar:
         row.toShowInSidebar != null ? Number(row.toShowInSidebar) !== 0 : true,
+      isOpen: row.isOpen != null ? Number(row.isOpen) !== 0 : true,
     } as T;
   }
   if (store === "chat_messages") {
@@ -608,6 +619,7 @@ export async function getAll<T = unknown>(store: StoreName): Promise<T[]> {
       updatedAt: Number(r.updatedAt),
       toShowInSidebar:
         r.toShowInSidebar != null ? Number(r.toShowInSidebar) !== 0 : true,
+      isOpen: r.isOpen != null ? Number(r.isOpen) !== 0 : true,
     })) as T[];
   }
   if (store === "chat_messages") {
@@ -693,16 +705,36 @@ export async function put<T = unknown>(
     return v.nodeId;
   }
   if (store === "chat_threads") {
-    const v = value as unknown as ChatThreadRecord;
+    const v = value as unknown as ChatThreadRecord & {
+      toShowInSidebar?: boolean | number;
+      isOpen?: boolean | number;
+    };
+    const toShowValue =
+      v.toShowInSidebar === undefined || v.toShowInSidebar === null
+        ? 1
+        : typeof v.toShowInSidebar === "boolean"
+        ? v.toShowInSidebar
+          ? 1
+          : 0
+        : v.toShowInSidebar;
+    const isOpenValue =
+      v.isOpen === undefined || v.isOpen === null
+        ? 1
+        : typeof v.isOpen === "boolean"
+        ? v.isOpen
+          ? 1
+          : 0
+        : v.isOpen;
     await exec(
-      `INSERT OR REPLACE INTO chat_threads (id, title, createdAt, updatedAt, toShowInSidebar)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT OR REPLACE INTO chat_threads (id, title, createdAt, updatedAt, toShowInSidebar, isOpen)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [
         v.id,
         v.title,
         String(v.createdAt),
         String(v.updatedAt),
-        v.toShowInSidebar != null ? String(v.toShowInSidebar) : "1",
+        String(toShowValue),
+        String(isOpenValue),
       ]
     );
     return v.id;
@@ -794,24 +826,33 @@ export async function add<T = unknown>(
   if (store === "chat_threads") {
     const v = value as unknown as ChatThreadRecord & {
       toShowInSidebar?: boolean | number;
+      isOpen?: boolean | number;
     };
-    // Convert boolean to number if needed (1 = true, 0 = false)
     let toShowInSidebarValue: number;
     if (v.toShowInSidebar === undefined || v.toShowInSidebar === null) {
-      toShowInSidebarValue = 1; // Default to true
+      toShowInSidebarValue = 1;
     } else if (typeof v.toShowInSidebar === "boolean") {
       toShowInSidebarValue = v.toShowInSidebar ? 1 : 0;
     } else {
       toShowInSidebarValue = v.toShowInSidebar;
     }
+    let isOpenValue: number;
+    if (v.isOpen === undefined || v.isOpen === null) {
+      isOpenValue = 1;
+    } else if (typeof v.isOpen === "boolean") {
+      isOpenValue = v.isOpen ? 1 : 0;
+    } else {
+      isOpenValue = v.isOpen;
+    }
     await exec(
-      `INSERT INTO chat_threads (id, title, createdAt, updatedAt, toShowInSidebar) VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO chat_threads (id, title, createdAt, updatedAt, toShowInSidebar, isOpen) VALUES (?, ?, ?, ?, ?, ?)`,
       [
         v.id,
         v.title,
         String(v.createdAt),
         String(v.updatedAt),
         String(toShowInSidebarValue),
+        String(isOpenValue),
       ]
     );
     return v.id;
@@ -894,24 +935,39 @@ export async function bulkPut<T = unknown>(
     return;
   }
   if (store === "chat_threads") {
-    const placeholders = values.map(() => "(?, ?, ?, ?, ?)").join(", ");
+    const placeholders = values.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
     const bind: (string | number | null)[] = [];
     for (const v of values as unknown as (ChatThreadRecord & {
       toShowInSidebar?: boolean | number;
+      isOpen?: boolean | number;
     })[]) {
-      // Convert boolean to number if needed (1 = true, 0 = false)
       let toShowInSidebarValue: number;
       if (v.toShowInSidebar === undefined || v.toShowInSidebar === null) {
-        toShowInSidebarValue = 1; // Default to true
+        toShowInSidebarValue = 1;
       } else if (typeof v.toShowInSidebar === "boolean") {
         toShowInSidebarValue = v.toShowInSidebar ? 1 : 0;
       } else {
         toShowInSidebarValue = v.toShowInSidebar;
       }
-      bind.push(v.id, v.title, v.createdAt, v.updatedAt, toShowInSidebarValue);
+      let isOpenValue: number;
+      if (v.isOpen === undefined || v.isOpen === null) {
+        isOpenValue = 1;
+      } else if (typeof v.isOpen === "boolean") {
+        isOpenValue = v.isOpen ? 1 : 0;
+      } else {
+        isOpenValue = v.isOpen;
+      }
+      bind.push(
+        v.id,
+        v.title,
+        v.createdAt,
+        v.updatedAt,
+        toShowInSidebarValue,
+        isOpenValue
+      );
     }
     await exec(
-      `INSERT OR REPLACE INTO chat_threads (id, title, createdAt, updatedAt, toShowInSidebar) VALUES ${placeholders}`,
+      `INSERT OR REPLACE INTO chat_threads (id, title, createdAt, updatedAt, toShowInSidebar, isOpen) VALUES ${placeholders}`,
       bind
     );
     return;

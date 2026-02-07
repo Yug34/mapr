@@ -6,6 +6,7 @@ export interface Thread {
   createdAt: number;
   updatedAt?: number;
   toShowInSidebar?: boolean;
+  isOpen?: boolean;
 }
 
 export interface Message {

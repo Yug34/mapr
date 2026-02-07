@@ -59,12 +59,20 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     if (metaRecord && typeof metaRecord.v === "string") {
       activeThreadId = metaRecord.v;
     }
-    if (
-      threads.length > 0 &&
-      (!activeThreadId || !threads.some((t) => t.id === activeThreadId))
-    ) {
-      activeThreadId = threads[0].id;
-      await put(Stores.meta, { k: META_KEY_ACTIVE_THREAD, v: activeThreadId });
+    const openThreads = threads.filter((t) => t.isOpen !== false);
+    if (threads.length > 0) {
+      const activeIsValid =
+        activeThreadId && threads.some((t) => t.id === activeThreadId);
+      const activeIsOpen =
+        activeThreadId && openThreads.some((t) => t.id === activeThreadId);
+      if (!activeIsValid || !activeIsOpen) {
+        activeThreadId =
+          openThreads.length > 0 ? openThreads[0].id : threads[0].id;
+        await put(Stores.meta, {
+          k: META_KEY_ACTIVE_THREAD,
+          v: activeThreadId,
+        });
+      }
     }
     set({ threads, messagesByThreadId, activeThreadId });
   },
@@ -78,6 +86,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
       createdAt: now,
       updatedAt: now,
       toShowInSidebar: true,
+      isOpen: true,
     };
     await put(Stores.chat_threads, thread);
     await put(Stores.meta, { k: META_KEY_ACTIVE_THREAD, v: id });
@@ -193,6 +202,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     const updatedThread: Thread = {
       ...thread,
       toShowInSidebar: false,
+      isOpen: false,
       updatedAt: Date.now(),
     };
 
@@ -200,11 +210,13 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
 
     // Remove from visible threads
     const newThreads = state.threads.filter((t) => t.id !== threadId);
+    const openThreads = newThreads.filter((t) => t.isOpen !== false);
 
-    // If the closed thread was active, switch to another thread
+    // If the closed thread was active, switch to another open thread
     let newActiveThreadId = state.activeThreadId;
     if (state.activeThreadId === threadId) {
-      newActiveThreadId = newThreads.length > 0 ? newThreads[0].id : null;
+      newActiveThreadId =
+        openThreads.length > 0 ? openThreads[0].id : newThreads[0]?.id ?? null;
       if (newActiveThreadId) {
         await put(Stores.meta, {
           k: META_KEY_ACTIVE_THREAD,
@@ -231,6 +243,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     const updatedThread: Thread = {
       ...thread,
       toShowInSidebar: true,
+      isOpen: true,
       updatedAt: Date.now(),
     };
 
@@ -266,18 +279,20 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     const now = Date.now();
     let updatedThread: Thread;
 
-    // If thread is not visible, make it visible
+    // If thread is not visible, make it visible and open
     if (thread.toShowInSidebar === false) {
       updatedThread = {
         ...thread,
         toShowInSidebar: true,
+        isOpen: true,
         updatedAt: now,
       };
       await put(Stores.chat_threads, updatedThread);
     } else {
-      // Even if visible, update the timestamp so it appears at the top
+      // Even if visible, update the timestamp and ensure open so it appears at the top
       updatedThread = {
         ...thread,
+        isOpen: true,
         updatedAt: now,
       };
       await put(Stores.chat_threads, updatedThread);
@@ -304,6 +319,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
   ensureDefaultThread: async () => {
     const { threads, addThread } = get();
     if (threads.length === 0) return addThread();
+    const openThreads = threads.filter((t) => t.isOpen !== false);
     let activeThreadId: string | null = null;
     const metaRecord = await getFromDb<{ k: string; v: unknown }>(
       Stores.meta,
@@ -312,9 +328,13 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     if (metaRecord && typeof metaRecord.v === "string") {
       activeThreadId = metaRecord.v;
     }
+    const activeIsOpen =
+      activeThreadId && openThreads.some((t) => t.id === activeThreadId);
     const id =
-      activeThreadId && threads.some((t) => t.id === activeThreadId)
+      activeIsOpen && activeThreadId
         ? activeThreadId
+        : openThreads.length > 0
+        ? openThreads[0].id
         : threads[0].id;
     if (id !== activeThreadId) {
       await put(Stores.meta, { k: META_KEY_ACTIVE_THREAD, v: id });
