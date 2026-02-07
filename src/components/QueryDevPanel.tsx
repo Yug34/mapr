@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Star, ChevronDown, ChevronRight, Check, X } from "lucide-react";
 import { format } from "date-fns";
+import { NodeType } from "@/types/common";
 
 export function QueryDevPanel() {
   const [queryJson, setQueryJson] = useState<string>(
@@ -245,7 +246,7 @@ export function QueryDevPanel() {
                     <TableHead className="text-xs">
                       <Star className="size-4 inline fill-amber-500 text-amber-500" />
                     </TableHead>
-                    {results.some((r) => r.type === "todo") && (
+                    {results.some((r) => r.type === NodeType.Todo) && (
                       <TableHead className="text-xs font-bold">
                         Due date
                       </TableHead>
@@ -290,9 +291,10 @@ export function QueryDevPanel() {
                           </span>
                         )}
                       </TableCell>
-                      {results.some((r) => r.type === "todo") && (
+                      {results.some((r) => r.type === NodeType.Todo) && (
                         <TableCell className="text-[11px] py-1.5">
-                          {result.type === "todo" && result.dueDate != null ? (
+                          {result.type === NodeType.Todo &&
+                          result.dueDate != null ? (
                             format(new Date(result.dueDate), "MMM d, yyyy")
                           ) : (
                             <>—</>
@@ -300,7 +302,8 @@ export function QueryDevPanel() {
                         </TableCell>
                       )}
                       <TableCell className="text-[11px] py-1.5">
-                        {(result.type === "image" || result.type === "pdf") && (
+                        {(result.type === NodeType.Image ||
+                          result.type === NodeType.PDF) && (
                           <details className="inline">
                             <summary className="cursor-pointer hover:underline">
                               {result.plainText != null &&
@@ -324,9 +327,8 @@ export function QueryDevPanel() {
                             </pre>
                           </details>
                         )}
-                        {result.type !== "image" && result.type !== "pdf" && (
-                          <>—</>
-                        )}
+                        {result.type !== NodeType.Image &&
+                          result.type !== NodeType.PDF && <>—</>}
                       </TableCell>
                     </TableRow>
                   ))}

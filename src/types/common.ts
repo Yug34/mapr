@@ -119,6 +119,18 @@ export type MediaHandler<T> = {
   buildData: (file: File, blobUrl: string, base64: string) => T;
 };
 
+export const NodeType = {
+  Link: "link",
+  Image: "image",
+  Video: "video",
+  Audio: "audio",
+  PDF: "pdf",
+  Todo: "todo",
+  Note: "note",
+} as const;
+
+export type NodeType = (typeof NodeType)[keyof typeof NodeType];
+
 // Dock / Tabs
 export type TabIconKey =
   | "home"
