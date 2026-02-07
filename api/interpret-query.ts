@@ -55,11 +55,17 @@ For date ranges:
 Examples:
 "show all todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"]}
 "show todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"]}
-"important nodes" or "notes that are important" → {"scope": {"type": "global"}, "importantOnly": true} (add nodeTypes only if user specifies type)
+"nodes marked important" or "important nodes" or "notes that are important" → {"scope": {"type": "global"}, "importantOnly": true}
+"nodes with the important mark" → {"scope": {"type": "global"}, "importantOnly": true}
+"pdf nodes marked important" → {"scope": {"type": "global"}, "nodeTypes": ["pdf"], "importantOnly": true} (add nodeTypes only if user specifies type)
 "todos due this week" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}, "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <start_of_week_ms>, "to": <end_of_week_ms>}}]}
 "incomplete todos" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}}
 "incomplete todos due in less than 7 days" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}, "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <now_ms>, "to": <now_plus_7_days_ms>}}]}
 "show all todos that are due this week" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}, "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <start_of_week_ms>, "to": <end_of_week_ms>}}]}
+"todos due today" → {"scope": {"type": "global"}, "nodeTypes": ["todo"], "statusFilter": {"field": "status", "values": ["incomplete"]}, "dateFilters": [{"field": "dueDate", "op": "between", "value": {"from": <start_of_today_ms>, "to": <end_of_today_ms>}}]}
+"show all notes" or "notes" → {"scope": {"type": "global"}, "nodeTypes": ["note"]}
+"show all nodes" → {"scope": {"type": "global"}} (no nodeTypes = all types)
+"notes containing meeting" or "search for budget" → {"scope": {"type": "global"}, "nodeTypes": ["note"], "textSearch": {"query": "<user phrase>", "mode": "full-text"}}
 `.trim();
 
 // TODO: the TODO node has the status field that can either be "incomplete" or "complete" or "overdue"
