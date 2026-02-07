@@ -41,6 +41,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
 - Right click on a node to **duplicate** or **delete** it.
 - Connect edges by clicking and dragging your cursor from a handle to another handle.
 - Pan around the canvas using Figma-like controls.`,
+      important: true,
     },
   },
   {
@@ -138,6 +139,7 @@ You can add nodes for text, images, videos, audio, PDFs, and make TODOs.
     data: {
       url: "https://megalith.blog",
       title: "My Blog 🎀",
+      important: true,
     } as LinkNodeData,
   },
 ];

@@ -273,7 +273,7 @@ const CanvasContextMenu = ({
         <ContextMenuContent>
           {type === "node" ? (
             <>
-              <ContextMenuLabel>Node: {targetId}</ContextMenuLabel>
+              <ContextMenuLabel>{node?.data.title}</ContextMenuLabel>
               <ContextMenuSeparator />
               {showSummarize && (
                 <>
