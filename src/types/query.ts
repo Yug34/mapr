@@ -38,6 +38,8 @@ export interface QueryResult {
   type: string;
   title?: string;
   createdAt?: number;
+  /** TODO node's due date (Unix ms) */
+  dueDate?: number;
   important?: boolean;
   /** Extracted text from media (image OCR / PDF) when present in node_text */
   plainText?: string;

@@ -228,22 +228,18 @@ export class QueryService {
       }
 
       // Store result with all extracted fields
-      const result: QueryResult & { dueDate?: number } = {
+      const result: QueryResult = {
         nodeId: row.id,
         type: queryType,
         title,
         createdAt,
+        dueDate,
         important,
         plainText:
           row.plainText != null && row.plainText !== ""
             ? row.plainText
             : undefined,
       };
-
-      // Store dueDate temporarily for sorting
-      if (dueDate !== undefined) {
-        (result as any).dueDate = dueDate;
-      }
 
       results.push(result);
     }
@@ -258,9 +254,8 @@ export class QueryService {
           aValue = a.createdAt;
           bValue = b.createdAt;
         } else if (spec.sort!.field === "dueDate") {
-          // Extract dueDate from the temporarily stored field
-          aValue = (a as any).dueDate;
-          bValue = (b as any).dueDate;
+          aValue = a.dueDate;
+          bValue = b.dueDate;
         }
 
         if (aValue === undefined && bValue === undefined) return 0;
@@ -269,11 +264,6 @@ export class QueryService {
 
         const diff = aValue - bValue;
         return spec.sort!.direction === "asc" ? diff : -diff;
-      });
-
-      // Clean up temporary dueDate field
-      results.forEach((r) => {
-        if ("dueDate" in r) delete (r as any).dueDate;
       });
     }
 

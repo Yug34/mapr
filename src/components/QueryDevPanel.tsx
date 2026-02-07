@@ -18,6 +18,7 @@ import {
 } from "./ui/table";
 import { cn } from "@/lib/utils";
 import { Star, ChevronDown, ChevronRight, Check, X } from "lucide-react";
+import { format } from "date-fns";
 
 export function QueryDevPanel() {
   const [queryJson, setQueryJson] = useState<string>(
@@ -239,12 +240,19 @@ export function QueryDevPanel() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-xs">Title</TableHead>
-                    <TableHead className="text-xs">Type</TableHead>
+                    <TableHead className="text-xs font-bold">Title</TableHead>
+                    <TableHead className="text-xs font-bold">Type</TableHead>
                     <TableHead className="text-xs">
                       <Star className="size-4 inline fill-amber-500 text-amber-500" />
                     </TableHead>
-                    <TableHead className="text-xs">Extracted</TableHead>
+                    {results.some((r) => r.type === "todo") && (
+                      <TableHead className="text-xs font-bold">
+                        Due date
+                      </TableHead>
+                    )}
+                    <TableHead className="text-xs font-bold">
+                      Extracted
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -282,6 +290,15 @@ export function QueryDevPanel() {
                           </span>
                         )}
                       </TableCell>
+                      {results.some((r) => r.type === "todo") && (
+                        <TableCell className="text-[11px] py-1.5">
+                          {result.type === "todo" && result.dueDate != null ? (
+                            format(new Date(result.dueDate), "MMM d, yyyy")
+                          ) : (
+                            <>—</>
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell className="text-[11px] py-1.5">
                         {(result.type === "image" || result.type === "pdf") && (
                           <details className="inline">
