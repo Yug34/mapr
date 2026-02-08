@@ -26,7 +26,7 @@ export function SidebarContent() {
           className="shrink-0"
           onClick={() => setMode("query-dev")}
         >
-          Query Dev
+          Search
         </Button>
       </div>
 

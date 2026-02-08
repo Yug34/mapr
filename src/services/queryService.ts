@@ -85,6 +85,17 @@ function extractDueDate(data: unknown): number | undefined {
 }
 
 /**
+ * Extracts content/body from node data JSON (for notes)
+ */
+function extractNoteContent(data: unknown): string | undefined {
+  if (!data || typeof data !== "object") return undefined;
+  const obj = data as Record<string, unknown>;
+  const content = obj.content;
+  if (typeof content === "string" && content.trim() !== "") return content;
+  return undefined;
+}
+
+/**
  * QueryService - executes StructuredQuerySpec against SQLite
  */
 export class QueryService {
@@ -145,6 +156,10 @@ export class QueryService {
       const createdAt = extractCreatedAt(persistedNode.data);
       const status = extractStatus(persistedNode.data);
       const dueDate = extractDueDate(persistedNode.data);
+      const noteContent =
+        nodeType === "NoteNode"
+          ? extractNoteContent(persistedNode.data)
+          : undefined;
 
       // Apply important filter
       if (spec.importantOnly && !important) continue;
@@ -240,6 +255,7 @@ export class QueryService {
           row.plainText != null && row.plainText !== ""
             ? row.plainText
             : undefined,
+        noteContent,
       };
 
       results.push(result);

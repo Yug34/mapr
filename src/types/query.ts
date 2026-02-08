@@ -45,4 +45,6 @@ export interface QueryResult {
   important?: boolean;
   /** Extracted text from media (image OCR / PDF) when present in node_text */
   plainText?: string;
+  /** Note node body text (for type "note") */
+  noteContent?: string;
 }

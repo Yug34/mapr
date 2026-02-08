@@ -5,7 +5,6 @@ import type { StructuredQuerySpec, QueryResult, Scope } from "../types/query";
 import { useCanvasStore } from "../store/canvasStore";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Label } from "./ui/label";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
 import {
@@ -124,7 +123,6 @@ export function QueryDevPanel() {
         <div className="p-4 flex flex-col gap-4">
           {/* Natural Language Query Section */}
           <div className="space-y-2">
-            <Label className="block font-semibold">Search:</Label>
             <div className="flex items-center gap-4 mb-2">
               <span className="font-semibold">Scope:</span>
               <label className="flex items-center gap-1.5 cursor-pointer">
@@ -261,7 +259,7 @@ export function QueryDevPanel() {
                     >
                       <TableCell
                         className={cn(
-                          "text-[11px] py-1.5 max-w-[120px]",
+                          "flex gap-1 text-[11px] py-1.5 max-w-[120px] px-0",
                           "truncate"
                         )}
                         title={result.title}
@@ -269,7 +267,8 @@ export function QueryDevPanel() {
                         {result.title ?? "—"}
                       </TableCell>
                       <TableCell className="text-[11px] py-1.5">
-                        {result.type}
+                        {result.type.charAt(0).toUpperCase() +
+                          result.type.slice(1)}
                       </TableCell>
                       <TableCell
                         className="text-[11px] py-1.5 max-w-[100px]"
@@ -310,10 +309,27 @@ export function QueryDevPanel() {
                         </TableCell>
                       )}
                       <TableCell className="text-[11px] py-1.5">
-                        {(result.type === NodeType.Image ||
-                          result.type === NodeType.PDF) &&
-                        result.plainText != null &&
-                        result.plainText !== "" ? (
+                        {result.type === "note" &&
+                        result.noteContent != null &&
+                        result.noteContent !== "" ? (
+                          <details className="inline">
+                            <summary className="cursor-pointer hover:underline">
+                              {result.noteContent.length} chars
+                            </summary>
+                            <pre
+                              className={cn(
+                                "mt-1 p-1.5 text-[10px] overflow-auto max-h-24",
+                                "whitespace-pre-wrap break-words",
+                                "bg-muted rounded border"
+                              )}
+                            >
+                              {result.noteContent}
+                            </pre>
+                          </details>
+                        ) : (result.type === NodeType.Image ||
+                            result.type === NodeType.PDF) &&
+                          result.plainText != null &&
+                          result.plainText !== "" ? (
                           <details className="inline">
                             <summary className="cursor-pointer hover:underline">
                               {result.plainText.length} chars
