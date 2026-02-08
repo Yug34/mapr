@@ -1,6 +1,7 @@
 // Avoid Node type imports to keep config lint-clean without @types/node
 import { copyFileSync, mkdirSync } from "node:fs";
 import { join, resolve } from "node:path";
+import type { ResolvedConfig } from "vite";
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react-swc";
@@ -10,7 +11,7 @@ function copySqliteWasm() {
   let outDir = "dist";
   return {
     name: "copy-sqlite-wasm",
-    configResolved(config) {
+    configResolved(config: ResolvedConfig) {
       outDir = config.build.outDir;
     },
     closeBundle() {
