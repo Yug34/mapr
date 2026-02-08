@@ -185,8 +185,7 @@ const Canvas = () => {
 
           e.preventDefault();
           e.stopPropagation();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (e as any).stopImmediatePropagation?.();
+          (e as WheelEvent).stopImmediatePropagation?.();
           const vp = getViewport();
           setViewport({ x: vp.x + dx, y: vp.y + dy, zoom: vp.zoom });
           return;
@@ -199,8 +198,7 @@ const Canvas = () => {
 
           e.preventDefault();
           e.stopPropagation();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (e as any).stopImmediatePropagation?.();
+          (e as WheelEvent).stopImmediatePropagation?.();
           const vp = getViewport();
           setViewport({ x: vp.x + dx, y: vp.y + dy, zoom: vp.zoom });
           return;

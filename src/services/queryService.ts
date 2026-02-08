@@ -3,7 +3,12 @@ import { devLog, devWarn } from "../lib/devLog";
 import { extractTitle, extractImportant } from "../utils/nodeDataUtils";
 import type { StructuredQuerySpec, QueryResult } from "../types/query";
 import type { PersistedNode } from "../utils/serialization";
-import { TodoStatus, type Todo, type TODONodeData } from "../types/common";
+import {
+  NodeType,
+  TodoStatus,
+  type Todo,
+  type TODONodeData,
+} from "../types/common";
 
 /**
  * Maps ReactFlow node types to the query spec node types
@@ -131,7 +136,7 @@ export class QueryService {
 
       // Apply nodeTypes filter if specified
       if (spec.nodeTypes && spec.nodeTypes.length > 0) {
-        if (!spec.nodeTypes.includes(queryType as any)) continue;
+        if (!spec.nodeTypes.includes(queryType as NodeType)) continue;
       }
 
       // Extract fields from the nested data
