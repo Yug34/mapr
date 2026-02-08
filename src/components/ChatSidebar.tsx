@@ -12,6 +12,7 @@ import {
   History,
   Plus,
   Pencil,
+  MapPin,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
@@ -20,12 +21,16 @@ import { ThreadHistoryDialog } from "./ThreadHistoryDialog";
 import { buildCanvasContext } from "@/services/canvasContextBuilder";
 import { streamCanvasChat } from "@/services/canvasChatService";
 
+const NODE_CITATION_PREFIX = "node:";
+
 function MessageBubble({
   message,
   isThinking,
+  onNodeCitationClick,
 }: {
   message: Message;
   isThinking?: boolean;
+  onNodeCitationClick?: (nodeId: string) => void;
 }) {
   const isUser = message.role === "user";
   const isSummary = message.role === "summary";
@@ -72,12 +77,38 @@ function MessageBubble({
           >
             <ReactMarkdown
               components={{
-                a: ({ href, children }) => (
-                  <a href={href} target="_blank" rel="noopener noreferrer">
-                    {children}
-                    <SquareArrowOutUpRight className="size-4 inline-block ml-1" />
-                  </a>
-                ),
+                a: ({ href, children }) => {
+                  const isNodeCitation =
+                    typeof href === "string" &&
+                    href.startsWith(NODE_CITATION_PREFIX);
+                  const nodeId = isNodeCitation
+                    ? href.slice(NODE_CITATION_PREFIX.length)
+                    : null;
+                  if (isNodeCitation && nodeId && onNodeCitationClick) {
+                    return (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onNodeCitationClick(nodeId);
+                        }}
+                        className="inline-flex items-center gap-1 font-medium text-primary underline underline-offset-2 hover:text-primary/90 cursor-pointer bg-transparent border-0 p-0"
+                      >
+                        {children}
+                        <MapPin
+                          className="size-3.5 inline-block shrink-0"
+                          aria-hidden
+                        />
+                      </button>
+                    );
+                  }
+                  return (
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      {children}
+                      <SquareArrowOutUpRight className="size-4 inline-block ml-1" />
+                    </a>
+                  );
+                },
               }}
             >
               {message.content}
@@ -103,7 +134,7 @@ export function ChatSidebar() {
     loadFromStorage,
     ensureDefaultThread,
   } = useChatStore();
-  const { activeTabId } = useCanvasStore();
+  const { activeTabId, requestFocusNode } = useCanvasStore();
 
   const [input, setInput] = useState("");
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
@@ -416,6 +447,7 @@ export function ChatSidebar() {
                       createdAt: Date.now(),
                     }}
                     isThinking={true}
+                    onNodeCitationClick={(nodeId) => requestFocusNode(nodeId)}
                   />
                 )}
               <div ref={scrollRef} />
@@ -425,16 +457,20 @@ export function ChatSidebar() {
       ) : (
         <div className="flex flex-col text-sm text-center h-full flex items-center justify-center gap-y-4">
           <p className="text-md">Create a thread by summarizing a node.</p>
+          <div className="flex items-center justify-center gap-x-2 w-full">
+            <span className="w-[100px] h-px bg-gray-400" />
+            <span className="text-xs text-muted-foreground">OR</span>
+            <span className="w-[100px] h-px bg-gray-400" />
+          </div>
           <div>
             <Button
-              variant="outline"
               className="rounded-md shadow-md"
               onClick={async () => {
                 const newThreadId = await addThread();
                 setActiveThread(newThreadId);
               }}
             >
-              Or click here <Plus className="size-4" />
+              Click here <Plus className="size-4" />
             </Button>
           </div>
         </div>
