@@ -14,6 +14,11 @@ function extractTitle(data: unknown): string {
   return (obj.title as string) ?? (obj.fileName as string) ?? "";
 }
 
+function isImportant(data: unknown): boolean {
+  if (!data || typeof data !== "object") return false;
+  return (data as Record<string, unknown>).important === true;
+}
+
 /**
  * Build a single string describing the canvas for the chat system prompt.
  * Uses scope to limit nodes to one tab or all tabs. Caps node count and total length.
@@ -45,9 +50,10 @@ export async function buildCanvasContext(scope: Scope): Promise<string> {
         (preview.length > PREVIEW_CHARS ? "…" : "")
       : "";
 
+    const importantTag = isImportant(node.data) ? " (important)" : "";
     const line = `- **${title || "(no title)"}** [${nodeType}] (id: ${
       node.id
-    })${previewStr ? `\n  Preview: ${previewStr}` : ""}`;
+    })${importantTag}${previewStr ? `\n  Preview: ${previewStr}` : ""}`;
     nodeLines.push(line);
     totalChars += line.length;
   }
