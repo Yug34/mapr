@@ -107,10 +107,9 @@ export function QueryDevPanel() {
   };
 
   const exampleNLQueries = [
+    "All nodes containing Dostoyevsky",
+    "All nodes marked important",
     "Incomplete TODOs due this week",
-    "Show all nodes marked important",
-    "All notes containing meeting",
-    "Show all notes containing budget",
   ];
 
   const loadNLExample = (example: string) => {
@@ -144,20 +143,30 @@ export function QueryDevPanel() {
                 Current Tab
               </label>
             </div>
-            <Input
-              value={nlQuery}
-              onChange={(e) => setNlQuery(e.target.value)}
-              placeholder="e.g., 'show all todos due this week'"
-              className="font-mono text-xs"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleExecuteNL();
-                }
-              }}
-            />
+            <div className="flex">
+              <Input
+                value={nlQuery}
+                onChange={(e) => setNlQuery(e.target.value)}
+                placeholder="Show all todos due this week"
+                className="font-mono text-xs rounded-r-none"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleExecuteNL();
+                  }
+                }}
+              />
+              <Button
+                onClick={handleExecuteNL}
+                disabled={loading}
+                size="sm"
+                className="bg-green-600 h-9 hover:bg-green-700 rounded-l-none"
+              >
+                {loading ? "Processing..." : "Search"}
+              </Button>
+            </div>
             <div>
-              <span className="font-semibold block mb-2">NL Examples:</span>
+              <span className="font-semibold block mb-2">Examples:</span>
               <div className="flex flex-wrap gap-1">
                 {exampleNLQueries.map((example) => (
                   <Button
@@ -172,52 +181,45 @@ export function QueryDevPanel() {
                 ))}
               </div>
             </div>
-            <Button
-              onClick={handleExecuteNL}
-              disabled={loading}
-              size="sm"
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {loading ? "Processing..." : "Execute NL Query"}
-            </Button>
           </div>
 
           {/* JSON Query Section (toggleable) */}
           <div className="space-y-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
-              onClick={() => setShowJsonSection((v) => !v)}
-            >
-              {showJsonSection ? (
-                <ChevronDown className="size-4" />
-              ) : (
-                <ChevronRight className="size-4" />
-              )}
-              <span className="text-xs">JSON query</span>
-            </Button>
-            {showJsonSection && (
-              <>
-                <div>
-                  <textarea
-                    value={queryJson}
-                    onChange={(e) => setQueryJson(e.target.value)}
-                    className={cn(
-                      "w-full h-[200px] font-mono text-[11px] p-2 rounded-md border bg-background",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    )}
-                  />
-                </div>
+            <div className="flex justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1 px-2 text-muted-foreground hover:text-foreground"
+                onClick={() => setShowJsonSection((v) => !v)}
+              >
+                {showJsonSection ? (
+                  <ChevronDown className="size-4" />
+                ) : (
+                  <ChevronRight className="size-4" />
+                )}
+                <span className="text-xs">Query</span>
+              </Button>
+              {showJsonSection && (
                 <Button
                   onClick={handleExecuteJson}
                   disabled={loading}
                   size="sm"
-                  variant="secondary"
                 >
-                  {loading ? "Executing..." : "Execute JSON Query"}
+                  {loading ? "Executing..." : "Execute Query"}
                 </Button>
-              </>
+              )}
+            </div>
+            {showJsonSection && (
+              <div>
+                <textarea
+                  value={queryJson}
+                  onChange={(e) => setQueryJson(e.target.value)}
+                  className={cn(
+                    "w-full h-[200px] font-mono text-[11px] p-2 rounded-md border bg-background",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  )}
+                />
+              </div>
             )}
           </div>
 
