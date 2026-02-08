@@ -35,7 +35,7 @@ export async function extractAndStoreNodeText(
 
     const record: NodeTextRecord = {
       nodeId,
-      plainText: plainText?.trim() ? plainText.trim() : "N/A",
+      plainText: plainText?.trim() ? plainText.trim() : null,
       updatedAt: Date.now(),
       extracted: 1,
     };

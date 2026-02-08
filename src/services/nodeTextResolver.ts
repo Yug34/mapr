@@ -31,11 +31,7 @@ export async function resolveNodeText(
 
   if (nodeType === "ImageNode" || nodeType === "PDFNode") {
     const record = await get<NodeTextRecord>(Stores.node_text, nodeId);
-    if (
-      !record?.plainText ||
-      record.plainText.trim() === "" ||
-      record.plainText === "N/A"
-    ) {
+    if (!record?.plainText || record.plainText.trim() === "") {
       return null;
     }
     return record.plainText.trim();

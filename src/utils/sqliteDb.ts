@@ -47,7 +47,7 @@ export type TabRecord = {
 
 export type NodeTextRecord = {
   nodeId: string;
-  plainText: string;
+  plainText: string | null;
   updatedAt: number;
   extracted: number; // 1 = true, 0 = false (SQLite boolean)
 };
@@ -240,7 +240,7 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
 
     CREATE TABLE IF NOT EXISTS node_text (
       nodeId TEXT PRIMARY KEY,
-      plainText TEXT NOT NULL,
+      plainText TEXT,
       updatedAt INTEGER NOT NULL,
       extracted INTEGER NOT NULL DEFAULT 1
     );
@@ -289,6 +289,25 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
     );
   } catch {
     // Column already exists (new DB) — ignore
+  }
+
+  // Migration: make node_text.plainText nullable and convert "N/A"/"" to NULL
+  try {
+    await exec(
+      `CREATE TABLE node_text_new (
+        nodeId TEXT PRIMARY KEY,
+        plainText TEXT,
+        updatedAt INTEGER NOT NULL,
+        extracted INTEGER NOT NULL DEFAULT 1
+      )`
+    );
+    await exec(
+      `INSERT INTO node_text_new SELECT nodeId, NULLIF(NULLIF(plainText, 'N/A'), ''), updatedAt, extracted FROM node_text`
+    );
+    await exec("DROP TABLE node_text");
+    await exec("ALTER TABLE node_text_new RENAME TO node_text");
+  } catch {
+    // New DB or already migrated — ignore
   }
 
   return { promiser: promiser!, dbId: id };
@@ -540,7 +559,7 @@ export async function get<T = unknown>(
   if (store === "node_text") {
     return {
       nodeId: row.nodeId,
-      plainText: (row.plainText as string) ?? "",
+      plainText: (row.plainText as string | null) ?? null,
       updatedAt: Number(row.updatedAt),
       extracted: row.extracted != null ? Number(row.extracted) : 1,
     } as T;
@@ -606,7 +625,7 @@ export async function getAll<T = unknown>(store: StoreName): Promise<T[]> {
   if (store === "node_text") {
     return rows.map((r) => ({
       nodeId: r.nodeId,
-      plainText: (r.plainText as string) ?? "",
+      plainText: (r.plainText as string | null) ?? null,
       updatedAt: Number(r.updatedAt),
       extracted: r.extracted != null ? Number(r.extracted) : 1,
     })) as T[];

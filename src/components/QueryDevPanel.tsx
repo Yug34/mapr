@@ -124,9 +124,7 @@ export function QueryDevPanel() {
         <div className="p-4 flex flex-col gap-4">
           {/* Natural Language Query Section */}
           <div className="space-y-2">
-            <Label className="block font-semibold">
-              Natural Language Query:
-            </Label>
+            <Label className="block font-semibold">Search:</Label>
             <div className="flex items-center gap-4 mb-2">
               <span className="font-semibold">Scope:</span>
               <label className="flex items-center gap-1.5 cursor-pointer">
@@ -247,13 +245,9 @@ export function QueryDevPanel() {
                       <Star className="size-4 inline fill-amber-500 text-amber-500" />
                     </TableHead>
                     {results.some((r) => r.type === NodeType.Todo) && (
-                      <TableHead className="text-xs font-bold">
-                        Due date
-                      </TableHead>
+                      <TableHead className="text-xs font-bold">Due</TableHead>
                     )}
-                    <TableHead className="text-xs font-bold">
-                      Extracted
-                    </TableHead>
+                    <TableHead className="text-xs font-bold">Text</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -295,7 +289,15 @@ export function QueryDevPanel() {
                         <TableCell className="text-[11px] py-1.5">
                           {result.type === NodeType.Todo &&
                           result.dueDate != null ? (
-                            format(new Date(result.dueDate), "MMM d, yyyy")
+                            (() => {
+                              const d = new Date(result.dueDate);
+                              return format(
+                                d,
+                                d.getFullYear() === new Date().getFullYear()
+                                  ? "MMM d"
+                                  : "MMM d, yyyy"
+                              );
+                            })()
                           ) : (
                             <>—</>
                           )}
@@ -303,15 +305,12 @@ export function QueryDevPanel() {
                       )}
                       <TableCell className="text-[11px] py-1.5">
                         {(result.type === NodeType.Image ||
-                          result.type === NodeType.PDF) && (
+                          result.type === NodeType.PDF) &&
+                        result.plainText != null &&
+                        result.plainText !== "" ? (
                           <details className="inline">
                             <summary className="cursor-pointer hover:underline">
-                              {result.plainText != null &&
-                              result.plainText !== "" ? (
-                                <>{result.plainText.length} chars</>
-                              ) : (
-                                <>—</>
-                              )}
+                              {result.plainText.length} chars
                             </summary>
                             <pre
                               className={cn(
@@ -320,15 +319,12 @@ export function QueryDevPanel() {
                                 "bg-muted rounded border"
                               )}
                             >
-                              {result.plainText != null &&
-                              result.plainText !== ""
-                                ? result.plainText
-                                : "(No text extracted yet.)"}
+                              {result.plainText}
                             </pre>
                           </details>
+                        ) : (
+                          <>—</>
                         )}
-                        {result.type !== NodeType.Image &&
-                          result.type !== NodeType.PDF && <>—</>}
                       </TableCell>
                     </TableRow>
                   ))}

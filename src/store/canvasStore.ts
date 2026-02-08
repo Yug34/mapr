@@ -254,10 +254,10 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         const seedMediaRecords = await getAll<MediaRecord>(Stores.media);
         blobManager.setMediaBlobsFromRecords(seedMediaRecords);
 
-        // Seed image (n3) gets plainText "N/A" without running OCR
+        // Seed image (n3) gets plainText null without running OCR
         await put(Stores.node_text, {
           nodeId: "n3",
-          plainText: "N/A",
+          plainText: null,
           updatedAt: Date.now(),
           extracted: 1,
         });
