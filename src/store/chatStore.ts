@@ -1,6 +1,13 @@
 import { create } from "zustand";
 import type { Thread, Message } from "@/types/chat";
-import { get as getFromDb, getAll, put, Stores } from "@/utils/sqliteDb";
+import {
+  get as getFromDb,
+  getAll,
+  put,
+  deleteKey,
+  deleteChatMessagesByThreadId,
+  Stores,
+} from "@/utils/sqliteDb";
 
 const META_KEY_ACTIVE_THREAD = "chat_active_thread_id";
 
@@ -18,6 +25,7 @@ interface ChatStore {
   updateThreadTitle: (threadId: string, title: string) => Promise<void>;
   closeThread: (threadId: string) => Promise<void>;
   reopenThread: (threadId: string) => Promise<void>;
+  deleteThread: (threadId: string) => Promise<void>;
   ensureThreadVisible: (threadId: string) => Promise<void>;
   ensureDefaultThread: () => Promise<string>;
   loadFromStorage: () => Promise<void>;
@@ -264,6 +272,33 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
 
     set({
       threads: newThreads,
+    });
+  },
+
+  deleteThread: async (threadId) => {
+    const state = get();
+    await deleteChatMessagesByThreadId(threadId);
+    await deleteKey(Stores.chat_threads, threadId);
+    const newThreads = state.threads.filter((t) => t.id !== threadId);
+    const { [threadId]: _, ...restMessages } = state.messagesByThreadId;
+    let newActiveThreadId = state.activeThreadId;
+    if (state.activeThreadId === threadId) {
+      const openThreads = newThreads.filter((t) => t.isOpen !== false);
+      newActiveThreadId =
+        openThreads.length > 0 ? openThreads[0].id : newThreads[0]?.id ?? null;
+      if (newActiveThreadId) {
+        await put(Stores.meta, {
+          k: META_KEY_ACTIVE_THREAD,
+          v: newActiveThreadId,
+        });
+      } else {
+        newActiveThreadId = null;
+      }
+    }
+    set({
+      threads: newThreads,
+      messagesByThreadId: restMessages,
+      activeThreadId: newActiveThreadId,
     });
   },
 

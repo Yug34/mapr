@@ -12,6 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getAll, Stores } from "@/utils/sqliteDb";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -42,6 +44,7 @@ export function ThreadHistoryDialog({
     setActiveThread,
     getAllThreads,
     ensureThreadVisible,
+    deleteThread,
   } = useChatStore();
   const [allThreads, setAllThreads] = useState<Thread[]>([]);
   const [allMessages, setAllMessages] = useState<Record<string, Message[]>>({});
@@ -76,6 +79,28 @@ export function ThreadHistoryDialog({
     onOpenChange(false);
   };
 
+  const handleDeleteThread = async (
+    e: React.MouseEvent,
+    threadId: string,
+    threadTitle: string
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await deleteThread(threadId);
+      setAllThreads((prev) => prev.filter((t) => t.id !== threadId));
+      setAllMessages((prev) => {
+        const next = { ...prev };
+        delete next[threadId];
+        return next;
+      });
+      toast.success(`Deleted "${threadTitle}"`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Failed to delete: ${msg}`);
+    }
+  };
+
   const getMessageCount = (threadId: string): number => {
     return allMessages[threadId]?.length ?? 0;
   };
@@ -105,38 +130,52 @@ export function ThreadHistoryDialog({
                 );
 
                 return (
-                  <Button
+                  <div
                     key={thread.id}
-                    variant={isActive ? "secondary" : "ghost"}
-                    className={cn(
-                      "w-full justify-start h-auto p-4 text-left",
-                      isActive && "bg-secondary"
-                    )}
-                    onClick={() => handleThreadClick(thread)}
+                    className="flex items-center gap-2 w-full rounded-md transition-colors hover:bg-accent/50"
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium truncate">
-                          {thread.title}
-                        </span>
-                        {isClosed && (
-                          <span className="text-xs text-muted-foreground px-2 py-0.5 rounded bg-muted">
-                            Closed
+                    <Button
+                      variant={isActive ? "secondary" : "ghost"}
+                      className={cn(
+                        "flex-1 justify-start h-auto p-4 text-left min-w-0"
+                      )}
+                      onClick={() => handleThreadClick(thread)}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium truncate">
+                            {thread.title}
                           </span>
-                        )}
-                        {isActive && (
-                          <span className="text-xs text-primary px-2 py-0.5 rounded bg-primary/10">
-                            Active
-                          </span>
-                        )}
+                          {isClosed && (
+                            <span className="text-xs text-muted-foreground px-2 py-0.5 rounded bg-muted">
+                              Closed
+                            </span>
+                          )}
+                          {isActive && (
+                            <span className="text-xs text-primary px-2 py-0.5 rounded bg-primary/10">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span>{messageCount} messages</span>
+                          <span>•</span>
+                          <span>{displayDate}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>{messageCount} messages</span>
-                        <span>•</span>
-                        <span>{displayDate}</span>
-                      </div>
-                    </div>
-                  </Button>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                      onClick={(e) =>
+                        handleDeleteThread(e, thread.id, thread.title)
+                      }
+                      aria-label={`Delete ${thread.title}`}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
                 );
               })
             )}

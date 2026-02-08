@@ -911,6 +911,13 @@ export async function deleteKey(store: StoreName, key: string): Promise<void> {
   await exec(`DELETE FROM ${table} WHERE ${col} = ?`, [key]);
 }
 
+/** Delete all chat messages for a thread. Call before deleting the thread. */
+export async function deleteChatMessagesByThreadId(
+  threadId: string
+): Promise<void> {
+  await exec(`DELETE FROM chat_messages WHERE threadId = ?`, [threadId]);
+}
+
 export async function bulkPut<T = unknown>(
   store: StoreName,
   values: (T & { id?: string; k?: string })[]
