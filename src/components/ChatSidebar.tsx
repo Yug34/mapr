@@ -5,7 +5,14 @@ import type { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Send, SquareArrowOutUpRight, X, History, Plus } from "lucide-react";
+import {
+  Send,
+  SquareArrowOutUpRight,
+  X,
+  History,
+  Plus,
+  Pencil,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 import { Loader } from "./ui/loader";
@@ -101,7 +108,17 @@ export function ChatSidebar() {
   const [input, setInput] = useState("");
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [sending, setSending] = useState(false);
+  const [editingThreadId, setEditingThreadId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingThreadId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingThreadId]);
 
   useEffect(() => {
     (async () => {
@@ -241,7 +258,7 @@ export function ChatSidebar() {
                 role="tab"
                 aria-selected={activeThreadId === t.id}
                 className={cn(
-                  "inline-flex items-center justify-center gap-1.5 shrink-0 relative rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 cursor-pointer",
+                  "group inline-flex items-center justify-center gap-1.5 shrink-0 relative rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 cursor-pointer min-w-0",
                   activeThreadId === t.id
                     ? "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                     : "hover:bg-accent hover:text-accent-foreground"
@@ -251,30 +268,77 @@ export function ChatSidebar() {
                   if (
                     target.closest("svg") ||
                     target.closest("button") ||
-                    target.classList.contains("close-thread-icon")
+                    target.closest("input") ||
+                    target.classList.contains("close-thread-icon") ||
+                    target.classList.contains("edit-thread-icon")
                   ) {
                     return;
                   }
                   setActiveThread(t.id);
                 }}
               >
-                {t.title}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 w-3 h-3 gap-0"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    closeThread(t.id);
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                >
-                  <X className="close-thread-icon size-3 z-[49] shrink-0 hover:opacity-70 transition-opacity border border-gray-300 rounded-full bg-neutral-200 hover:bg-accent" />
-                </Button>
+                {editingThreadId === t.id ? (
+                  <input
+                    ref={editInputRef}
+                    type="text"
+                    value={editingTitle}
+                    onChange={(e) => setEditingTitle(e.target.value)}
+                    onBlur={async () => {
+                      const trimmed = editingTitle.trim();
+                      if (trimmed) await updateThreadTitle(t.id, trimmed);
+                      setEditingThreadId(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.currentTarget.blur();
+                      }
+                      if (e.key === "Escape") {
+                        setEditingTitle(t.title);
+                        setEditingThreadId(null);
+                        editInputRef.current?.blur();
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="min-w-[60px] max-w-[140px] bg-background border rounded px-1.5 py-0.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+                  />
+                ) : (
+                  <>
+                    <span className="truncate min-w-0">{t.title}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="edit-thread-icon shrink-0 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditingThreadId(t.id);
+                        setEditingTitle(t.title);
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
+                      <Pencil className="size-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 w-3 h-3 gap-0"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closeThread(t.id);
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
+                      <X className="close-thread-icon size-3 z-[49] shrink-0 hover:opacity-70 transition-opacity border border-gray-300 rounded-full bg-neutral-200 hover:bg-accent" />
+                    </Button>
+                  </>
+                )}
               </div>
             ))}
           </div>
