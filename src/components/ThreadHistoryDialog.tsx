@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import { getAll, Stores } from "@/utils/sqliteDb";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -96,7 +96,7 @@ export function ThreadHistoryDialog({
       });
       toast.success(`Deleted "${threadTitle}"`);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = getErrorMessage(err);
       toast.error(`Failed to delete: ${msg}`);
     }
   };

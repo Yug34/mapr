@@ -2,22 +2,12 @@ import { getAll, getAllFromIndex, Stores } from "@/utils/sqliteDb";
 import type { TabRecord } from "@/utils/sqliteDb";
 import type { PersistedNode } from "@/utils/serialization";
 import type { Scope } from "@/types/query";
+import { extractTitle, extractImportant } from "@/utils/nodeDataUtils";
 import { resolveNodeText } from "./nodeTextResolver";
 
 const MAX_NODES = 80;
 const MAX_CONTEXT_CHARS = 10_000;
 const PREVIEW_CHARS = 150;
-
-function extractTitle(data: unknown): string {
-  if (!data || typeof data !== "object") return "";
-  const obj = data as Record<string, unknown>;
-  return (obj.title as string) ?? (obj.fileName as string) ?? "";
-}
-
-function isImportant(data: unknown): boolean {
-  if (!data || typeof data !== "object") return false;
-  return (data as Record<string, unknown>).important === true;
-}
 
 /**
  * Build a single string describing the canvas for the chat system prompt.
@@ -50,7 +40,7 @@ export async function buildCanvasContext(scope: Scope): Promise<string> {
         (preview.length > PREVIEW_CHARS ? "…" : "")
       : "";
 
-    const importantTag = isImportant(node.data) ? " (important)" : "";
+    const importantTag = extractImportant(node.data) ? " (important)" : "";
     const line = `- **${title || "(no title)"}** [${nodeType}] (id: ${
       node.id
     })${importantTag}${previewStr ? `\n  Preview: ${previewStr}` : ""}`;

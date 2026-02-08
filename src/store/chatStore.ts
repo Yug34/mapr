@@ -11,6 +11,31 @@ import {
 
 const META_KEY_ACTIVE_THREAD = "chat_active_thread_id";
 
+/** Sort threads by updatedAt (or createdAt), newest first. Mutates in place. */
+function sortThreadsByUpdatedDesc(threads: Thread[]): void {
+  threads.sort((a, b) => {
+    const aDate = a.updatedAt ?? a.createdAt;
+    const bDate = b.updatedAt ?? b.createdAt;
+    return bDate - aDate;
+  });
+}
+
+async function getThreadById(threadId: string): Promise<Thread> {
+  const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
+  const thread = allThreads.find((t) => t.id === threadId);
+  if (!thread) {
+    throw new Error(`Thread ${threadId} not found`);
+  }
+  return thread;
+}
+
+function pickNextActiveThreadId(
+  openThreads: Thread[],
+  fallbackThreads: Thread[]
+): string | null {
+  return openThreads.length > 0 ? openThreads[0].id : fallbackThreads[0]?.id ?? null;
+}
+
 interface ChatStore {
   threads: Thread[];
   messagesByThreadId: Record<string, Message[]>;
@@ -41,12 +66,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
     // Filter threads to only show those with toShowInSidebar === true
     const threads = allThreads.filter((t) => t.toShowInSidebar !== false);
-    // Sort threads by updatedAt (or createdAt if updatedAt is missing), newest first
-    threads.sort((a, b) => {
-      const aDate = a.updatedAt ?? a.createdAt;
-      const bDate = b.updatedAt ?? b.createdAt;
-      return bDate - aDate; // Descending order (newest first)
-    });
+    sortThreadsByUpdatedDesc(threads);
     const messages = (await getAll<Message>(Stores.chat_messages)) ?? [];
     const messagesByThreadId = messages.reduce<Record<string, Message[]>>(
       (acc, m) => {
@@ -200,12 +220,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
 
   closeThread: async (threadId) => {
     const state = get();
-    // Get all threads from DB (including hidden ones) to find the thread
-    const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
-    const thread = allThreads.find((t) => t.id === threadId);
-    if (!thread) {
-      throw new Error(`Thread ${threadId} not found`);
-    }
+    const thread = await getThreadById(threadId);
 
     const updatedThread: Thread = {
       ...thread,
@@ -223,8 +238,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     // If the closed thread was active, switch to another open thread
     let newActiveThreadId = state.activeThreadId;
     if (state.activeThreadId === threadId) {
-      newActiveThreadId =
-        openThreads.length > 0 ? openThreads[0].id : newThreads[0]?.id ?? null;
+      newActiveThreadId = pickNextActiveThreadId(openThreads, newThreads);
       if (newActiveThreadId) {
         await put(Stores.meta, {
           k: META_KEY_ACTIVE_THREAD,
@@ -241,12 +255,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
 
   reopenThread: async (threadId) => {
     const state = get();
-    // Get all threads from DB (including hidden ones) to find the thread
-    const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
-    const thread = allThreads.find((t) => t.id === threadId);
-    if (!thread) {
-      throw new Error(`Thread ${threadId} not found`);
-    }
+    const thread = await getThreadById(threadId);
 
     const updatedThread: Thread = {
       ...thread,
@@ -263,12 +272,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
       ? state.threads.map((t) => (t.id === threadId ? updatedThread : t))
       : [updatedThread, ...state.threads];
 
-    // Sort threads by updatedAt (or createdAt if updatedAt is missing), newest first
-    newThreads.sort((a, b) => {
-      const aDate = a.updatedAt ?? a.createdAt;
-      const bDate = b.updatedAt ?? b.createdAt;
-      return bDate - aDate; // Descending order (newest first)
-    });
+    sortThreadsByUpdatedDesc(newThreads);
 
     set({
       threads: newThreads,
@@ -284,8 +288,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
     let newActiveThreadId = state.activeThreadId;
     if (state.activeThreadId === threadId) {
       const openThreads = newThreads.filter((t) => t.isOpen !== false);
-      newActiveThreadId =
-        openThreads.length > 0 ? openThreads[0].id : newThreads[0]?.id ?? null;
+      newActiveThreadId = pickNextActiveThreadId(openThreads, newThreads);
       if (newActiveThreadId) {
         await put(Stores.meta, {
           k: META_KEY_ACTIVE_THREAD,
@@ -304,12 +307,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
 
   ensureThreadVisible: async (threadId) => {
     const state = get();
-    // Get all threads from DB (including hidden ones) to find the thread
-    const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
-    const thread = allThreads.find((t) => t.id === threadId);
-    if (!thread) {
-      throw new Error(`Thread ${threadId} not found`);
-    }
+    const thread = await getThreadById(threadId);
 
     const now = Date.now();
     let updatedThread: Thread;
@@ -339,12 +337,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
       ? state.threads.map((t) => (t.id === threadId ? updatedThread : t))
       : [updatedThread, ...state.threads];
 
-    // Sort threads by updatedAt (or createdAt if updatedAt is missing), newest first
-    newThreads.sort((a, b) => {
-      const aDate = a.updatedAt ?? a.createdAt;
-      const bDate = b.updatedAt ?? b.createdAt;
-      return bDate - aDate; // Descending order (newest first)
-    });
+    sortThreadsByUpdatedDesc(newThreads);
 
     set({
       threads: newThreads,
@@ -380,12 +373,7 @@ export const useChatStore = create<ChatStore>()((set, get) => ({
 
   getAllThreads: async () => {
     const allThreads = (await getAll<Thread>(Stores.chat_threads)) ?? [];
-    // Sort threads by updatedAt (or createdAt if updatedAt is missing), newest first
-    allThreads.sort((a, b) => {
-      const aDate = a.updatedAt ?? a.createdAt;
-      const bDate = b.updatedAt ?? b.createdAt;
-      return bDate - aDate; // Descending order (newest first)
-    });
+    sortThreadsByUpdatedDesc(allThreads);
     return allThreads;
   },
 }));

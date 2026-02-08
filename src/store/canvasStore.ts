@@ -187,6 +187,25 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
     }
   };
 
+  /** Build media blobs + blob URLs, then deserialize nodes/edges for a tab. */
+  const hydrateMediaAndDeserialize = async (
+    persistedNodes: PersistedNode[],
+    persistedEdges: PersistedEdge[]
+  ): Promise<{ nodes: CustomNode[]; edges: Edge[] }> => {
+    const mediaRecords = await getAll<MediaRecord>(Stores.media);
+    blobManager.setMediaBlobsFromRecords(mediaRecords);
+    const mediaUrlById = new Map<string, string>(
+      mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
+    );
+    const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
+
+    const nodes = persistedNodes.map((n) =>
+      deserializeNode(n, resolveBlobUrl)
+    );
+    const edges = persistedEdges.map((e) => deserializeEdge(e));
+    return { nodes, edges };
+  };
+
   /** Run text extraction for PDF/Image nodes that don't have a node_text row yet (e.g. seeded or loaded from DB). */
   const triggerExtractionForNodesWithoutText = async (
     nodes: CustomNode[]
@@ -280,27 +299,16 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
       // Always ensure initial media is seeded (in case nodes/edges exist but media doesn't)
       await seedInitialMedia();
 
-      // Build mediaId -> blob URL and in-memory Blob map (Blobs for react-pdf, URLs for "open in new tab")
-      const mediaRecords = await getAll<MediaRecord>(Stores.media);
-      blobManager.setMediaBlobsFromRecords(mediaRecords);
-      const mediaUrlById = new Map<string, string>(
-        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
-      );
-
-      const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
-
-      // Load data for the active tab
       const activeTabNodes = persistedNodes.filter(
         (n) => n.tabId === activeTabId
       );
       const activeTabEdges = persistedEdges.filter(
         (e) => e.tabId === activeTabId
       );
-
-      const nodes = activeTabNodes.map((n) =>
-        deserializeNode(n, resolveBlobUrl)
+      const { nodes, edges } = await hydrateMediaAndDeserialize(
+        activeTabNodes,
+        activeTabEdges
       );
-      const edges = activeTabEdges.map((e) => deserializeEdge(e));
 
       set(() => ({
         nodes,
@@ -340,19 +348,10 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
         getAllFromIndex<PersistedEdge>(Stores.edges, "tabId", tabId),
       ]);
 
-      // Build mediaId -> blob URL and in-memory Blobs (same as loadFromDb)
-      const mediaRecords = await getAll<MediaRecord>(Stores.media);
-      blobManager.setMediaBlobsFromRecords(mediaRecords);
-      const mediaUrlById = new Map<string, string>(
-        mediaRecords.map((m) => [m.id, blobManager.createBlobUrl(m.blob)])
+      const { nodes, edges } = await hydrateMediaAndDeserialize(
+        persistedNodes,
+        persistedEdges
       );
-
-      const resolveBlobUrl = (mediaId: string) => mediaUrlById.get(mediaId);
-
-      const nodes = persistedNodes.map((n) =>
-        deserializeNode(n, resolveBlobUrl)
-      );
-      const edges = persistedEdges.map((e) => deserializeEdge(e));
 
       set(() => ({ nodes, edges }));
       await hydrateExtractedFromDb();

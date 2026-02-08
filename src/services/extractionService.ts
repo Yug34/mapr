@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../lib/utils";
 import { put, Stores } from "../utils/sqliteDb";
 import type { NodeTextRecord } from "../utils/sqliteDb";
 import { useExtractionStore } from "../store/extractionStore";
@@ -43,7 +44,7 @@ export async function extractAndStoreNodeText(
     setStatus(nodeId, "done");
     useExtractionStore.getState().hydrateExtractedFromDb([nodeId]);
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = getErrorMessage(err);
     console.error("[extractionService] Extraction failed for", nodeId, err);
     setError(nodeId, message);
   }

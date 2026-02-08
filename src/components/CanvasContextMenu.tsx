@@ -25,6 +25,7 @@ import {
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -247,7 +248,7 @@ const CanvasContextMenu = ({
       // Final update to ensure the complete message is saved
       await updateMessage(assistantMessageId, accumulatedContent.trim());
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
+      const message = getErrorMessage(err);
       toast.error(`Summarization failed: ${message}`);
     }
   }, [

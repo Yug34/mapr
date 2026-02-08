@@ -1,5 +1,6 @@
 import { execQuery } from "../utils/sqliteDb";
 import { devLog, devWarn } from "../lib/devLog";
+import { extractTitle, extractImportant } from "../utils/nodeDataUtils";
 import type { StructuredQuerySpec, QueryResult } from "../types/query";
 import type { PersistedNode } from "../utils/serialization";
 import { TodoStatus, type Todo, type TODONodeData } from "../types/common";
@@ -19,24 +20,6 @@ function mapNodeTypeToQueryType(nodeType: string | undefined): string | null {
     LinkNode: "link",
   };
   return mapping[nodeType] || null;
-}
-
-/**
- * Extracts title from node data JSON (notes use title; media nodes use title ?? fileName)
- */
-function extractTitle(data: unknown): string | undefined {
-  if (!data || typeof data !== "object") return undefined;
-  const obj = data as Record<string, unknown>;
-  return (obj.title as string) || (obj.fileName as string) || undefined;
-}
-
-/**
- * Extracts important flag from node data JSON
- */
-function extractImportant(data: unknown): boolean {
-  if (!data || typeof data !== "object") return false;
-  const obj = data as Record<string, unknown>;
-  return obj.important === true;
 }
 
 /**

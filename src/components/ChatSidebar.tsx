@@ -4,7 +4,7 @@ import { useCanvasStore } from "@/store/canvasStore";
 import type { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import {
   Send,
   SquareArrowOutUpRight,
@@ -223,8 +223,7 @@ export function ChatSidebar() {
         tabId: activeTabId,
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      toast.error(`Failed to build canvas context: ${msg}`);
+      toast.error(`Failed to build canvas context: ${getErrorMessage(err)}`);
       setSending(false);
       return;
     }
@@ -259,7 +258,7 @@ export function ChatSidebar() {
       });
       await updateMessage(assistantMessageId, accumulatedContent.trim());
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = getErrorMessage(err);
       toast.error(`Chat failed: ${msg}`);
       await updateMessage(assistantMessageId, `Error: ${msg}`).catch(() => {});
     } finally {

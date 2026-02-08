@@ -12,6 +12,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Extract a safe string from an unknown error. */
+export function getErrorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 /** Strip the last file extension for use as a display name (e.g. "photo.png" → "photo"). */
 export function stripFileExtension(name: string): string {
   const i = name.lastIndexOf(".");
@@ -19,47 +24,31 @@ export function stripFileExtension(name: string): string {
   return name.slice(0, i);
 }
 
+function createMediaHandler(
+  type: "ImageNode" | "VideoNode" | "AudioNode" | "PDFNode",
+  test: (mime: string) => boolean,
+  fileKey: string,
+  urlKey: string,
+  base64Key: string
+): MediaHandler<ImageNodeData | VideoNodeData | AudioNodeData | PDFNodeData> {
+  return {
+    test,
+    type,
+    buildData: (file, url, b64) =>
+      ({
+        fileName: file.name,
+        [fileKey]: file,
+        [urlKey]: url,
+        [base64Key]: b64,
+      }) as unknown as ImageNodeData | VideoNodeData | AudioNodeData | PDFNodeData,
+  };
+}
+
 export const MEDIA_HANDLERS: MediaHandler<
   ImageNodeData | VideoNodeData | AudioNodeData | PDFNodeData
 >[] = [
-  {
-    test: (t) => t.startsWith("image/"),
-    type: "ImageNode",
-    buildData: (file, url, b64) => ({
-      fileName: file.name,
-      image: file,
-      imageBlobUrl: url,
-      imageBase64: b64,
-    }),
-  },
-  {
-    test: (t) => t.startsWith("video/"),
-    type: "VideoNode",
-    buildData: (file, url, b64) => ({
-      fileName: file.name,
-      video: file,
-      videoBlobUrl: url,
-      videoBase64: b64,
-    }),
-  },
-  {
-    test: (t) => t.startsWith("audio/"),
-    type: "AudioNode",
-    buildData: (file, url, b64) => ({
-      fileName: file.name,
-      audio: file,
-      audioBlobUrl: url,
-      audioBase64: b64,
-    }),
-  },
-  {
-    test: (t) => t === "application/pdf",
-    type: "PDFNode",
-    buildData: (file, url, b64) => ({
-      fileName: file.name,
-      pdf: file,
-      pdfBlobUrl: url,
-      pdfBase64: b64,
-    }),
-  },
+  createMediaHandler("ImageNode", (t) => t.startsWith("image/"), "image", "imageBlobUrl", "imageBase64"),
+  createMediaHandler("VideoNode", (t) => t.startsWith("video/"), "video", "videoBlobUrl", "videoBase64"),
+  createMediaHandler("AudioNode", (t) => t.startsWith("audio/"), "audio", "audioBlobUrl", "audioBase64"),
+  createMediaHandler("PDFNode", (t) => t === "application/pdf", "pdf", "pdfBlobUrl", "pdfBase64"),
 ];

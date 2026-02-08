@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import { devLog } from "@/lib/devLog";
 import { Star, ChevronDown, ChevronRight, Check, X } from "lucide-react";
 import { format } from "date-fns";
@@ -59,9 +59,8 @@ export function QueryDevPanel() {
 
       setResults(queryResults);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
       console.error("[QueryDevPanel] Error:", err);
-      setError(errorMessage);
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -99,9 +98,8 @@ export function QueryDevPanel() {
 
       setResults(queryResults);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
       console.error("[QueryDevPanel] Error:", err);
-      setError(errorMessage);
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

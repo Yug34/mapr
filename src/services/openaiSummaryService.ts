@@ -1,4 +1,5 @@
 import { SUMMARIZE_MAX_INPUT_CHARS } from "@/constants";
+import { getErrorMessage } from "@/lib/utils";
 
 /**
  * API endpoint URL - relative path so Vite proxy (dev) or same-origin (prod) handles it.
@@ -74,7 +75,7 @@ export async function streamSummarizeWithOpenAI(
     }
     return content;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = getErrorMessage(error);
     throw new Error(`Failed to summarize: ${errorMessage}`);
   }
 }

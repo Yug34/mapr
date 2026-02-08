@@ -319,10 +319,44 @@ function execErrMsg(e: unknown): string {
   return o?.result?.message ?? (e instanceof Error ? e.message : String(e));
 }
 
+const SQLITE_BUSY_RE = /SQLITE_BUSY|database is locked/i;
+const RETRIES = 3;
+
+async function executeWithRetry<T>(
+  attempt: () => Promise<T>,
+  accessHandleRetried: boolean,
+  retryFn: () => Promise<T>
+): Promise<T> {
+  for (let i = 0; i < RETRIES; i++) {
+    try {
+      return await attempt();
+    } catch (e) {
+      const msg = execErrMsg(e);
+      const isBusy = SQLITE_BUSY_RE.test(msg);
+      if (isBusy && i < RETRIES - 1) {
+        await new Promise((r) => setTimeout(r, 50 * (i + 1)));
+        continue;
+      }
+      if (
+        isAccessHandleError(msg) &&
+        !accessHandleRetried &&
+        !usingMemoryFallback
+      ) {
+        devWarn(
+          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
+        );
+        resetInit();
+        return retryFn();
+      }
+      throw new Error(msg || "SQLite exec failed");
+    }
+  }
+  throw new Error("SQLite exec failed after retries");
+}
+
 async function exec(
   sql: string,
   bind?: (string | number | null)[],
-  retries = 3,
   accessHandleRetried = false
 ): Promise<void> {
   const { promiser: p, dbId: id } = await init();
@@ -334,60 +368,26 @@ async function exec(
     resultRows: [],
   };
   if (bind && bind.length) opts.bind = bind;
-  for (let i = 0; i < retries; i++) {
-    try {
+
+  await executeWithRetry(
+    async () => {
       const res = (await p("exec", opts)) as {
         type: string;
         result?: { message?: string };
       };
       if (res.type === "error") {
         const msg = (res.result as { message?: string })?.message ?? "";
-        const isBusy = /SQLITE_BUSY|database is locked/i.test(msg);
-        if (isBusy && i < retries - 1) {
-          await new Promise((r) => setTimeout(r, 50 * (i + 1)));
-          continue;
-        }
-        if (
-          isAccessHandleError(msg) &&
-          !accessHandleRetried &&
-          !usingMemoryFallback
-        ) {
-        devWarn(
-          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
-        );
-          resetInit();
-          return exec(sql, bind, retries, true);
-        }
         throw new Error(msg || "SQLite exec failed");
       }
-      return;
-    } catch (e) {
-      const msg = execErrMsg(e);
-      const isBusy = /SQLITE_BUSY|database is locked/i.test(msg);
-      if (isBusy && i < retries - 1) {
-        await new Promise((r) => setTimeout(r, 50 * (i + 1)));
-        continue;
-      }
-      if (
-        isAccessHandleError(msg) &&
-        !accessHandleRetried &&
-        !usingMemoryFallback
-      ) {
-        devWarn(
-          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
-        );
-          resetInit();
-          return exec(sql, bind, retries, true);
-      }
-      throw new Error(msg || "SQLite exec failed");
-    }
-  }
+    },
+    accessHandleRetried,
+    () => exec(sql, bind, true)
+  );
 }
 
 export async function execQuery<T extends Record<string, unknown>>(
   sql: string,
   bind?: (string | number | null)[],
-  retries = 3,
   accessHandleRetried = false
 ): Promise<T[]> {
   const { promiser: p, dbId: id } = await init();
@@ -399,55 +399,22 @@ export async function execQuery<T extends Record<string, unknown>>(
     resultRows: [] as T[],
   };
   if (bind && bind.length) opts.bind = bind;
-  for (let i = 0; i < retries; i++) {
-    try {
+
+  return executeWithRetry(
+    async () => {
       const res = (await p("exec", opts)) as {
         type: string;
         result?: { resultRows?: T[]; message?: string };
       };
       if (res.type === "error") {
         const msg = res.result?.message ?? "";
-        const isBusy = /SQLITE_BUSY|database is locked/i.test(msg);
-        if (isBusy && i < retries - 1) {
-          await new Promise((r) => setTimeout(r, 50 * (i + 1)));
-          continue;
-        }
-        if (
-          isAccessHandleError(msg) &&
-          !accessHandleRetried &&
-          !usingMemoryFallback
-        ) {
-        devWarn(
-          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
-        );
-          resetInit();
-          return execQuery<T>(sql, bind, retries, true);
-        }
         throw new Error(msg || "SQLite exec failed");
       }
       return (res.result?.resultRows ?? []) as T[];
-    } catch (e) {
-      const msg = execErrMsg(e);
-      const isBusy = /SQLITE_BUSY|database is locked/i.test(msg);
-      if (isBusy && i < retries - 1) {
-        await new Promise((r) => setTimeout(r, 50 * (i + 1)));
-        continue;
-      }
-      if (
-        isAccessHandleError(msg) &&
-        !accessHandleRetried &&
-        !usingMemoryFallback
-      ) {
-        devWarn(
-          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
-        );
-          resetInit();
-          return execQuery<T>(sql, bind, retries, true);
-      }
-      throw new Error(msg || "SQLite exec failed");
-    }
-  }
-  throw new Error("SQLite exec failed after retries");
+    },
+    accessHandleRetried,
+    () => execQuery<T>(sql, bind, true)
+  );
 }
 
 function blobToBase64(blob: Blob): Promise<string> {
