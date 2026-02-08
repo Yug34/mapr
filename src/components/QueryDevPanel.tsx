@@ -234,6 +234,9 @@ export function QueryDevPanel() {
               <strong className="block mb-2">
                 Results ({results.length}):
               </strong>
+              <p className="text-muted-foreground text-[11px] mb-2">
+                Click a result to focus and zoom to that node on the canvas.
+              </p>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -252,7 +255,7 @@ export function QueryDevPanel() {
                   {results.map((result) => (
                     <TableRow
                       key={result.nodeId}
-                      className="cursor-pointer hover:bg-muted/50"
+                      className="cursor-pointer hover:bg-gray-200"
                       onClick={() =>
                         requestFocusNode(result.nodeId, result.tabId)
                       }
