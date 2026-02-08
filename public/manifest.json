@@ -1,7 +1,7 @@
 {
-  "name": ".mapr - Interactive Canvas for Creative Workflows",
+  "name": ".mapr - AI-assisted Interactive Canvas for Creative Workflows",
   "short_name": ".mapr",
-  "description": "An interactive canvas application for organizing and managing multimedia content including images, videos, audio, PDFs, and notes in a flexible visual workspace.",
+  "description": "An AI-assisted interactive canvas application for organizing and managing multimedia content including images, videos, audio, PDFs, and notes in a flexible visual workspace.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
@@ -36,4 +36,3 @@
     }
   }
 }
-
