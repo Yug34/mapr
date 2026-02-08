@@ -36,6 +36,7 @@ export type MediaRecord = {
 export type MetaRecord = { k: string; v: unknown };
 
 import type { TabIconKey } from "../types/common";
+import { devWarn } from "../lib/devLog";
 
 export type TabRecord = {
   id: string;
@@ -162,7 +163,7 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
           msg
         );
       if (isAccessHandleConflict) {
-        console.warn(
+        devWarn(
           "[sqliteDb] OPFS file locked by another tab/instance. Using in-memory DB for this session."
         );
         usingMemoryFallback = true;
@@ -176,7 +177,7 @@ async function init(): Promise<{ promiser: Promiser; dbId: string }> {
       } else if (!opfsUnavailable) {
         throw new Error(msg || "Failed to open SQLite database");
       } else {
-        console.warn(
+        devWarn(
           "[sqliteDb] OPFS unavailable (",
           msg,
           "). Using in-memory DB; data will not persist."
@@ -351,9 +352,9 @@ async function exec(
           !accessHandleRetried &&
           !usingMemoryFallback
         ) {
-          console.warn(
-            "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
-          );
+        devWarn(
+          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
+        );
           resetInit();
           return exec(sql, bind, retries, true);
         }
@@ -372,11 +373,11 @@ async function exec(
         !accessHandleRetried &&
         !usingMemoryFallback
       ) {
-        console.warn(
+        devWarn(
           "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
         );
-        resetInit();
-        return exec(sql, bind, retries, true);
+          resetInit();
+          return exec(sql, bind, retries, true);
       }
       throw new Error(msg || "SQLite exec failed");
     }
@@ -416,9 +417,9 @@ export async function execQuery<T extends Record<string, unknown>>(
           !accessHandleRetried &&
           !usingMemoryFallback
         ) {
-          console.warn(
-            "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
-          );
+        devWarn(
+          "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
+        );
           resetInit();
           return execQuery<T>(sql, bind, retries, true);
         }
@@ -437,11 +438,11 @@ export async function execQuery<T extends Record<string, unknown>>(
         !accessHandleRetried &&
         !usingMemoryFallback
       ) {
-        console.warn(
+        devWarn(
           "[sqliteDb] OPFS access conflict (e.g. another tab). Switching to in-memory DB for this session."
         );
-        resetInit();
-        return execQuery<T>(sql, bind, retries, true);
+          resetInit();
+          return execQuery<T>(sql, bind, retries, true);
       }
       throw new Error(msg || "SQLite exec failed");
     }
@@ -493,7 +494,7 @@ export async function closeDb(): Promise<void> {
   try {
     await p("close", { dbId: id });
   } catch (e) {
-    console.warn("[sqliteDb] Error while closing DB", e);
+    devWarn("[sqliteDb] Error while closing DB", e);
   }
 }
 

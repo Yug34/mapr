@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "./ui/table";
 import { cn } from "@/lib/utils";
+import { devLog } from "@/lib/devLog";
 import { Star, ChevronDown, ChevronRight, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import { NodeType } from "@/types/common";
@@ -52,9 +53,9 @@ export function QueryDevPanel() {
         spec.scope.tabId = activeTabId;
       }
 
-      console.log("[QueryDevPanel] Executing spec:", spec);
+      devLog("[QueryDevPanel] Executing spec:", spec);
       const queryResults = await queryService.execute(spec);
-      console.log("[QueryDevPanel] Results:", queryResults);
+      devLog("[QueryDevPanel] Results:", queryResults);
 
       setResults(queryResults);
     } catch (err) {
@@ -82,19 +83,19 @@ export function QueryDevPanel() {
           ? { type: "tab", tabId: activeTabId }
           : { type: "global" };
 
-      console.log("[QueryDevPanel] Interpreting NL query:", nlQuery);
-      console.log("[QueryDevPanel] Scope:", queryScope);
+      devLog("[QueryDevPanel] Interpreting NL query:", nlQuery);
+      devLog("[QueryDevPanel] Scope:", queryScope);
 
       const spec = await interpretQuery(nlQuery, queryScope);
 
-      console.log("[QueryDevPanel] Interpreted spec:", spec);
+      devLog("[QueryDevPanel] Interpreted spec:", spec);
 
       // Update JSON display
       setQueryJson(JSON.stringify(spec, null, 2));
 
       // Execute the query
       const queryResults = await queryService.execute(spec);
-      console.log("[QueryDevPanel] Results:", queryResults);
+      devLog("[QueryDevPanel] Results:", queryResults);
 
       setResults(queryResults);
     } catch (err) {

@@ -27,6 +27,8 @@ function App() {
   }, [loadFromStorage, ensureDefaultThread]);
 
   useEffect(() => {
+    if (!import.meta.env.DEV) return;
+
     async function logDbContents() {
       try {
         const [

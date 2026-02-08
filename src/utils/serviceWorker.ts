@@ -1,6 +1,7 @@
 /**
  * Service Worker Registration and Update Management
  */
+import { devLog, devWarn } from "../lib/devLog";
 
 export interface ServiceWorkerRegistrationState {
   registration: ServiceWorkerRegistration | null;
@@ -26,7 +27,7 @@ export function isServiceWorkerSupported(): boolean {
  */
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!isServiceWorkerSupported()) {
-    console.warn('[Service Worker] Service workers are not supported');
+    devWarn('[Service Worker] Service workers are not supported');
     return null;
   }
 
@@ -46,7 +47,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
           // New service worker available
           registrationState.updateAvailable = true;
-          console.log('[Service Worker] New version available');
+          devLog('[Service Worker] New version available');
           
           // Dispatch custom event for UI to handle
           window.dispatchEvent(
@@ -54,7 +55,7 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
           );
         } else if (newWorker.state === 'activated') {
           registrationState.offlineReady = true;
-          console.log('[Service Worker] Service worker activated');
+          devLog('[Service Worker] Service worker activated');
           
           window.dispatchEvent(
             new CustomEvent('sw-offline-ready', { detail: { registration } })
@@ -65,11 +66,11 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
     // Handle controller change (new service worker took control)
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      console.log('[Service Worker] Controller changed - reloading page');
+      devLog('[Service Worker] Controller changed - reloading page');
       window.location.reload();
     });
 
-    console.log('[Service Worker] Registered successfully:', registration.scope);
+    devLog('[Service Worker] Registered successfully:', registration.scope);
     return registration;
   } catch (error) {
     console.error('[Service Worker] Registration failed:', error);
@@ -92,7 +93,7 @@ export async function unregisterServiceWorker(): Promise<boolean> {
       registrationState.registration = null;
       registrationState.updateAvailable = false;
       registrationState.offlineReady = false;
-      console.log('[Service Worker] Unregistered successfully');
+      devLog('[Service Worker] Unregistered successfully');
     }
     return unregistered;
   } catch (error) {
@@ -106,13 +107,13 @@ export async function unregisterServiceWorker(): Promise<boolean> {
  */
 export async function checkForUpdates(): Promise<void> {
   if (!registrationState.registration) {
-    console.warn('[Service Worker] No registration found');
+    devWarn('[Service Worker] No registration found');
     return;
   }
 
   try {
     await registrationState.registration.update();
-    console.log('[Service Worker] Update check completed');
+    devLog('[Service Worker] Update check completed');
   } catch (error) {
     console.error('[Service Worker] Update check failed:', error);
   }
@@ -123,14 +124,14 @@ export async function checkForUpdates(): Promise<void> {
  */
 export async function activateUpdate(): Promise<void> {
   if (!registrationState.registration || !registrationState.registration.waiting) {
-    console.warn('[Service Worker] No waiting service worker found');
+    devWarn('[Service Worker] No waiting service worker found');
     return;
   }
 
   try {
     // Send message to service worker to skip waiting
     registrationState.registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-    console.log('[Service Worker] Update activation requested');
+    devLog('[Service Worker] Update activation requested');
   } catch (error) {
     console.error('[Service Worker] Update activation failed:', error);
   }

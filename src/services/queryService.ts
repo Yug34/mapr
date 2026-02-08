@@ -1,4 +1,5 @@
 import { execQuery } from "../utils/sqliteDb";
+import { devLog, devWarn } from "../lib/devLog";
 import type { StructuredQuerySpec, QueryResult } from "../types/query";
 import type { PersistedNode } from "../utils/serialization";
 import { TodoStatus, type Todo, type TODONodeData } from "../types/common";
@@ -106,8 +107,8 @@ export class QueryService {
     // Build the SQL query
     const { sql, bind } = this.buildQuery(spec);
 
-    console.log("[QueryService] Executing query:", sql);
-    console.log("[QueryService] Bind params:", bind);
+    devLog("[QueryService] Executing query:", sql);
+    devLog("[QueryService] Bind params:", bind);
 
     // Execute query (LEFT JOIN node_text for extracted media text)
     const rows = await execQuery<{
@@ -117,7 +118,7 @@ export class QueryService {
       plainText?: string | null;
     }>(sql, bind);
 
-    console.log("[QueryService] Raw rows returned:", rows.length);
+    devLog("[QueryService] Raw rows returned:", rows.length);
 
     // Parse results
     const results: QueryResult[] = [];
@@ -127,21 +128,21 @@ export class QueryService {
       try {
         persistedNode = JSON.parse(row.data) as PersistedNode;
       } catch {
-        console.warn("[QueryService] Failed to parse node data for", row.id);
+        devWarn("[QueryService] Failed to parse node data for", row.id);
         continue; // Skip invalid JSON
       }
 
       // Get the persisted node type
       const nodeType = persistedNode.type;
       if (!nodeType) {
-        console.warn("[QueryService] Node missing type:", row.id);
+        devWarn("[QueryService] Node missing type:", row.id);
         continue;
       }
 
       // Map to query type
       const queryType = mapNodeTypeToQueryType(nodeType);
       if (!queryType) {
-        console.warn("[QueryService] Unknown node type:", nodeType);
+        devWarn("[QueryService] Unknown node type:", nodeType);
         continue;
       }
 
