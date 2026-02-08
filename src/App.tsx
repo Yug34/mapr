@@ -5,7 +5,6 @@ import { useCanvas } from "./hooks/useCanvas";
 import { Badge } from "./components/ui/badge";
 import { Loader } from "./components/ui/loader";
 import { Walkthrough } from "./components/Walkthrough";
-import { getAll, Stores } from "./utils/sqliteDb";
 import {
   SidebarProvider,
   Sidebar,
@@ -25,49 +24,6 @@ function App() {
       await ensureDefaultThread();
     })();
   }, [loadFromStorage, ensureDefaultThread]);
-
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-
-    async function logDbContents() {
-      try {
-        const [
-          nodes,
-          edges,
-          media,
-          meta,
-          tabsData,
-          nodeTextData,
-          chatThreadsData,
-          chatMessagesData,
-        ] = await Promise.all([
-          getAll(Stores.nodes),
-          getAll(Stores.edges),
-          getAll(Stores.media),
-          getAll(Stores.meta),
-          getAll(Stores.tabs),
-          getAll(Stores.node_text),
-          getAll(Stores.chat_threads),
-          getAll(Stores.chat_messages),
-        ]);
-
-        console.log("=== SQLite DB Contents ===");
-        console.log("Nodes:", nodes);
-        console.log("Edges:", edges);
-        console.log("Media:", media);
-        console.log("Meta:", meta);
-        console.log("Tabs:", tabsData);
-        console.log("Node Text:", nodeTextData);
-        console.log("Chat Threads:", chatThreadsData);
-        console.log("Chat Messages:", chatMessagesData);
-        console.log("========================");
-      } catch (error) {
-        console.error("Error reading SQLite DB:", error);
-      }
-    }
-
-    logDbContents();
-  }, []);
 
   const currentTabTitle = tabs.find((tab) => tab.id === activeTabId)?.title;
 

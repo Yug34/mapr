@@ -52,10 +52,9 @@ export function NoteNode(props: NodeProps) {
     };
 
     if (isEditing) {
-      // FIXME?: Use a small delay to ensure the event is properly captured
       setTimeout(() => {
         document.addEventListener("mousedown", handleClickOutside, true);
-      }, 0);
+      }, 10); // Small delay to ensure the event is properly captured
     }
 
     return () => {
