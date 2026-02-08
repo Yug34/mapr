@@ -303,24 +303,28 @@ export function ChatSidebar() {
                   />
                 ) : (
                   <>
-                    <span className="truncate min-w-0">{t.title}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="edit-thread-icon shrink-0 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setEditingThreadId(t.id);
-                        setEditingTitle(t.title);
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                    >
-                      <Pencil className="size-3" />
-                    </Button>
+                    <span className="truncate min-w-0">
+                      {t.title.charAt(0).toUpperCase() + t.title.slice(1)}
+                    </span>
+                    {activeThreadId === t.id && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="edit-thread-icon shrink-0 w-3 h-3"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setEditingThreadId(t.id);
+                          setEditingTitle(t.title);
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      >
+                        <Pencil className="size-3" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
