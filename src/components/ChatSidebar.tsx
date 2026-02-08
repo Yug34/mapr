@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useChatStore } from "@/store/chatStore";
+import { useCanvasStore } from "@/store/canvasStore";
 import type { Message } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Send, SquareArrowOutUpRight, X, History, Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
 import { Loader } from "./ui/loader";
 import { ThreadHistoryDialog } from "./ThreadHistoryDialog";
+import { buildCanvasContext } from "@/services/canvasContextBuilder";
+import { streamCanvasChat } from "@/services/canvasChatService";
 
 function MessageBubble({
   message,
@@ -85,15 +89,18 @@ export function ChatSidebar() {
     activeThreadId,
     setActiveThread,
     addMessage,
+    updateMessage,
     updateThreadTitle,
     closeThread,
     addThread,
     loadFromStorage,
     ensureDefaultThread,
   } = useChatStore();
+  const { activeTabId } = useCanvasStore();
 
   const [input, setInput] = useState("");
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -144,14 +151,12 @@ export function ChatSidebar() {
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || !activeThreadId) return;
+    if (!text || !activeThreadId || sending) return;
 
-    // Check if this is the first user message in the thread
+    // First user message: set thread title to first two words
     const currentMessages = messagesByThreadId[activeThreadId] ?? [];
     const userMessages = currentMessages.filter((m) => m.role === "user");
     const isFirstUserMessage = userMessages.length === 0;
-
-    // If it's the first user message, update the thread title to the first two words
     if (isFirstUserMessage) {
       const firstTwoWords = text.trim().split(/\s+/).slice(0, 2).join(" ");
       if (firstTwoWords) {
@@ -161,6 +166,57 @@ export function ChatSidebar() {
 
     await addMessage(activeThreadId, { role: "user", content: text });
     setInput("");
+    setSending(true);
+
+    let canvasContext: string;
+    try {
+      canvasContext = await buildCanvasContext({
+        type: "tab",
+        tabId: activeTabId,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Failed to build canvas context: ${msg}`);
+      setSending(false);
+      return;
+    }
+
+    // Ensure we have at least placeholder context so API accepts the request
+    const contextToSend =
+      canvasContext.trim().length > 0
+        ? canvasContext
+        : "## Tabs\n(none)\n\n## Nodes\n(No nodes in scope)";
+
+    const threadMessages =
+      useChatStore.getState().messagesByThreadId[activeThreadId] ?? [];
+    const apiMessages = threadMessages
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      }));
+
+    const assistantMessageId = await addMessage(activeThreadId, {
+      role: "assistant",
+      content: "",
+    });
+
+    let accumulatedContent = "";
+    try {
+      await streamCanvasChat(apiMessages, contextToSend, (chunk) => {
+        accumulatedContent += chunk;
+        updateMessage(assistantMessageId, accumulatedContent).catch((e) => {
+          console.error("Failed to update message:", e);
+        });
+      });
+      await updateMessage(assistantMessageId, accumulatedContent.trim());
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Chat failed: ${msg}`);
+      await updateMessage(assistantMessageId, `Error: ${msg}`).catch(() => {});
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -336,7 +392,7 @@ export function ChatSidebar() {
             size="icon"
             aria-label="Send"
             onClick={handleSend}
-            disabled={!input.trim() || !activeThreadId}
+            disabled={!input.trim() || !activeThreadId || sending}
             className="shrink-0"
           >
             <Send className="size-4" />
