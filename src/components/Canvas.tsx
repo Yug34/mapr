@@ -23,6 +23,7 @@ import type {
   Edge,
 } from "@xyflow/react";
 import { useCanvas } from "../hooks/useCanvas";
+import { useCanvasStore } from "../store/canvasStore";
 import { nodeTypes } from "../types/common";
 import type { CustomNode } from "../types/common";
 import { isLink, readAsDataURL } from "../utils";
@@ -86,6 +87,29 @@ const PasteHandler = ({
       canvas.removeEventListener("paste", onPasteEvent);
     };
   }, [canvasRef, onPaste, screenToFlowPosition]);
+
+  return null;
+};
+
+const FocusNodeHandler = () => {
+  const { fitView, setNodes } = useReactFlow<CustomNode>();
+  const focusNodeId = useCanvasStore((s) => s.focusNodeId);
+
+  useEffect(() => {
+    if (!focusNodeId) return;
+    fitView({
+      nodes: [{ id: focusNodeId }],
+      duration: 300,
+      maxZoom: 1.5,
+    });
+    setNodes((nodes) =>
+      nodes.map((n) => ({
+        ...n,
+        selected: n.id === focusNodeId,
+      }))
+    );
+    useCanvasStore.setState({ focusNodeId: null });
+  }, [focusNodeId, fitView, setNodes]);
 
   return null;
 };
@@ -429,6 +453,7 @@ const Canvas = () => {
 
               <DeleteHandler />
               <WheelPanInverter />
+              <FocusNodeHandler />
               <ReactFlow
                 {...{
                   nodes,

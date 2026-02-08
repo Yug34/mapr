@@ -35,6 +35,8 @@ export interface StructuredQuerySpec {
 
 export interface QueryResult {
   nodeId: string;
+  /** Tab containing the node (for switching tabs when focusing) */
+  tabId?: string;
   type: string;
   title?: string;
   createdAt?: number;

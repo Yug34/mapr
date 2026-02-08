@@ -55,6 +55,9 @@ interface CanvasStore {
   loadTabData: (tabId: string) => Promise<void>;
   /** Clear all DB tables and reinitialize with initial seed data (no page reload). */
   resetToInitialState: () => Promise<void>;
+  /** Request canvas to focus on a node. If tabId differs from active tab, switches tab first. */
+  requestFocusNode: (nodeId: string, tabId?: string) => Promise<void>;
+  focusNodeId: string | null;
 }
 
 export const useCanvasStore = create<CanvasStore>()((set, get) => {
@@ -548,5 +551,15 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => {
     updateTabTitle,
     loadTabData,
     resetToInitialState,
+
+    focusNodeId: null,
+    requestFocusNode: async (nodeId: string, tabId?: string) => {
+      const state = get();
+      if (tabId && tabId !== state.activeTabId) {
+        await loadTabData(tabId);
+        set({ activeTabId: tabId });
+      }
+      set({ focusNodeId: nodeId });
+    },
   };
 });

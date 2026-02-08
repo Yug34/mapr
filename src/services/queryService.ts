@@ -230,6 +230,7 @@ export class QueryService {
       // Store result with all extracted fields
       const result: QueryResult = {
         nodeId: row.id,
+        tabId: row.tabId,
         type: queryType,
         title,
         createdAt,

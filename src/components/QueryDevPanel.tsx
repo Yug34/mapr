@@ -38,7 +38,7 @@ export function QueryDevPanel() {
   const [loading, setLoading] = useState(false);
   const [scope, setScope] = useState<Scope>({ type: "global" });
   const [showJsonSection, setShowJsonSection] = useState(false);
-  const { activeTabId } = useCanvasStore();
+  const { activeTabId, requestFocusNode } = useCanvasStore();
 
   const handleExecuteJson = async () => {
     setError(null);
@@ -252,7 +252,13 @@ export function QueryDevPanel() {
                 </TableHeader>
                 <TableBody>
                   {results.map((result) => (
-                    <TableRow key={result.nodeId}>
+                    <TableRow
+                      key={result.nodeId}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() =>
+                        requestFocusNode(result.nodeId, result.tabId)
+                      }
+                    >
                       <TableCell
                         className={cn(
                           "text-[11px] py-1.5 max-w-[120px]",
